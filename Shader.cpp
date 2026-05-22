@@ -1,0 +1,66 @@
+#include "Shader.h"
+
+Shader::Shader(const char* vertexPath, const char* fragmentPath) {
+	std::ifstream vertexFile;
+	std::ifstream fragmentFile;
+	std::string vertexCode;
+	std::string fragmentCode;
+
+	vertexFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+	fragmentFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+
+	try {
+		vertexFile.open(vertexPath);
+		fragmentFile.open(fragmentPath);
+		std::stringstream vertexStream, fragmentStream;
+		vertexStream << vertexFile.rdbuf();
+		fragmentStream << fragmentFile.rdbuf();
+		vertexCode = vertexStream.str();
+		fragmentCode = fragmentStream.str();
+	}
+	catch(std::ifstream::failure e){
+		std::cout << "FILE NOT SUCCESSFULLY READ" << std::endl;
+	}
+
+	const char* vertexSrc = vertexCode.c_str();
+	const char* fragmentSrc = fragmentCode.c_str();
+
+	unsigned int vertexShader;
+	vertexShader = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(vertexShader, 1, &vertexSrc, NULL);
+	glCompileShader(vertexShader);
+
+	unsigned int fragmentShader;
+	fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fragmentShader, 1, &fragmentSrc, NULL);
+	glCompileShader(fragmentShader);
+
+	ID = glCreateProgram();
+	glAttachShader(ID, vertexShader);
+	glAttachShader(ID, fragmentShader);
+	glLinkProgram(ID);
+
+	glDeleteShader(vertexShader);
+	glDeleteShader(fragmentShader);
+}
+
+void Shader::use() {
+	glUseProgram(ID);
+}
+
+void Shader::setBool(const std::string& name, bool value) const {
+	glUniform1i(glGetUniformLocation(ID, name.c_str()), (int)value);
+}
+
+void Shader::setInt(const std::string& name, int value) const {
+	glUniform1i(glGetUniformLocation(ID, name.c_str()), value);
+}
+
+void Shader::setFloat(const std::string& name, float value) const {
+	glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
+}
+
+void Shader::setSampler2D(const std::string& name, int value) const {
+
+	glUniform1i(glGetUniformLocation(ID, name.c_str()), value);
+}

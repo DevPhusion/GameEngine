@@ -3,5 +3,5 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="GameEngine.vcxproj" />
+  <Project Path="GameEngine.vcxproj" Id="a87a57a3-56de-451c-9fdc-87ddc8e0d61c" />
 </Solution>
