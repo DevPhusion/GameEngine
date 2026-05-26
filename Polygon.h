@@ -2,7 +2,10 @@
 #pragma once
 #include "Polygon.h"
 #include "Shader.h"
-#include "stb_image.h"
+#include "Object.h"
+#include "RenderComponent.h"
+#include "TransformComponent.h"
+#include "VertexComponent.h"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/gtc/constants.hpp>
@@ -13,26 +16,14 @@
 #include <string>
 
 
-class Polygon
+class Polygon : public Object
 {
 public:
 	Polygon(std::vector<float> vertices, Shader shader, std::vector<std::string> textures);
 	Polygon() = default;
 
-	void Draw();
-	void UpdateBuffer();
-	void AddVertex(std::vector<float> vertex);
-	void InsertVertex(unsigned int index, std::vector<float> vertex);
 	void SetVertices(std::vector<float> vertices);
-	void RemoveVertex(unsigned int index);
-	std::vector<float> Vertices;
-	std::vector<float> GetVertices();
+	glm::vec3 GetCenter();
 private:
-	std::vector<unsigned int> Indices;
-	Shader shader;
-	unsigned int VAO;
-	unsigned int VBO;
-	unsigned int EBO;
-
 	std::vector<unsigned int> Triangulate(std::vector<float> vertices);
 };

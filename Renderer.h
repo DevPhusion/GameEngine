@@ -1,6 +1,6 @@
 #pragma once
-#include "Polygon.h"
 #include "Shader.h"
+#include "Polygon.h"
 #include<glad/glad.h>
 #include<GLFW/glfw3.h>
 #include <vector>
@@ -8,9 +8,9 @@
 class Renderer
 {
 public:
-	Renderer(std::vector<Polygon> polygon);
-	std::vector<Polygon> poly;
+	Renderer(std::vector<Object>* objects);
 	void Draw();
-	void AddPolygon(Polygon polygon);
+private:
+	std::vector<Object>* allObjects;
 };
 

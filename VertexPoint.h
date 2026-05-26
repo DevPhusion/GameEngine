@@ -1,21 +1,18 @@
 #pragma once
+#include "Object.h"
+#include "Shader.h"
+#include "RenderComponent.h"
+#include "TransformComponent.h"
 #include <memory>
-#include "Polygon.h"
-#include "Renderer.h"
-class VertexPoint
+class VertexPoint:public Object
 {
 
 public:
+	VertexPoint(float x, float y, Shader shader);
+	VertexPoint() = default;
+
 	float x;
 	float y;
-	std::shared_ptr<Polygon> parentPolygon;
-	VertexPoint(float x, float y, Shader shader, int pointIndex, Renderer* renderer);
-	VertexPoint() = default;
-	void SetParentPolygon(std::shared_ptr<Polygon> parentPolygon) {
-		this->parentPolygon = parentPolygon;
-	}
+
 	void UpdatePosition(float x, float y);
-private:
-	Polygon pointIndicator;
-	unsigned int pointIndex;
 };

@@ -137,19 +137,31 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Component.cpp" />
     <ClCompile Include="glad.c" />
+    <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Object.cpp" />
     <ClCompile Include="Polygon.cpp" />
+    <ClCompile Include="RenderComponent.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="stb_image.cpp" />
+    <ClCompile Include="TransformComponent.cpp" />
+    <ClCompile Include="VertexComponent.cpp" />
     <ClCompile Include="VertexPoint.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Component.h" />
+    <ClInclude Include="InputManager.h" />
+    <ClInclude Include="Object.h" />
     <ClInclude Include="Polygon.h" />
+    <ClInclude Include="RenderComponent.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="stb_image.h" />
+    <ClInclude Include="TransformComponent.h" />
+    <ClInclude Include="VertexComponent.h" />
     <ClInclude Include="VertexPoint.h" />
   </ItemGroup>
   <ItemGroup>

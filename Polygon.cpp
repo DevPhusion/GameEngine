@@ -16,7 +16,7 @@ std::vector<unsigned int> Polygon::Triangulate(std::vector<float> vertices) {
 		i += 3;
 		//std::cout << "Point: (" << points[points.size() - 1][0] << ", " << points[points.size() - 1][1] << ") with index " << points[points.size() - 1][2] << std::endl;
 	}
-
+	
 	std::vector<unsigned int> indices;
 
 	unsigned int earIndex = 0;
@@ -84,116 +84,54 @@ std::vector<unsigned int> Polygon::Triangulate(std::vector<float> vertices) {
 	return indices;
 }
 
-void Polygon::UpdateBuffer() {
-	glBindVertexArray(this->VAO);
-	glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
-	glBufferData(GL_ARRAY_BUFFER, Vertices.size() * sizeof(float), Vertices.data(), GL_STATIC_DRAW);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, Indices.size() * sizeof(unsigned int), Indices.data(), GL_STATIC_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
+glm::vec3 Polygon::GetCenter() {
+	std::vector<float> vertices = GetComponent<RenderComponent>()->Vertices;
+
+	std::vector<std::vector<float>> points;
+	for (int i = 0; i < vertices.size(); i += 5)
+	{
+		points.push_back(std::vector<float> {
+			vertices[i],
+				vertices[i + 1],
+				float(int(i / 8))
+		});
+		i += 3;
+	}
+
+	float A = 0;
+	float C_x = 0;
+	float C_y = 0;
+	int n = points.size();
+	for (int i = 0; i < n; i++)
+	{
+		int j = (i + 1) % n;
+		float shoelace = points[i][0] * points[j][1] - points[j][0] * points[i][1];
+		A += shoelace;
+		C_x += (points[i][0] + points[j][0]) * shoelace;
+		C_y += (points[i][1] + points[j][1]) * shoelace;
+	}
+
+	A = A / 2.0;
+	if (A == 0) {
+		std::cout << "Error calculating polygon center";
+		return glm::vec3(0, 0, 0);
+	}
+
+	C_x = C_x / (6.0 * A);
+	C_y = C_y / (6.0 * A);
+
+	return glm::vec3(C_x, C_y, 0);
 }
 
 void Polygon::SetVertices(std::vector<float> vertices) {
-	Vertices = vertices;
-	Indices = Triangulate(vertices);
-	UpdateBuffer();
+	RenderComponent* render = GetComponent<RenderComponent>();
+	render->UpdateShape(vertices, Triangulate(vertices));
+	GetComponent<TransformComponent>()->SetRotationCenter(GetCenter());
 }
 
-void Polygon::InsertVertex(unsigned int index, std::vector<float> vertex) {
-	Vertices.insert(Vertices.begin() + index * 8, vertex.begin(), vertex.end());
-	Indices = Triangulate(Vertices);
-	UpdateBuffer();
-}
-
-void Polygon::RemoveVertex(unsigned int index) {
-	Vertices.erase(Vertices.begin() + index * 8, Vertices.begin() + index * 8 + 8);
-	Indices = Triangulate(Vertices);
-	UpdateBuffer();
-}
-
-void Polygon::AddVertex(std::vector<float> vertex) {
-	for (int i = 0; i < vertex.size(); i++)
-	{
-		Vertices.push_back(vertex[i]);
-	}
-	Indices = Triangulate(Vertices);
-	UpdateBuffer();
-}
-
-std::vector<float> Polygon::GetVertices() {
-	return Vertices;
-}
-
-Polygon::Polygon(std::vector<float> vertices, Shader shader, std::vector<std::string> textures) {
-	Vertices = vertices;
-	Indices = Triangulate(vertices);
-	this->shader = shader;
-
-	glGenVertexArrays(1, &this->VAO);
-	glBindVertexArray(this->VAO);
-
-	glGenBuffers(1, &this->VBO);
-	glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
-	glBufferData(GL_ARRAY_BUFFER, Vertices.size() * sizeof(float), Vertices.data(), GL_STATIC_DRAW);
-
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-	glEnableVertexAttribArray(2);
-
-
-	glGenBuffers(1, &this->EBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, Indices.size() * sizeof(unsigned int), Indices.data(), GL_STATIC_DRAW);
-	
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
-
-	// Setup texture parameters
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	// Load textures
-	for(int i = 0; i < textures.size(); i++)
-	{
-		int width, height, nrChannels;
-		stbi_set_flip_vertically_on_load(true);
-		unsigned char* data = stbi_load(textures[i].c_str(), &width, &height, &nrChannels, 0);
-		unsigned int texture;
-		glGenTextures(1, &texture);
-		glActiveTexture(GL_TEXTURE0 + i);
-		glBindTexture(GL_TEXTURE_2D, texture);
-	
-		if (data) {
-			if (nrChannels == 3) {
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-			}
-			else if (nrChannels == 4) {
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-			}
-			glGenerateMipmap(GL_TEXTURE_2D);
-		}
-		else {
-			std::cout << "Failed to load texture" << std::endl;
-		}
-		stbi_image_free(data);
-	}
-
-	
-
-}
-
-void Polygon::Draw() {
-	this->shader.use();
-	shader.setSampler2D("texture1", 0);
-	shader.setSampler2D("texture2", 1);
-	glBindVertexArray(this->VAO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->EBO);
-	glDrawElements(GL_TRIANGLES, Indices.size(), GL_UNSIGNED_INT, 0);
-	glBindVertexArray(0);
+Polygon::Polygon(std::vector<float> vertices, Shader shader, std::vector<std::string> textures) : Object(shader) {
+	AddComponent(new RenderComponent(vertices, Triangulate(vertices), shader, textures));
+	AddComponent(new TransformComponent(shader, GetCenter()));
+	std::shared_ptr<Polygon> ptr = std::make_shared<Polygon>(*this);
+	AddComponent(new VertexComponent(ptr));
 }

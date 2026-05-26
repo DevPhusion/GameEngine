@@ -1,16 +1,17 @@
 #include "Renderer.h"
 
-Renderer::Renderer(std::vector<Polygon> polygon) {
-	poly = polygon;
-}
-
-void Renderer::AddPolygon(Polygon polygon) {
-	poly.push_back(polygon);
+Renderer::Renderer(std::vector<Object>* objects) {
+	this->allObjects = objects;
 }
 
 void Renderer::Draw() {
-	for (int i = 0; i < poly.size(); i++)
+	for (int i = 0; i < this->allObjects->size(); i++)
 	{
-		poly[i].Draw();
+		if ((*allObjects)[i].HasComponent<RenderComponent>()) {
+			(*allObjects)[i].GetComponent<RenderComponent>()->Draw();
+		}
+		if ((*allObjects)[i].HasComponent<TransformComponent>()) {
+			(*allObjects)[i].GetComponent<TransformComponent>()->ProcessTransform();
+		}
 	}
 }
