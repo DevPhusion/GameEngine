@@ -134,4 +134,7 @@ Polygon::Polygon(std::vector<float> vertices, Shader shader, std::vector<std::st
 	AddComponent(new TransformComponent(shader, GetCenter()));
 	std::shared_ptr<Polygon> ptr = std::make_shared<Polygon>(*this);
 	AddComponent(new VertexComponent(ptr));
+
+	glm::vec2 center = GetComponent<TransformComponent>()->GetWorldPosition();
+	std::cout << "(" << center.x << "," << center.y << ")" << std::endl;
 }

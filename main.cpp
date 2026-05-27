@@ -41,6 +41,7 @@ void keyPressed(int key, int scancode, int action, int mods) {
 		allPolygons.push_back(poly);
 		vertices.clear();
 		poly.GetComponent<VertexComponent>()->SetVertexPoints(vertexPoints);
+		poly.GetComponent<TransformComponent>()->SetTransform(Camera::getInstance().viewMatrixInverse);
 		vertexPoints.clear();
 	}
 	if (key == GLFW_KEY_R) {
@@ -79,16 +80,23 @@ int main() {
 	InputManager::getInstance().SetKeyButtonCallback(keyPressed);
 	InputManager::getInstance().SetMouseButtonCallback(cursorPressedCallback);
 
+	Camera::getInstance().Setup();
+
+	float prev_t = 0;
+
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
 		
+		Camera::getInstance().ProcessCamera(glfwGetTime() - prev_t);
+		prev_t = glfwGetTime();
+
 		for (int i = 0; i < allPolygons.size(); i++)
 		{
 			if (allPolygons[i].HasComponent<TransformComponent>()) {
 				TransformComponent* transComp = allPolygons[i].GetComponent<TransformComponent>();
-				transComp->Translate(glm::vec3(0.5, 0, 0));
+				//transComp->Translate(glm::vec3(0.5, 0, 0));
 				transComp->Rotate((float)glfwGetTime() * 0.5f);
-				transComp->Scale(glm::vec3(2, 2, 1));
+				//transComp->Scale(glm::vec3(2, 2, 1));
 			}
 		}
 

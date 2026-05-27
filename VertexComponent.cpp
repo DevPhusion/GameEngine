@@ -77,6 +77,7 @@ void VertexComponent::UpdateTransform() {
 	for (int i = 0; i < vertexPoints.size(); i++)
 	{
 		TransformComponent* vertexTransform = vertexPoints[i].GetComponent<TransformComponent>();
+		vertexTransform->SetTransform(parentTransform->fixedTransformed);
 		vertexTransform->SetRotationCenter(parentTransform->rotation_center);
 		vertexTransform->Translate(parentTransform->position);
 		vertexTransform->Rotate(parentTransform->rotation);

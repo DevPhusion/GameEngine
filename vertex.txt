@@ -7,10 +7,11 @@ out vec3 ourColor;
 out vec2 TexCoord;
 
 uniform mat4 transform = mat4(1.0f);
+uniform mat4 view = mat4(1.0f);
 
 void main()
 {
-    gl_Position = transform * vec4(aPos, 1.0);
+    gl_Position = view * transform * vec4(aPos, 1.0);
     ourColor = aColor;
     TexCoord = aTexCoord;
 }

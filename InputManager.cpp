@@ -8,12 +8,16 @@ bool InputManager::vertexEditMode = false;
 std::vector <std::function<void(int, int, int)>> InputManager::MouseButtonCalls = {};
 std::vector <std::function<void(double, double)>> InputManager::CursorPositionCalls = {};
 std::vector <std::function<void(int, int, int, int)>> InputManager::KeyButtonCalls = {};
+std::vector <std::function<void(double, double)>> InputManager::MouseScrollCalls = {};
+
+std::unordered_map<int, bool> InputManager::keys = {};
 
 void InputManager::Setup(GLFWwindow* window) {
 	this->window = window;
 	glfwSetMouseButtonCallback(this->window, OnMouseButton);
 	glfwSetCursorPosCallback(this->window, OnCursorPosition);
 	glfwSetKeyCallback(this->window, OnKeyButton);
+	glfwSetScrollCallback(this->window, OnMouseScroll);
 }
 
 void InputManager::SetMouseButtonCallback(std::function<void(int, int, int)> func) {
@@ -27,6 +31,10 @@ void InputManager::SetCursorPositionCallback(std::function<void(double, double)>
 
 void InputManager::SetKeyButtonCallback(std::function<void(int, int, int, int)> func) {
 	KeyButtonCalls.push_back(func);
+}
+
+void InputManager::SetMouseScrollCallback(std::function<void(double, double)> func) {
+	MouseScrollCalls.push_back(func);
 }
 
 void InputManager::OnCursorPosition(GLFWwindow* window, double xpos, double ypos) {
@@ -62,9 +70,24 @@ void InputManager::OnKeyButton(GLFWwindow* window, int key, int scancode, int ac
 	if (key == GLFW_KEY_E && action == GLFW_PRESS) {
 		vertexEditMode = !vertexEditMode;
 	}
+	
+	if (action == GLFW_PRESS) {
+		keys[key] = true;
+	}
+	else if (action == GLFW_RELEASE) {
+		keys[key] = false;
+	}
+	
 
 	for (int i = 0; i < KeyButtonCalls.size(); i++)
 	{
 		KeyButtonCalls[i](key, scancode, action, mods);
+	}
+}
+
+void InputManager::OnMouseScroll(GLFWwindow* window, double xoffset, double yoffset) {
+	for (int i = 0; i < MouseScrollCalls.size(); i++)
+	{
+		MouseScrollCalls[i](xoffset, yoffset);
 	}
 }
