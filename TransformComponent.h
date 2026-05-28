@@ -11,7 +11,8 @@ public:
 	TransformComponent(Shader shader, glm::vec3 rotation_center);
 	TransformComponent() = default;
 
-	glm::mat4 fixedTransformed = glm::mat4(1.0f);
+	glm::mat4 OriginTransform = glm::mat4(1.0f);
+	glm::mat4 OriginTransformedInverse = glm::mat4(1.0f);
 	glm::mat4 transform = glm::mat4(1.0f); // transformation matrix
 
 	glm::vec3 rotation_center = glm::vec3(0);
@@ -20,9 +21,10 @@ public:
 	std::function<void()> transformCallback;
 	float rotation = 0;
 
-	glm::vec2 GetTransformedPoint(glm::vec2 point, bool inverseTransform = false);
-	glm::vec2 GetWorldPosition();
-	void SetTransform(glm::mat4 transform);
+	glm::vec3 GetTransformedPoint(glm::vec3 point, bool inverseTransform = false);
+	glm::vec3 GetWorldPosition();
+	void UpdateWorldPosition(glm::vec3 newPos);
+	void SetOriginTransform(glm::mat4 transform);
 	void SetRotationCenter(glm::vec3 rotation_center);
 	void Translate(glm::vec3 translation);
 	void Rotate(float angle);

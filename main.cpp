@@ -5,6 +5,9 @@
 #include "Polygon.h"
 #include "InputManager.h"
 #include "Renderer.h"
+#include "PhysicsEngine.h"
+#include "Gravity.h"
+#include "Drag.h"
 #include "Shader.h"
 #include "VertexPoint.h"
 
@@ -13,6 +16,7 @@ std::vector<Object> allObjects;
 std::vector<VertexPoint> vertexPoints; // temporary storage for vertex points before they are assigned to a polygon
 std::vector<Polygon> allPolygons;
 Renderer renderer = Renderer(&allObjects);
+PhysicsEngine physEngine = PhysicsEngine(&allObjects);
 
 void cursorPressedCallback(int button, int action, int mods) {
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
@@ -41,7 +45,12 @@ void keyPressed(int key, int scancode, int action, int mods) {
 		allPolygons.push_back(poly);
 		vertices.clear();
 		poly.GetComponent<VertexComponent>()->SetVertexPoints(vertexPoints);
-		poly.GetComponent<TransformComponent>()->SetTransform(Camera::getInstance().viewMatrixInverse);
+		poly.GetComponent<TransformComponent>()->SetOriginTransform(Camera::getInstance().viewMatrixInverse);
+		PhysicsComponent* phys = poly.GetComponent<PhysicsComponent>();
+		phys->inverseMass = 1;
+		physEngine.RegisterForce(poly, new Gravity(glm::vec3(0, -9.8f, 0)));
+		physEngine.RegisterForce(poly, new Drag(0.0f, 0.002f));
+		phys->velocity = glm::vec3(10, 0, 0);
 		vertexPoints.clear();
 	}
 	if (key == GLFW_KEY_R) {
@@ -88,17 +97,8 @@ int main() {
 		glfwPollEvents();
 		
 		Camera::getInstance().ProcessCamera(glfwGetTime() - prev_t);
+		physEngine.ProcessPhysics(glfwGetTime() - prev_t);
 		prev_t = glfwGetTime();
-
-		for (int i = 0; i < allPolygons.size(); i++)
-		{
-			if (allPolygons[i].HasComponent<TransformComponent>()) {
-				TransformComponent* transComp = allPolygons[i].GetComponent<TransformComponent>();
-				//transComp->Translate(glm::vec3(0.5, 0, 0));
-				transComp->Rotate((float)glfwGetTime() * 0.5f);
-				//transComp->Scale(glm::vec3(2, 2, 1));
-			}
-		}
 
 		glad_glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);

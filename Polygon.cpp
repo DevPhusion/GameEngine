@@ -14,7 +14,6 @@ std::vector<unsigned int> Polygon::Triangulate(std::vector<float> vertices) {
 			float(int(i/8))
 		});
 		i += 3;
-		//std::cout << "Point: (" << points[points.size() - 1][0] << ", " << points[points.size() - 1][1] << ") with index " << points[points.size() - 1][2] << std::endl;
 	}
 	
 	std::vector<unsigned int> indices;
@@ -134,7 +133,8 @@ Polygon::Polygon(std::vector<float> vertices, Shader shader, std::vector<std::st
 	AddComponent(new TransformComponent(shader, GetCenter()));
 	std::shared_ptr<Polygon> ptr = std::make_shared<Polygon>(*this);
 	AddComponent(new VertexComponent(ptr));
+	AddComponent(new PhysicsComponent(ptr));
 
-	glm::vec2 center = GetComponent<TransformComponent>()->GetWorldPosition();
-	std::cout << "(" << center.x << "," << center.y << ")" << std::endl;
+	glm::vec3 center = GetComponent<TransformComponent>()->GetWorldPosition();
+	std::cout << "Center: (" << center.x << "," << center.y << ")" << std::endl;
 }

@@ -6,6 +6,7 @@
 #include "RenderComponent.h"
 #include "TransformComponent.h"
 #include "VertexComponent.h"
+#include "PhysicsComponent.h"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/gtc/constants.hpp>

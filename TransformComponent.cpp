@@ -5,20 +5,28 @@ TransformComponent::TransformComponent(Shader shader, glm::vec3 rotation_center)
 	this->rotation_center = rotation_center;
 }
 
-glm::vec2 TransformComponent::GetWorldPosition() {
+glm::vec3 TransformComponent::GetWorldPosition() {
 	glm::vec4 center = glm::vec4(rotation_center.x, rotation_center.y, rotation_center.z, 1.0f);
-	glm::mat4 trans = glm::mat4(1.0f);
-	trans = glm::translate(trans, rotation_center); // Translate to 0,0
-	trans = glm::translate(trans, (position + Camera::getInstance().cameraPos) * Camera::getInstance().cameraZoom);
-	trans = glm::translate(trans, -rotation_center); // Translate back to original pos
-	glm::vec4 transformedCenter = trans * center;
-	return glm::vec2(transformedCenter.x, transformedCenter.y);
+	glm::vec4 worldPos = OriginTransform * center;
+	return glm::vec3(worldPos.x, worldPos.y, 0);
 }
 
-glm::vec2 TransformComponent::GetTransformedPoint(glm::vec2 point, bool inverseTransform) {
+void TransformComponent::UpdateWorldPosition(glm::vec3 targetWorldPos) {
+	glm::vec4 center = glm::vec4(rotation_center.x, rotation_center.y, rotation_center.z, 1.0f);
+	glm::vec4 currentWorldPos = OriginTransform * center;
+
+	glm::vec3 currentPosVec3 = glm::vec3(currentWorldPos.x, currentWorldPos.y, currentWorldPos.z);
+	glm::vec3 delta = targetWorldPos - currentPosVec3;
+
+	glm::mat4 newOriginTransform = glm::translate(glm::mat4(1.0f), delta) * OriginTransform;
+	
+	SetOriginTransform(newOriginTransform);
+}
+
+glm::vec3 TransformComponent::GetTransformedPoint(glm::vec3 point, bool inverseTransform) {
 	glm::vec4 originalPoint = glm::vec4(point.x, point.y, 1.0f, 1.0f);
 
-	glm::mat4 trans = fixedTransformed;
+	glm::mat4 trans = OriginTransform;
 	trans = glm::translate(trans, rotation_center); // Translate to 0,0
 	trans = glm::translate(trans, position);
 	trans = glm::rotate(trans, rotation, glm::vec3(0, 0, 1));
@@ -34,15 +42,15 @@ glm::vec2 TransformComponent::GetTransformedPoint(glm::vec2 point, bool inverseT
 		transformedPoint = Camera::getInstance().viewMatrix * trans * originalPoint;
 	}
 	
-	return glm::vec2(transformedPoint.x, transformedPoint.y);
+	return glm::vec3(transformedPoint.x, transformedPoint.y, 0.0f);
 }
 
 void TransformComponent::SetRotationCenter(glm::vec3 rotation_center) {
 	this->rotation_center = rotation_center;
 }
 
-void TransformComponent::SetTransform(glm::mat4 transform) {
-	this->fixedTransformed = transform;
+void TransformComponent::SetOriginTransform(glm::mat4 transform) {
+	this->OriginTransform = transform;
 	if (transformCallback != nullptr) {
 		transformCallback();
 	}
@@ -79,7 +87,7 @@ void TransformComponent::ProcessTransform() {
 		return;
 	}
 
-	this->transform = fixedTransformed;
+	this->transform = OriginTransform;
 	this->transform = glm::translate(this->transform, rotation_center); // Translate to 0,0
 
 	this->transform = glm::translate(this->transform, position);

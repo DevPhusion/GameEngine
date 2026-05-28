@@ -39,6 +39,17 @@ public:
 
 		return false;
 	}
+
+	template <AllowedTypes T>
+	void RemoveComponent() {
+		for (int i = 0; i < components.size(); i++)
+		{
+			if (typeid(*components[i]) == typeid(T)) {
+				components.erase(components.begin + i);
+				return;
+			}
+		}
+	}
 	
 	void AddComponent(Component* component);
 };

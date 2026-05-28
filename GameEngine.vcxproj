@@ -139,10 +139,15 @@
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Component.cpp" />
+    <ClCompile Include="Drag.cpp" />
+    <ClCompile Include="ForceGenerator.cpp" />
     <ClCompile Include="glad.c" />
+    <ClCompile Include="Gravity.cpp" />
     <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Object.cpp" />
+    <ClCompile Include="PhysicsComponent.cpp" />
+    <ClCompile Include="PhysicsEngine.cpp" />
     <ClCompile Include="Polygon.cpp" />
     <ClCompile Include="RenderComponent.cpp" />
     <ClCompile Include="Renderer.cpp" />
@@ -155,8 +160,13 @@
   <ItemGroup>
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Component.h" />
+    <ClInclude Include="Drag.h" />
+    <ClInclude Include="ForceGenerator.h" />
+    <ClInclude Include="Gravity.h" />
     <ClInclude Include="InputManager.h" />
     <ClInclude Include="Object.h" />
+    <ClInclude Include="PhysicsComponent.h" />
+    <ClInclude Include="PhysicsEngine.h" />
     <ClInclude Include="Polygon.h" />
     <ClInclude Include="RenderComponent.h" />
     <ClInclude Include="Renderer.h" />

@@ -39,7 +39,7 @@ void VertexComponent::FindSelectedPoint(int button, int action, int mods) {
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
 		for (int i = 0; i < vertexPoints.size(); i++)
 		{
-			glm::vec2 center = vertexPoints[i].GetComponent<TransformComponent>()->GetTransformedPoint(glm::vec2(vertexPoints[i].x, vertexPoints[i].y));
+			glm::vec3 center = vertexPoints[i].GetComponent<TransformComponent>()->GetTransformedPoint(glm::vec3(vertexPoints[i].x, vertexPoints[i].y, 0));
 
 			float distance = sqrt(pow(InputManager::glX - center.x, 2) + pow(InputManager::glY - center.y, 2));
 			if (distance < 0.05f && !vertexSelected) {
@@ -55,7 +55,7 @@ void VertexComponent::FindSelectedPoint(int button, int action, int mods) {
 void VertexComponent::DragPoint(double xpos, double ypos) {
 	if (InputManager::mouseHold) {
 		if (selectedIndex != -1 ) {
-			glm::vec2 pos = vertexPoints[selectedIndex].GetComponent<TransformComponent>()->GetTransformedPoint(glm::vec2(InputManager::glX, InputManager::glY), true);
+			glm::vec3 pos = vertexPoints[selectedIndex].GetComponent<TransformComponent>()->GetTransformedPoint(glm::vec3(InputManager::glX, InputManager::glY, 0), true);
 
 			std::vector<float> newVertices = parent->GetComponent<RenderComponent>()->Vertices;
 			newVertices[selectedIndex * 8] = pos.x;
@@ -77,7 +77,7 @@ void VertexComponent::UpdateTransform() {
 	for (int i = 0; i < vertexPoints.size(); i++)
 	{
 		TransformComponent* vertexTransform = vertexPoints[i].GetComponent<TransformComponent>();
-		vertexTransform->SetTransform(parentTransform->fixedTransformed);
+		vertexTransform->SetOriginTransform(parentTransform->OriginTransform);
 		vertexTransform->SetRotationCenter(parentTransform->rotation_center);
 		vertexTransform->Translate(parentTransform->position);
 		vertexTransform->Rotate(parentTransform->rotation);
