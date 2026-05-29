@@ -1,10 +1,10 @@
 #include "VertexComponent.h"
-#include "Polygon.h"
 
 bool VertexComponent::vertexSelected = false;
 
-VertexComponent::VertexComponent(std::shared_ptr<Polygon> parent) {
+VertexComponent::VertexComponent(std::shared_ptr<Object> parent) {
 	this->parent = parent;
+	EngineManager::getInstance().AddInteractModeChangedEvent([this]() {this->SetEnabled(EngineManager::getInstance().EngineInteractMode == EngineManager::InteractMode::VertexSelect);});
 }
 
 void VertexComponent::SetEnabled(bool enabled) {
@@ -29,10 +29,11 @@ void VertexComponent::SetVertexPoints(std::vector<VertexPoint> vertexPoints) {
 		vertexPoints[i].GetComponent<TransformComponent>()->SetEnabled(true);
 	}
 	this->parent->GetComponent<TransformComponent>()->SetTransformCallback([this] {this->UpdateTransform();});
+	SetEnabled(EngineManager::getInstance().EngineInteractMode == EngineManager::InteractMode::VertexSelect);
 }
 
 void VertexComponent::FindSelectedPoint(int button, int action, int mods) {
-	if (!InputManager::vertexEditMode || !Enabled) {
+	if (!Enabled) {
 		return;
 	}
 
@@ -58,9 +59,12 @@ void VertexComponent::DragPoint(double xpos, double ypos) {
 			glm::vec3 pos = vertexPoints[selectedIndex].GetComponent<TransformComponent>()->GetTransformedPoint(glm::vec3(InputManager::glX, InputManager::glY, 0), true);
 
 			std::vector<float> newVertices = parent->GetComponent<RenderComponent>()->Vertices;
-			newVertices[selectedIndex * 8] = pos.x;
-			newVertices[selectedIndex * 8 + 1] = pos.y;
-			parent->SetVertices(newVertices);
+			newVertices[selectedIndex * 5] = pos.x;
+			newVertices[selectedIndex * 5 + 1] = pos.y;
+			
+			RenderComponent* render = parent->GetComponent<RenderComponent>();
+			render->UpdateShape(newVertices, render->Triangulate(newVertices));
+			parent->GetComponent<TransformComponent>()->SetRotationCenter(parent->GetCenter());
 
 			vertexPoints[selectedIndex].UpdatePosition(pos.x, pos.y);
 		}

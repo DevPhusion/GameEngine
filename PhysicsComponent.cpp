@@ -2,6 +2,9 @@
 
 PhysicsComponent::PhysicsComponent(std::shared_ptr<Object> parent) {
 	this->parent = parent;
+	this->acceleration = glm::vec3(0);
+	this->velocity = glm::vec3(0);
+	this->netForce = glm::vec3(0);
 }
 
 void PhysicsComponent::ProcessPhysics(float delta) {

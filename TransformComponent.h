@@ -21,8 +21,11 @@ public:
 	std::function<void()> transformCallback;
 	float rotation = 0;
 
-	glm::vec3 GetTransformedPoint(glm::vec3 point, bool inverseTransform = false);
+	// model space -> screen space (inverse: screen space -> model space) 
+	glm::vec3 GetTransformedPoint(glm::vec3 point, bool inverseTransform = false); 
 	glm::vec3 GetWorldPosition();
+	//model space -> world space
+	glm::vec3 ProjectToWorld(glm::vec3 point);
 	void UpdateWorldPosition(glm::vec3 newPos);
 	void SetOriginTransform(glm::mat4 transform);
 	void SetRotationCenter(glm::vec3 rotation_center);

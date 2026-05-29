@@ -7,11 +7,8 @@
 #include "TransformComponent.h"
 #include "VertexComponent.h"
 #include "PhysicsComponent.h"
+#include "MouseInteractComponent.h"
 #include <glad/glad.h>
-#include <GLFW/glfw3.h>
-#include <glm/gtc/constants.hpp>
-#include <glm/vec2.hpp>
-#include <glm/gtx/vector_angle.hpp>
 #include <iostream>
 #include <vector>
 #include <string>
@@ -23,8 +20,7 @@ public:
 	Polygon(std::vector<float> vertices, Shader shader, std::vector<std::string> textures);
 	Polygon() = default;
 
-	void SetVertices(std::vector<float> vertices);
-	glm::vec3 GetCenter();
-private:
-	std::vector<unsigned int> Triangulate(std::vector<float> vertices);
+	void AddComponents();
+
+	virtual glm::vec3 GetCenter();
 };

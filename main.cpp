@@ -1,32 +1,30 @@
 #include<glad/glad.h>
 #include<GLFW/glfw3.h>
-#include <glm/glm.hpp>
+#include<glm/glm.hpp>
 #include<iostream>
 #include "Polygon.h"
 #include "InputManager.h"
 #include "Renderer.h"
 #include "PhysicsEngine.h"
+#include "EngineManager.h"
 #include "Gravity.h"
 #include "Drag.h"
 #include "Shader.h"
 #include "VertexPoint.h"
+#include "MouseDrag.h"
 
 std::vector<float> vertices;
 std::vector<Object> allObjects;
 std::vector<VertexPoint> vertexPoints; // temporary storage for vertex points before they are assigned to a polygon
 std::vector<Polygon> allPolygons;
 Renderer renderer = Renderer(&allObjects);
-PhysicsEngine physEngine = PhysicsEngine(&allObjects);
 
 void cursorPressedCallback(int button, int action, int mods) {
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-		if (!InputManager::vertexEditMode) {
+		if (EngineManager::getInstance().EngineInteractMode == EngineManager::InteractMode::AddObject) {
 			vertices.push_back(InputManager::glX);
 			vertices.push_back(InputManager::glY);
 			vertices.push_back(0.0f); // Z coordinate
-			vertices.push_back(1.0f); // R
-			vertices.push_back(1.0f); // G
-			vertices.push_back(1.0f); // B
 			vertices.push_back(InputManager::glX); // U
 			vertices.push_back(InputManager::glY); // V
 
@@ -38,9 +36,13 @@ void cursorPressedCallback(int button, int action, int mods) {
 }
 
 void keyPressed(int key, int scancode, int action, int mods) {
-	if (key == GLFW_KEY_P && action == GLFW_PRESS) {
+	if (key == GLFW_KEY_P && action == GLFW_PRESS && EngineManager::getInstance().EngineInteractMode == EngineManager::InteractMode::AddObject) {
+		if (vertexPoints.size() < 3) {
+			std::cout << "Invalid polygon" << std::endl;
+			return;
+		}
+
 		Polygon poly = Polygon(vertices, Shader("vertex.txt", "fragment.txt"), std::vector<std::string> {"wall.jpg"});
-		std::shared_ptr <Polygon> polyPtr = std::make_shared<Polygon>(poly);
 		allObjects.push_back(poly);
 		allPolygons.push_back(poly);
 		vertices.clear();
@@ -48,9 +50,8 @@ void keyPressed(int key, int scancode, int action, int mods) {
 		poly.GetComponent<TransformComponent>()->SetOriginTransform(Camera::getInstance().viewMatrixInverse);
 		PhysicsComponent* phys = poly.GetComponent<PhysicsComponent>();
 		phys->inverseMass = 1;
-		physEngine.RegisterForce(poly, new Gravity(glm::vec3(0, -9.8f, 0)));
-		physEngine.RegisterForce(poly, new Drag(0.0f, 0.002f));
-		phys->velocity = glm::vec3(10, 0, 0);
+		PhysicsEngine::getInstance().RegisterForce(poly, new Gravity(glm::vec3(0, -9.8f, 0)));
+		PhysicsEngine::getInstance().RegisterForce(poly, new Drag(0.0f, 0.002f));
 		vertexPoints.clear();
 	}
 	if (key == GLFW_KEY_R) {
@@ -59,12 +60,6 @@ void keyPressed(int key, int scancode, int action, int mods) {
 		}
 		else if (action == GLFW_RELEASE) {
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		}
-	}
-	if (key == GLFW_KEY_H && action == GLFW_PRESS) {
-		for (int i = 0; i < allPolygons.size(); i++)
-		{
-			allPolygons[i].GetComponent<VertexComponent>()->SetEnabled(!(allPolygons[i].GetComponent<VertexComponent>()->Enabled));
 		}
 	}
 }
@@ -89,15 +84,19 @@ int main() {
 	InputManager::getInstance().SetKeyButtonCallback(keyPressed);
 	InputManager::getInstance().SetMouseButtonCallback(cursorPressedCallback);
 
+	EngineManager::getInstance().Setup();
+	PhysicsEngine::getInstance().Setup(&allObjects);
+
 	Camera::getInstance().Setup();
+	
 
 	float prev_t = 0;
 
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
-		
+
 		Camera::getInstance().ProcessCamera(glfwGetTime() - prev_t);
-		physEngine.ProcessPhysics(glfwGetTime() - prev_t);
+		PhysicsEngine::getInstance().ProcessPhysics(glfwGetTime() - prev_t);
 		prev_t = glfwGetTime();
 
 		glad_glClearColor(1.0f, 1.0f, 1.0f, 1.0f);

@@ -49,9 +49,9 @@ void Camera::SetCameraZoom(float zoom) {
 }
 
 void Camera::ScrollCallback(double xoffset, double yoffset) {
-	float fov = cameraZoom - yoffset * 10;
-	if (fov < 10) {
-		fov = 10;
+	float fov = cameraZoom - yoffset * 5;
+	if (fov < 5) {
+		fov = 5;
 	}
 	else if (fov > 1000) {
 		fov = 1000;

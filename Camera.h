@@ -16,9 +16,9 @@ public:
 	glm::mat4 viewMatrix = glm::mat4(1.0f);
 	glm::mat4 viewMatrixInverse = glm::mat4(1.0f);
 	glm::vec3 cameraPos = glm::vec3(0);
-	float cameraSpeed = 0.5f;
+	float cameraSpeed = 2.0f;
 	float cameraRotation = 0.0f;
-	float cameraZoom = 25;
+	float cameraZoom = 15;
 	float delta = 0;
 
 	void Setup();

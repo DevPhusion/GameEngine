@@ -140,11 +140,14 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="Drag.cpp" />
+    <ClCompile Include="EngineManager.cpp" />
     <ClCompile Include="ForceGenerator.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="Gravity.cpp" />
     <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="MouseDrag.cpp" />
+    <ClCompile Include="MouseInteractComponent.cpp" />
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="PhysicsComponent.cpp" />
     <ClCompile Include="PhysicsEngine.cpp" />
@@ -161,9 +164,12 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Component.h" />
     <ClInclude Include="Drag.h" />
+    <ClInclude Include="EngineManager.h" />
     <ClInclude Include="ForceGenerator.h" />
     <ClInclude Include="Gravity.h" />
     <ClInclude Include="InputManager.h" />
+    <ClInclude Include="MouseDrag.h" />
+    <ClInclude Include="MouseInteractComponent.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="PhysicsComponent.h" />
     <ClInclude Include="PhysicsEngine.h" />

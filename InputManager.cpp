@@ -3,7 +3,6 @@
 float InputManager::glX = 0.0f;
 float InputManager::glY = 0.0f;
 bool InputManager::mouseHold = false;
-bool InputManager::vertexEditMode = false;
 
 std::vector <std::function<void(int, int, int)>> InputManager::MouseButtonCalls = {};
 std::vector <std::function<void(double, double)>> InputManager::CursorPositionCalls = {};
@@ -67,10 +66,6 @@ void InputManager::OnMouseButton(GLFWwindow* window, int button, int action, int
 }
 
 void InputManager::OnKeyButton(GLFWwindow* window, int key, int scancode, int action, int mods) {
-	if (key == GLFW_KEY_E && action == GLFW_PRESS) {
-		vertexEditMode = !vertexEditMode;
-	}
-	
 	if (action == GLFW_PRESS) {
 		keys[key] = true;
 	}

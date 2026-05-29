@@ -6,8 +6,12 @@ TransformComponent::TransformComponent(Shader shader, glm::vec3 rotation_center)
 }
 
 glm::vec3 TransformComponent::GetWorldPosition() {
-	glm::vec4 center = glm::vec4(rotation_center.x, rotation_center.y, rotation_center.z, 1.0f);
-	glm::vec4 worldPos = OriginTransform * center;
+	return ProjectToWorld(rotation_center);
+}
+
+glm::vec3 TransformComponent::ProjectToWorld(glm::vec3 point) {
+	glm::vec4 p = glm::vec4(point.x, point.y, point.z, 1.0f);
+	glm::vec4 worldPos = OriginTransform * p;
 	return glm::vec3(worldPos.x, worldPos.y, 0);
 }
 

@@ -4,19 +4,18 @@
 #include "RenderComponent.h"
 #include "TransformComponent.h"
 #include "InputManager.h"
+#include "EngineManager.h"
 #include <memory>
-
-class Polygon;
 
 class VertexComponent : public Component
 {
 public:
-	VertexComponent(std::shared_ptr<Polygon> parent);
+	VertexComponent(std::shared_ptr<Object> parent);
 	VertexComponent() = default;
 
 	static bool vertexSelected;
 
-	std::shared_ptr<Polygon> parent;
+	std::shared_ptr<Object> parent;
 	std::vector<VertexPoint> vertexPoints;
 	int selectedIndex = -1;
 

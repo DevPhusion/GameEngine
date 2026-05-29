@@ -52,5 +52,13 @@ public:
 	}
 	
 	void AddComponent(Component* component);
+
+	virtual glm::vec3 GetCenter() {
+		return glm::vec3(0);
+	}
+
+	std::shared_ptr<Object> GetPointer();
+private:
+	std::shared_ptr<Object> ptr;
 };
 

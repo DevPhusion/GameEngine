@@ -102,6 +102,15 @@
     <ClCompile Include="Drag.cpp">
       <Filter>Source Files\Core\Physics\Forces</Filter>
     </ClCompile>
+    <ClCompile Include="MouseInteractComponent.cpp">
+      <Filter>Source Files\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="EngineManager.cpp">
+      <Filter>Source Files\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="MouseDrag.cpp">
+      <Filter>Source Files\Core\Physics\Forces</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stb_image.h">
@@ -153,6 +162,15 @@
       <Filter>Header Files\Core\Physics\Forces</Filter>
     </ClInclude>
     <ClInclude Include="Drag.h">
+      <Filter>Header Files\Core\Physics\Forces</Filter>
+    </ClInclude>
+    <ClInclude Include="MouseInteractComponent.h">
+      <Filter>Header Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineManager.h">
+      <Filter>Header Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="MouseDrag.h">
       <Filter>Header Files\Core\Physics\Forces</Filter>
     </ClInclude>
   </ItemGroup>

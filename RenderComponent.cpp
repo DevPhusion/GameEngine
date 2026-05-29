@@ -1,9 +1,26 @@
 #include "RenderComponent.h"
 
-RenderComponent::RenderComponent(std::vector<float> vertices, std::vector<unsigned int> indices, Shader shader, std::vector<std::string> textures) {
+RenderComponent::RenderComponent(std::vector<float> vertices, Shader shader, std::vector<std::string> textures) {
 	Vertices = vertices;
-	Indices = indices;
+	Indices = Triangulate(vertices);
 	this->shader = shader;
+
+	for (int i = 0; i < vertices.size(); i += 2)
+	{
+		points.push_back(std::vector<float> {
+			vertices[i],
+				vertices[i + 1],
+				float(int(i / 5))
+		});
+		i += 3;
+	}
+
+	for (int i = 0; i < points.size(); i++)
+	{
+		std::vector<float> p1 = points[i];
+		std::vector<float> p2 = points[(i + 1) % points.size()];
+		edges.push_back(std::vector<std::vector<float>> {p1, p2});
+	}
 
 	glGenVertexArrays(1, &this->VAO);
 	glBindVertexArray(this->VAO);
@@ -12,12 +29,10 @@ RenderComponent::RenderComponent(std::vector<float> vertices, std::vector<unsign
 	glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
 	glBufferData(GL_ARRAY_BUFFER, Vertices.size() * sizeof(float), Vertices.data(), GL_STATIC_DRAW);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-	glEnableVertexAttribArray(2);
 
 
 	glGenBuffers(1, &this->EBO);
@@ -60,9 +75,108 @@ RenderComponent::RenderComponent(std::vector<float> vertices, std::vector<unsign
 	}
 }
 
+float calcTriangleArea(std::vector<float> a, std::vector<float> b, std::vector<float> c) {
+	return 0.5f * std::abs((a[0] * (b[1] - c[1]) + b[0] * (c[1] - a[1]) + c[0] * (a[1] - b[1])));
+}
+
+std::vector<unsigned int> RenderComponent::Triangulate(std::vector<float> vertices) {
+	for (int i = 0; i < vertices.size(); i += 2)
+	{
+		points.push_back(std::vector<float> {
+			vertices[i],
+				vertices[i + 1],
+				float(int(i / 5))
+		});
+		i += 3;
+	}
+
+	std::vector<unsigned int> indices;
+
+	unsigned int earIndex = 0;
+
+	std::vector<float> ear = points[0];
+	std::vector<float> prev = points[points.size() - 1];
+	std::vector<float> next = points[1];
+
+
+	while (points.size() > 3)
+	{
+		bool ValidEar = true;
+		glm::vec2 v1 = glm::vec2(ear[0] - prev[0], ear[1] - prev[1]);
+		glm::vec2 v2 = glm::vec2(ear[0] - next[0], ear[1] - next[1]);
+
+		float angle = glm::angle(glm::normalize(v1), glm::normalize(v2));
+
+		for (int i = 0; i < points.size(); i++)
+		{
+			if (points[i][2] != ear[2] && points[i][2] != prev[2] && points[i][2] != next[2]) {
+				float areafull = calcTriangleArea(prev, ear, next);
+				float area1 = calcTriangleArea(points[i], prev, ear);
+				float area2 = calcTriangleArea(points[i], ear, next);
+				float area3 = calcTriangleArea(points[i], prev, next);
+
+				if (abs(area1 + area2 + area3 - areafull) < 0.0001) {
+					ValidEar = false;
+					break;
+				}
+			}
+		}
+		if (angle > glm::pi<float>()) {
+			ValidEar = false;
+			std::cout << "Angle is concave, not an ear." << std::endl;
+		}
+
+		if (ValidEar) {
+			indices.push_back((unsigned int)prev[2]);
+			indices.push_back((unsigned int)ear[2]);
+			indices.push_back((unsigned int)next[2]);
+
+			points.erase(points.begin() + earIndex);
+			earIndex = 0;
+			ear = points[0];
+			prev = points[points.size() - 1];
+			next = points[1];
+
+		}
+		else {
+			earIndex++;
+			if (earIndex >= points.size()) {
+				std::cout << "No valid ear found, polygon might be malformed." << std::endl;
+				break;
+			}
+			ear = points[earIndex];
+			prev = points[(earIndex - 1 < 0) ? points.size() - 1 : earIndex - 1];
+			next = points[(earIndex + 1 >= points.size()) ? 0 : earIndex + 1];
+		}
+	}
+
+	indices.push_back((unsigned int)points[2][2]);
+	indices.push_back((unsigned int)points[0][2]);
+	indices.push_back((unsigned int)points[1][2]);
+
+	return indices;
+}
 void RenderComponent::UpdateShape(std::vector<float> vertices, std::vector<unsigned int> indices) {
 	Vertices = vertices;
 	Indices = indices;
+
+	for (int i = 0; i < vertices.size(); i += 2)
+	{
+		points.push_back(std::vector<float> {
+			vertices[i],
+				vertices[i + 1],
+				float(int(i / 5))
+		});
+		i += 3;
+	}
+
+	for (int i = 0; i < points.size(); i++)
+	{
+		std::vector<float> p1 = points[i];
+		std::vector<float> p2 = points[(i + 1) % points.size()];
+		edges.push_back(std::vector<std::vector<float>> {p1, p2});
+	}
+
 	glBindVertexArray(this->VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
 	glBufferData(GL_ARRAY_BUFFER, Vertices.size() * sizeof(float), Vertices.data(), GL_STATIC_DRAW);
@@ -70,6 +184,23 @@ void RenderComponent::UpdateShape(std::vector<float> vertices, std::vector<unsig
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, Indices.size() * sizeof(unsigned int), Indices.data(), GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+}
+
+bool RenderComponent::IsInsideShape(glm::vec3 point) {
+	int cnt = 0;
+	for (int i = 0; i < edges.size(); i++)
+	{
+		std::vector<float> point1 = edges[i][0];
+		std::vector<float> point2 = edges[i][1];
+		bool ycheck = (point.y < point1[1]) != (point.y < point2[1]);
+		bool xcheck = point.x < point1[0] + ((point.y - point1[1]) / (point2[1] - point1[1])) * (point2[0] - point1[0]);
+
+		if (xcheck && ycheck) {
+			cnt += 1;
+		}
+	}
+
+	return cnt % 2 == 1;
 }
 
 void RenderComponent::Draw() {

@@ -1,6 +1,6 @@
 #include "PhysicsEngine.h"
 
-PhysicsEngine::PhysicsEngine(std::vector<Object>* objects) {
+void PhysicsEngine::Setup(std::vector<Object>* objects) {
 	this->allObjects = objects;
 }
 

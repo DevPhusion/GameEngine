@@ -16,7 +16,6 @@ public:
 	}
 
 	GLFWwindow* window;
-	static bool vertexEditMode;
 	static float glX;
 	static float glY;
 	static bool mouseHold;
