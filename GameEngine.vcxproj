@@ -140,12 +140,23 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="Drag.cpp" />
+    <ClCompile Include="EditorManager.cpp" />
     <ClCompile Include="EngineManager.cpp" />
+    <ClCompile Include="EngineStatus.cpp" />
     <ClCompile Include="ForceGenerator.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="Gravity.cpp" />
+    <ClCompile Include="imgui\imgui.cpp" />
+    <ClCompile Include="imgui\imgui_demo.cpp" />
+    <ClCompile Include="imgui\imgui_draw.cpp" />
+    <ClCompile Include="imgui\imgui_impl_glfw.cpp" />
+    <ClCompile Include="imgui\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="imgui\imgui_tables.cpp" />
+    <ClCompile Include="imgui\imgui_widgets.cpp" />
     <ClCompile Include="InputManager.cpp" />
+    <ClCompile Include="Inspector.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="EditorWindow.cpp" />
     <ClCompile Include="MouseDrag.cpp" />
     <ClCompile Include="MouseInteractComponent.cpp" />
     <ClCompile Include="Object.cpp" />
@@ -164,10 +175,23 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Component.h" />
     <ClInclude Include="Drag.h" />
+    <ClInclude Include="EditorManager.h" />
     <ClInclude Include="EngineManager.h" />
+    <ClInclude Include="EngineStatus.h" />
     <ClInclude Include="ForceGenerator.h" />
     <ClInclude Include="Gravity.h" />
+    <ClInclude Include="imgui\imconfig.h" />
+    <ClInclude Include="imgui\imgui.h" />
+    <ClInclude Include="imgui\imgui_impl_glfw.h" />
+    <ClInclude Include="imgui\imgui_impl_opengl3.h" />
+    <ClInclude Include="imgui\imgui_impl_opengl3_loader.h" />
+    <ClInclude Include="imgui\imgui_internal.h" />
+    <ClInclude Include="imgui\imstb_rectpack.h" />
+    <ClInclude Include="imgui\imstb_textedit.h" />
+    <ClInclude Include="imgui\imstb_truetype.h" />
     <ClInclude Include="InputManager.h" />
+    <ClInclude Include="Inspector.h" />
+    <ClInclude Include="EditorWindow.h" />
     <ClInclude Include="MouseDrag.h" />
     <ClInclude Include="MouseInteractComponent.h" />
     <ClInclude Include="Object.h" />
@@ -188,6 +212,8 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="face.jpg" />
+    <Image Include="floor.png" />
+    <Image Include="floorTiled.png" />
     <Image Include="wall.jpg" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

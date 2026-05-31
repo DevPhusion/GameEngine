@@ -1,30 +1,60 @@
 #include "EngineManager.h"
 
-void EngineManager::Setup() {
-	InputManager::getInstance().SetKeyButtonCallback([this](int key, int scancode, int action, int mods) {this->SwitchMode(key, scancode, action, mods);});
+void EngineManager::Setup(GLFWwindow* window) {
+	InputManager::getInstance().SetKeyButtonCallback([this](int key, int scancode, int action, int mods) {this->SwitchInteractMode(key, scancode, action, mods);});
+	int windowWidth, windowHeight;
+	glfwGetWindowSize(window, &windowWidth, &windowHeight);
+	this->windowWidth = (float)windowWidth;
+	this->windowHeight = (float)windowHeight;
+	this->aspectRatio = this->windowWidth / this->windowHeight;
+	frameCount = 0;
 }
 
-void EngineManager::SwitchMode(int key, int scancode, int action, int mods) {
+void EngineManager::ProcessEngine(float delta) {
+	frameCount++;
+	time += delta;
+
+	if (time >= 1) {
+		fps = frameCount / time;
+		frameCount = 0;
+		time = 0;
+	}
+}
+
+void EngineManager::SwitchInteractMode(int key, int scancode, int action, int mods) {
 	if (key == GLFW_KEY_E && action == GLFW_PRESS) {
-		EngineInteractMode = (InteractMode)((EngineInteractMode + 1) % (sizeof(InteractMode) - 1));
+		if (EngineInteractMode == InteractMode::AddVertex) {
+			EngineInteractMode = InteractMode::EditorSelect;
+		}
+		else if (EngineInteractMode == InteractMode::EditorSelect) {
+			EngineInteractMode = InteractMode::AddVertex;
+		}
 
 		for (int i = 0; i < InteractModeChangedEvents.size(); i++)
 		{
 			InteractModeChangedEvents[i]();
 		}
+	}
+}
 
-		if (EngineInteractMode == InteractMode::AddObject) {
-			std::cout << "Add object mode" << std::endl;
-		}
-		if (EngineInteractMode == InteractMode::VertexSelect) {
-			std::cout << "Vertex select mode" << std::endl;
-		}
-		if (EngineInteractMode == InteractMode::MouseSelect) {
-			std::cout << "Mouse select mode" << std::endl;
-		}
+void EngineManager::SwitchPhysicsMode() {
+	if (EnginePhysicsMode == PhysicsMode::Pause) {
+		EnginePhysicsMode = PhysicsMode::Simulate;
+	}
+	else if (EnginePhysicsMode == PhysicsMode::Simulate) {
+		EnginePhysicsMode = PhysicsMode::Pause;
+	}
+
+	for (int i = 0; i < PhysicsModeChangedEvents.size(); i++)
+	{
+		PhysicsModeChangedEvents[i]();
 	}
 }
 
 void EngineManager::AddInteractModeChangedEvent(std::function<void()> func) {
 	InteractModeChangedEvents.push_back(func);
+}
+
+void EngineManager::AddPhysicsModeChangedEvent(std::function<void()> func) {
+	PhysicsModeChangedEvents.push_back(func);
 }

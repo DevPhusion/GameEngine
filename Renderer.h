@@ -10,9 +10,9 @@
 class Renderer
 {
 public:
-	Renderer(std::vector<Object>* objects);
+	Renderer(std::vector<std::unique_ptr<Object>>* objects);
 	void Draw();
 private:
-	std::vector<Object>* allObjects;
+	std::vector<std::unique_ptr<Object>>* allObjects;
 };
 

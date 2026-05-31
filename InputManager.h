@@ -1,5 +1,6 @@
 #pragma once
 #include "Object.h"
+#include "EditorManager.h"
 #include<glad/glad.h>
 #include<GLFW/glfw3.h>
 #include<functional>
@@ -18,7 +19,8 @@ public:
 	GLFWwindow* window;
 	static float glX;
 	static float glY;
-	static bool mouseHold;
+	static bool mouseLeftHold;
+	static bool mouseRightHold;
 
 	static std::vector <std::function<void(int, int, int)>> MouseButtonCalls;
 	static std::vector <std::function<void(double, double)>> CursorPositionCalls;

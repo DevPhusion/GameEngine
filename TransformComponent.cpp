@@ -1,8 +1,34 @@
 #include "TransformComponent.h"
 
-TransformComponent::TransformComponent(Shader shader, glm::vec3 rotation_center) {
+TransformComponent::TransformComponent(Object* parent, Shader shader, glm::vec3 rotation_center) : Component(parent) {
+	Name = "Transform Component";
+
 	this->shader = shader;
 	this->rotation_center = rotation_center;
+	SetOriginTransform(Camera::getInstance().viewMatrixInverse);
+}
+
+void TransformComponent::ProcessInspectorUI() {
+	ImGui::Text("Position ");
+	ImGui::SameLine();
+	float position[] = { GetWorldPosition().x, GetWorldPosition().y };
+	if (ImGui::InputFloat2("##", position)) {
+		UpdateWorldPosition(glm::vec3(position[0], position[1], 0));
+	}
+	ImGui::Text("Rotation ");
+	ImGui::SameLine();
+	float rotation = this->rotation;
+	if (ImGui::SliderAngle("##xx", &rotation, -180.0f, 180.0f)) {
+		Rotate(rotation);
+	}
+
+	ImGui::Text("Scale ");
+	ImGui::SameLine();
+	float size[] = { this->size.x, this->size.y };
+	if (ImGui::InputFloat2("##xx", size)) {
+		Scale(glm::vec3(size[0], size[1], 1));
+	}
+
 }
 
 glm::vec3 TransformComponent::GetWorldPosition() {

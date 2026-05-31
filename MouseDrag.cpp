@@ -5,9 +5,9 @@ MouseDrag::MouseDrag(float k, float c) {
 	this->c = c;
 }
 
-void MouseDrag::updateForce(Object object, float delta) {
-	TransformComponent* trans = object.GetComponent<TransformComponent>();
-	PhysicsComponent* phys = object.GetComponent<PhysicsComponent>();
+void MouseDrag::updateForce(Object* object, float delta) {
+	TransformComponent* trans = object->GetComponent<TransformComponent>();
+	PhysicsComponent* phys = object->GetComponent<PhysicsComponent>();
 	// project to model space
 	glm::vec3 modelPos = trans->GetTransformedPoint(glm::vec3(InputManager::glX, InputManager::glY, 0), true);
 

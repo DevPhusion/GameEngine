@@ -20,7 +20,9 @@ public:
 	Polygon(std::vector<float> vertices, Shader shader, std::vector<std::string> textures);
 	Polygon() = default;
 
-	void AddComponents();
+	void InitializeDefaultComponents();
+private:
+	std::vector<float> m_vertices;
+	std::vector<std::string> m_textures;
 
-	virtual glm::vec3 GetCenter();
 };

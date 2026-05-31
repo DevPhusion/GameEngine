@@ -4,6 +4,6 @@
 class ForceGenerator
 {
 public:
-	virtual void updateForce(Object object, float delta) = 0;
+	virtual void updateForce(Object* object, float delta) = 0;
 };
 

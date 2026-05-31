@@ -4,15 +4,18 @@ VertexPoint::VertexPoint(float x, float y, Shader shader) : Object(shader) {
 	this->x = x;
 	this->y = y;
 
+	float sizeY = 0.01f;
+	float sizeX = sizeY / EngineManager::getInstance().aspectRatio;
+
 	std::vector<float> vertices = {
-		x - 0.01f, y - 0.01f, 0.0f, 0.0f, 0.0f,
-		x + 0.01f, y - 0.01f, 0.0f, 1.0f, 0.0f,
-		x + 0.01f, y + 0.01f, 0.0f, 1.0f, 1.0f,
-		x - 0.01f, y + 0.01f, 0.0f, 0.0f, 1.0f
+		x - sizeX, y - sizeY, 0.0f, 0.0f, 0.0f,
+		x + sizeX, y - sizeY, 0.0f, 1.0f, 0.0f,
+		x + sizeX, y + sizeY, 0.0f, 1.0f, 1.0f,
+		x - sizeX, y + sizeY, 0.0f, 0.0f, 1.0f
 	};
 
-	AddComponent(new RenderComponent(vertices, shader, std::vector<std::string>{}));
-	AddComponent(new TransformComponent(shader, glm::vec3(0)));
+	AddComponent(std::make_unique<RenderComponent>(this, vertices, shader, std::vector<std::string>{"floorTiled.png"}));
+	AddComponent(std::make_unique<TransformComponent>(this, shader, glm::vec3(0)));
 	GetComponent<TransformComponent>()->SetEnabled(false);
 }
 
@@ -20,12 +23,15 @@ void VertexPoint::UpdatePosition(float x, float y) {
 	this->x = x;
 	this->y = y;
 
+	float sizeY = 0.01f;
+	float sizeX = sizeY / EngineManager::getInstance().aspectRatio;
+
 	std::vector<float> vertices = {
-		x - 0.01f, y - 0.01f, 0.0f, 0.0f, 0.0f,
-		x + 0.01f, y - 0.01f, 0.0f, 1.0f, 0.0f,
-		x + 0.01f, y + 0.01f, 0.0f, 1.0f, 1.0f,
-		x - 0.01f, y + 0.01f, 0.0f, 0.0f, 1.0f
+		x - sizeX, y - sizeY, 0.0f, 0.0f, 0.0f,
+		x + sizeX, y - sizeY, 0.0f, 1.0f, 0.0f,
+		x + sizeX, y + sizeY, 0.0f, 1.0f, 1.0f,
+		x - sizeX, y + sizeY, 0.0f, 0.0f, 1.0f
 	};
 
-	GetComponent<RenderComponent>()->UpdateShape(vertices, GetComponent<RenderComponent>()->Triangulate(vertices));
+	GetComponent<RenderComponent>()->UpdateShape(vertices, GetComponent<RenderComponent>()->Indices);
 }

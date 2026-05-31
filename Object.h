@@ -4,7 +4,6 @@
 #include <vector>
 #include <type_traits>
 
-
 template <typename T>
 concept AllowedTypes = std::is_base_of_v<Component, T>;
 
@@ -14,7 +13,7 @@ public:
 	Object(Shader shader);
 	Object() = default;
 
-	std::vector<Component*> components;
+	std::vector<std::unique_ptr<Component>> components = {};
 	Shader shader;
 
 	template <AllowedTypes T>
@@ -22,7 +21,7 @@ public:
 		for (int i = 0; i < components.size(); i++)
 		{
 			if (typeid(*components[i]) == typeid(T)) {
-				return dynamic_cast<T*>(components[i]);
+				return dynamic_cast<T*>(components[i].get());
 			}
 		}
 		return nullptr;
@@ -45,20 +44,12 @@ public:
 		for (int i = 0; i < components.size(); i++)
 		{
 			if (typeid(*components[i]) == typeid(T)) {
-				components.erase(components.begin + i);
+				components.erase(components.begin() + i);
 				return;
 			}
 		}
 	}
 	
-	void AddComponent(Component* component);
-
-	virtual glm::vec3 GetCenter() {
-		return glm::vec3(0);
-	}
-
-	std::shared_ptr<Object> GetPointer();
-private:
-	std::shared_ptr<Object> ptr;
+	void AddComponent(std::unique_ptr<Component> component);
 };
 

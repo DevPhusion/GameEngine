@@ -1,10 +1,14 @@
 #include "RenderComponent.h"
 
-RenderComponent::RenderComponent(std::vector<float> vertices, Shader shader, std::vector<std::string> textures) {
+RenderComponent::RenderComponent(Object* parent, std::vector<float> vertices, Shader shader, std::vector<std::string> textures) : Component(parent) {
+	Name = "Render Component";
+
 	Vertices = vertices;
 	Indices = Triangulate(vertices);
 	this->shader = shader;
 
+	points.clear();
+	edges.clear();
 	for (int i = 0; i < vertices.size(); i += 2)
 	{
 		points.push_back(std::vector<float> {
@@ -75,11 +79,16 @@ RenderComponent::RenderComponent(std::vector<float> vertices, Shader shader, std
 	}
 }
 
+void RenderComponent::ProcessInspectorUI() {
+	
+}
+
 float calcTriangleArea(std::vector<float> a, std::vector<float> b, std::vector<float> c) {
 	return 0.5f * std::abs((a[0] * (b[1] - c[1]) + b[0] * (c[1] - a[1]) + c[0] * (a[1] - b[1])));
 }
 
 std::vector<unsigned int> RenderComponent::Triangulate(std::vector<float> vertices) {
+	points.clear();
 	for (int i = 0; i < vertices.size(); i += 2)
 	{
 		points.push_back(std::vector<float> {
@@ -156,10 +165,40 @@ std::vector<unsigned int> RenderComponent::Triangulate(std::vector<float> vertic
 
 	return indices;
 }
+
+glm::vec3 RenderComponent::GetCenter() {
+	float A = 0;
+	float C_x = 0;
+	float C_y = 0;
+
+	int n = points.size();
+	for (int i = 0; i < n; i++)
+	{
+		int j = (i + 1) % n;
+		float shoelace = points[i][0] * points[j][1] - points[j][0] * points[i][1];
+		A += shoelace;
+		C_x += (points[i][0] + points[j][0]) * shoelace;
+		C_y += (points[i][1] + points[j][1]) * shoelace;
+	}
+
+	A = A / 2.0;
+	if (A == 0) {
+		std::cout << "Error calculating polygon center";
+		return glm::vec3(0, 0, 0);
+	}
+
+	C_x = C_x / (6.0 * A);
+	C_y = C_y / (6.0 * A);
+
+	return glm::vec3(C_x, C_y, 0);
+}
+
 void RenderComponent::UpdateShape(std::vector<float> vertices, std::vector<unsigned int> indices) {
 	Vertices = vertices;
 	Indices = indices;
 
+	points.clear();
+	edges.clear();
 	for (int i = 0; i < vertices.size(); i += 2)
 	{
 		points.push_back(std::vector<float> {
@@ -206,8 +245,6 @@ bool RenderComponent::IsInsideShape(glm::vec3 point) {
 void RenderComponent::Draw() {
 
 	this->shader.use();
-	shader.setSampler2D("texture1", 0);
-	shader.setSampler2D("texture2", 1);
 	if (!Enabled)
 		return;
 	glBindVertexArray(this->VAO);

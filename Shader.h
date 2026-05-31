@@ -23,6 +23,7 @@ public:
 	void setVec2(const std::string& name, glm::vec2 value) const;
 	void setSampler2D(const std::string& name, int value) const;
 	void setMat4D(const std::string& name, glm::mat4 value) const;
+	void setVec4D(const std::string& name, glm::vec4 value) const;
 private:
 	unsigned int ID;
 };

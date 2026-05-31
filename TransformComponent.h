@@ -8,7 +8,7 @@
 class TransformComponent : public Component
 {
 public:
-	TransformComponent(Shader shader, glm::vec3 rotation_center);
+	TransformComponent(Object* parent, Shader shader, glm::vec3 rotation_center);
 	TransformComponent() = default;
 
 	glm::mat4 OriginTransform = glm::mat4(1.0f);
@@ -21,6 +21,7 @@ public:
 	std::function<void()> transformCallback;
 	float rotation = 0;
 
+	virtual void ProcessInspectorUI();
 	// model space -> screen space (inverse: screen space -> model space) 
 	glm::vec3 GetTransformedPoint(glm::vec3 point, bool inverseTransform = false); 
 	glm::vec3 GetWorldPosition();

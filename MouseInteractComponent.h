@@ -5,22 +5,25 @@
 #include "TransformComponent.h"
 #include "RenderComponent.h"
 #include "EngineManager.h"
+#include "VertexComponent.h"
 #include "MouseDrag.h"
 #include "PhysicsEngine.h"
 
 class MouseInteractComponent : public Component
 {
 public:
-	MouseInteractComponent(Object parent, bool physicsInteract);
+	MouseInteractComponent(Object* parent, bool physicsInteract);
 	MouseInteractComponent() = default;
 
-	Object parent;
+	static bool ObjectSelected; //prevent multiple selection;
 	bool physicsInteract;
 	bool Selected;
 
 	MouseDrag* mouseDragForce = nullptr;
 
+	virtual void ProcessInspectorUI();
 	void FindSelectedPolygon(int button, int action, int mods);
 	void DragPolygon(double xpos, double ypos);
+	void OnPhysicsModeChanged();
 };
 

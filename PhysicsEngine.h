@@ -6,7 +6,7 @@ class PhysicsEngine
 {
 protected:
 	struct ForceRegistration {
-		Object object;
+		Object* object;
 		ForceGenerator* fg;
 	};
 
@@ -21,13 +21,13 @@ public:
 		return instance;
 	}
 
-	void Setup(std::vector<Object>* objects);
+	void Setup(std::vector<std::unique_ptr<Object>>* objects);
 	void ProcessPhysics(float delta);
-	void RegisterForce(Object object, ForceGenerator* fg);
-	void UnRegisterForce(Object object, ForceGenerator* fg);
+	void RegisterForce(Object* object, ForceGenerator* fg);
+	void UnRegisterForce(Object* object, ForceGenerator* fg);
 	void ClearRegistry();
 private:
 	PhysicsEngine() = default;
-	std::vector<Object>* allObjects;
+	std::vector<std::unique_ptr<Object>>* allObjects;
 };
 

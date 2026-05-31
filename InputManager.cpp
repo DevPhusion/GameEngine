@@ -2,7 +2,8 @@
 
 float InputManager::glX = 0.0f;
 float InputManager::glY = 0.0f;
-bool InputManager::mouseHold = false;
+bool InputManager::mouseLeftHold = false;
+bool InputManager::mouseRightHold = false;
 
 std::vector <std::function<void(int, int, int)>> InputManager::MouseButtonCalls = {};
 std::vector <std::function<void(double, double)>> InputManager::CursorPositionCalls = {};
@@ -17,6 +18,8 @@ void InputManager::Setup(GLFWwindow* window) {
 	glfwSetCursorPosCallback(this->window, OnCursorPosition);
 	glfwSetKeyCallback(this->window, OnKeyButton);
 	glfwSetScrollCallback(this->window, OnMouseScroll);
+
+	glfwSetCharCallback(this->window, ImGui_ImplGlfw_CharCallback);
 }
 
 void InputManager::SetMouseButtonCallback(std::function<void(int, int, int)> func) {
@@ -37,6 +40,8 @@ void InputManager::SetMouseScrollCallback(std::function<void(double, double)> fu
 }
 
 void InputManager::OnCursorPosition(GLFWwindow* window, double xpos, double ypos) {
+	ImGui_ImplGlfw_CursorPosCallback(window, xpos, ypos);
+
 	double mouseX, mouseY;
 	glfwGetCursorPos(window, &mouseX, &mouseY);
 	int windowWidth, windowHeight;
@@ -51,12 +56,26 @@ void InputManager::OnCursorPosition(GLFWwindow* window, double xpos, double ypos
 }
 
 void InputManager::OnMouseButton(GLFWwindow* window, int button, int action, int mods) {
+	ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
+
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-		mouseHold = true;
+		mouseLeftHold = true;
 	}
 
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
-		mouseHold = false;
+		mouseLeftHold = false;
+	}
+
+	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
+		mouseRightHold = true;
+	}
+
+	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE) {
+		mouseRightHold = false;
+	}
+
+	if (EditorManager::getInstance().WindowHovered) {
+		return;
 	}
 
 	for (int i = 0; i < MouseButtonCalls.size(); i++)
@@ -66,6 +85,8 @@ void InputManager::OnMouseButton(GLFWwindow* window, int button, int action, int
 }
 
 void InputManager::OnKeyButton(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
+
 	if (action == GLFW_PRESS) {
 		keys[key] = true;
 	}
@@ -73,6 +94,9 @@ void InputManager::OnKeyButton(GLFWwindow* window, int key, int scancode, int ac
 		keys[key] = false;
 	}
 	
+	if (EditorManager::getInstance().WindowTyped) {
+		return;
+	}
 
 	for (int i = 0; i < KeyButtonCalls.size(); i++)
 	{
@@ -81,6 +105,12 @@ void InputManager::OnKeyButton(GLFWwindow* window, int key, int scancode, int ac
 }
 
 void InputManager::OnMouseScroll(GLFWwindow* window, double xoffset, double yoffset) {
+	ImGui_ImplGlfw_ScrollCallback(window, xoffset, yoffset);
+
+	if (EditorManager::getInstance().WindowHovered) {
+		return;
+	}
+
 	for (int i = 0; i < MouseScrollCalls.size(); i++)
 	{
 		MouseScrollCalls[i](xoffset, yoffset);

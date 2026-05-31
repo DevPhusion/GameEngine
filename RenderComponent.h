@@ -9,14 +9,16 @@
 class RenderComponent:public Component
 {
 public:
-	RenderComponent(std::vector<float> vertices, Shader shader, std::vector<std::string> textures);
+	RenderComponent(Object* parent, std::vector<float> vertices, Shader shader, std::vector<std::string> textures);
 	RenderComponent() = default;
 	std::vector<float> Vertices;
 	std::vector<unsigned int> Indices;
 	std::vector<std::vector<float>> points;
 	std::vector<std::vector<std::vector<float>>> edges;
 
+	virtual void ProcessInspectorUI();
 	std::vector<unsigned int> Triangulate(std::vector<float> vertices);
+	glm::vec3 GetCenter();
 	bool IsInsideShape(glm::vec3 point);
 	void UpdateShape(std::vector<float> vertices, std::vector<unsigned int> indices);
 	void Draw();

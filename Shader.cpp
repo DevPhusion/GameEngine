@@ -71,3 +71,7 @@ void Shader::setMat4D(const std::string& name, glm::mat4 value) const {
 void Shader::setVec2(const std::string& name, glm::vec2 value) const {
 	glUniform2f(glGetUniformLocation(this->ID, name.c_str()), value.x, value.y);
 }
+
+void Shader::setVec4D(const std::string& name, glm::vec4 value) const {
+	glad_glUniform4f(glGetUniformLocation(this->ID, name.c_str()), value.x, value.y, value.z, value.a);
+}

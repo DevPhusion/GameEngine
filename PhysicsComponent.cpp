@@ -1,13 +1,23 @@
 #include "PhysicsComponent.h"
 
-PhysicsComponent::PhysicsComponent(std::shared_ptr<Object> parent) {
-	this->parent = parent;
+PhysicsComponent::PhysicsComponent(Object* parent) : Component(parent) {
+	Name = "Physics Component";
 	this->acceleration = glm::vec3(0);
 	this->velocity = glm::vec3(0);
 	this->netForce = glm::vec3(0);
 }
 
+void PhysicsComponent::ProcessInspectorUI() {
+	if (!this->parent->GetComponent<TransformComponent>()->Enabled) {
+		Enabled = false;
+	}
+}
+
 void PhysicsComponent::ProcessPhysics(float delta) {
+	if (!Enabled) {
+		return;
+	}
+
 	TransformComponent* transform = this->parent->GetComponent<TransformComponent>();
 	glm::vec3 position = transform->GetWorldPosition();
 

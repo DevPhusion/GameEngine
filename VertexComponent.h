@@ -10,17 +10,18 @@
 class VertexComponent : public Component
 {
 public:
-	VertexComponent(std::shared_ptr<Object> parent);
+	VertexComponent(Object* parent);
 	VertexComponent() = default;
 
 	static bool vertexSelected;
 
-	std::shared_ptr<Object> parent;
-	std::vector<VertexPoint> vertexPoints;
+	std::vector<VertexPoint*> vertexPoints;
 	int selectedIndex = -1;
 
+	virtual void ProcessInspectorUI();
+	int GetSelectedVertex();
 	void SetEnabled(bool enabled) override;
-	void SetVertexPoints(std::vector<VertexPoint> vertexPoints);
+	void SetVertexPoints(std::vector<VertexPoint*> vertexPoints);
 	void FindSelectedPoint(int button, int action, int mods);
 	void DragPoint(double xpos, double ypos);
 	void UpdateTransform();

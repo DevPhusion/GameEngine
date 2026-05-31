@@ -14,19 +14,34 @@ public:
 	}
 
 	enum InteractMode {
-		AddObject,
-		VertexSelect,
-		MouseSelect,
+		AddVertex,
+		EditorSelect,
 	};
 
-	InteractMode EngineInteractMode = AddObject;
+	enum PhysicsMode {
+		Pause,
+		Simulate
+	};
 
+	InteractMode EngineInteractMode = AddVertex;
+	PhysicsMode EnginePhysicsMode = Pause;
+
+	float fps;
+	float windowWidth;
+	float windowHeight;
+	float aspectRatio;
 	std::vector<std::function<void()>> InteractModeChangedEvents;
+	std::vector<std::function<void()>> PhysicsModeChangedEvents;
 
-	void Setup();
-	void SwitchMode(int key, int scancode, int action, int mods);
+	void Setup(GLFWwindow* window);
+	void ProcessEngine(float delta);
+	void SwitchInteractMode(int key, int scancode, int action, int mods);
+	void SwitchPhysicsMode();
 	void AddInteractModeChangedEvent(std::function<void()> func);
+	void AddPhysicsModeChangedEvent(std::function<void()> func);
 private:
+	float time;
+	float frameCount;
 	EngineManager() = default;
 
 };
