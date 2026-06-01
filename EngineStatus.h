@@ -6,6 +6,8 @@ class EngineStatus : public EditorWindow
 public:
 	EngineStatus(std::string name);
 	
+	std::string InteractModeText;
+
 	virtual void ProcessWindow();
 
 	void OnInteractModeChanged();

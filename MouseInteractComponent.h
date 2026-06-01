@@ -24,6 +24,7 @@ public:
 	virtual void ProcessInspectorUI();
 	void FindSelectedPolygon(int button, int action, int mods);
 	void DragPolygon(double xpos, double ypos);
+	void SetSelectedPolygon(Object* obj, bool enable);
 	void OnPhysicsModeChanged();
 };
 

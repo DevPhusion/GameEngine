@@ -1,6 +1,7 @@
 #pragma once
 #include "Inspector.h"
 #include "EngineStatus.h"
+#include "Hierarchy.h"
 #include <vector>
 class EditorManager
 {

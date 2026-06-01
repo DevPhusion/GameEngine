@@ -10,6 +10,7 @@ void EditorManager::Setup(GLFWwindow* window) {
 
 	Windows.push_back(new Inspector("Inspector"));
 	Windows.push_back(new EngineStatus("Status"));
+	Windows.push_back(new Hierarchy("Hierarchy"));
 }
 
 void EditorManager::SetSelectedObject(Object* object) {

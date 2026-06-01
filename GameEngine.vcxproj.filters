@@ -55,6 +55,12 @@
     <Filter Include="Header Files\Core\Editor">
       <UniqueIdentifier>{0ade9593-5143-4ead-ae44-e9081889c66c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Core\Editor\Windows">
+      <UniqueIdentifier>{0687b535-0823-422c-8974-11c2edbf6220}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Core\Editor\Windows">
+      <UniqueIdentifier>{6770e569-9613-4472-9c44-87c45af5979d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glad.c">
@@ -144,17 +150,23 @@
     <ClCompile Include="imgui\imgui_widgets.cpp">
       <Filter>Source Files\ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="Inspector.cpp">
-      <Filter>Source Files\Core\Editor</Filter>
-    </ClCompile>
     <ClCompile Include="EditorManager.cpp">
       <Filter>Source Files\Core\Editor</Filter>
     </ClCompile>
     <ClCompile Include="EditorWindow.cpp">
       <Filter>Source Files\Core\Editor</Filter>
     </ClCompile>
+    <ClCompile Include="ObjectManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="EngineStatus.cpp">
-      <Filter>Source Files\Core\Editor</Filter>
+      <Filter>Source Files\Core\Editor\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Hierarchy.cpp">
+      <Filter>Source Files\Core\Editor\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Inspector.cpp">
+      <Filter>Source Files\Core\Editor\Windows</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -245,17 +257,23 @@
     <ClInclude Include="imgui\imstb_truetype.h">
       <Filter>Header Files\ImGUI</Filter>
     </ClInclude>
-    <ClInclude Include="Inspector.h">
-      <Filter>Header Files\Core\Editor</Filter>
-    </ClInclude>
     <ClInclude Include="EditorWindow.h">
       <Filter>Header Files\Core\Editor</Filter>
     </ClInclude>
     <ClInclude Include="EditorManager.h">
       <Filter>Header Files\Core\Editor</Filter>
     </ClInclude>
+    <ClInclude Include="ObjectManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="EngineStatus.h">
-      <Filter>Header Files\Core\Editor</Filter>
+      <Filter>Header Files\Core\Editor\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Hierarchy.h">
+      <Filter>Header Files\Core\Editor\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Inspector.h">
+      <Filter>Header Files\Core\Editor\Windows</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

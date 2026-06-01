@@ -13,6 +13,8 @@ public:
 	Object(Shader shader);
 	Object() = default;
 
+	std::string name;
+	bool hidden = false;
 	std::vector<std::unique_ptr<Component>> components = {};
 	Shader shader;
 

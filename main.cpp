@@ -8,55 +8,25 @@
 #include "PhysicsEngine.h"
 #include "EngineManager.h"
 #include "EditorManager.h"
+#include "ObjectManager.h"
 #include "Gravity.h"
 #include "Drag.h"
 #include "Shader.h"
 #include "VertexPoint.h"
 #include "MouseDrag.h"
 
-std::vector<float> vertices;
-std::vector<std::unique_ptr<Object>> allObjects;
-std::vector<VertexPoint*> vertexPoints; // temporary storage for vertex points before they are assigned to a polygon
-Renderer renderer = Renderer(&allObjects);
+
+Renderer renderer = Renderer(&ObjectManager::getInstance().allObjects);
 
 void cursorPressedCallback(int button, int action, int mods) {
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-		if (EngineManager::getInstance().EngineInteractMode == EngineManager::InteractMode::AddVertex) {
-			vertices.push_back(InputManager::glX);
-			vertices.push_back(InputManager::glY);
-			vertices.push_back(0.0f); // Z coordinate
-			vertices.push_back(InputManager::glX); // U
-			vertices.push_back(InputManager::glY); // V
-
-			std::unique_ptr<VertexPoint> pointIndicator = std::make_unique<VertexPoint>(InputManager::glX, InputManager::glY, Shader("vertex.txt", "fragment.txt"));
-			vertexPoints.push_back(pointIndicator.get());
-			allObjects.push_back(std::move(pointIndicator));
-		}
+		ObjectManager::getInstance().AddPolygonVertex();
 	}
 }
 
 void keyPressed(int key, int scancode, int action, int mods) {
 	if (key == GLFW_KEY_P && action == GLFW_PRESS && EngineManager::getInstance().EngineInteractMode == EngineManager::InteractMode::AddVertex) {
-		if (vertexPoints.size() < 3) {
-			std::cout << "Invalid polygon" << std::endl;
-			return;
-		}
-
-		std::unique_ptr<Polygon> poly = std::make_unique<Polygon>(vertices, Shader("vertex.txt", "fragment.txt"), std::vector<std::string> {"floorTiled.png"});
-
-		auto* vc = poly->GetComponent<VertexComponent>();
-		auto* tc = poly->GetComponent<TransformComponent>();
-		auto* pc = poly->GetComponent<PhysicsComponent>();
-
-		pc->inverseMass = 1;
-		PhysicsEngine::getInstance().RegisterForce(poly.get(), new Gravity(glm::vec3(0, -9.8f, 0)));
-		PhysicsEngine::getInstance().RegisterForce(poly.get(), new Drag(0.0f, 0.002f));
-
-		vc->SetVertexPoints(vertexPoints);
-		tc->SetOriginTransform(Camera::getInstance().viewMatrixInverse);
-		allObjects.push_back(std::move(poly));
-		vertices.clear();
-		vertexPoints.clear();
+		ObjectManager::getInstance().AddPolygon();
 	}
 	if (key == GLFW_KEY_R) {
 		if (action == GLFW_PRESS) {
@@ -91,7 +61,7 @@ int main() {
 	InputManager::getInstance().SetMouseButtonCallback(cursorPressedCallback);
 
 	EngineManager::getInstance().Setup(window);
-	PhysicsEngine::getInstance().Setup(&allObjects);
+	PhysicsEngine::getInstance().Setup(&ObjectManager::getInstance().allObjects);
 
 	Camera::getInstance().Setup();
 

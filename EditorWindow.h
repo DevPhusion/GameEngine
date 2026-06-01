@@ -12,7 +12,6 @@ public:
 	EditorWindow() = default;
 
 	std::string name;
-	std::string InteractModeText;
 
  	virtual void ProcessWindow() = 0;
 };

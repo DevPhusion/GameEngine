@@ -14,6 +14,28 @@ void MouseInteractComponent::ProcessInspectorUI() {
 
 }
 
+void MouseInteractComponent::SetSelectedPolygon(Object* obj, bool enable) {
+
+	if (!enable) {
+		if (obj->HasComponent<VertexComponent>()) {
+			if (obj->GetComponent<VertexComponent>()->GetSelectedVertex() != -1) {
+				return;
+			}
+			obj->GetComponent<VertexComponent>()->SetEnabled(false);
+		}
+		if (EditorManager::getInstance().selectedObject == obj) {
+			EditorManager::getInstance().SetSelectedObject(nullptr);
+		}
+	}
+	else {
+		if (obj->HasComponent<VertexComponent>()) {
+			obj->GetComponent<VertexComponent>()->SetEnabled(true);
+		}
+		EditorManager::getInstance().SetSelectedObject(obj);
+	}
+
+}
+
 void MouseInteractComponent::FindSelectedPolygon(int button, int action, int mods) {
 	if (EngineManager::getInstance().EngineInteractMode != EngineManager::InteractMode::EditorSelect) {
 		return;
@@ -45,20 +67,11 @@ void MouseInteractComponent::FindSelectedPolygon(int button, int action, int mod
 				PhysicsEngine::getInstance().RegisterForce(parent, mouseDragForce);
 			}
 			else if (EngineManager::getInstance().EnginePhysicsMode == EngineManager::PhysicsMode::Pause) {
-				EditorManager::getInstance().SetSelectedObject(parent);
-				if (parent->HasComponent<VertexComponent>()) {
-					parent->GetComponent<VertexComponent>()->SetEnabled(true);
-				}
+				SetSelectedPolygon(parent, true);
 			}
 		}
 		else {
-			if (parent->HasComponent<VertexComponent>()) {
-				if (parent->GetComponent<VertexComponent>()->GetSelectedVertex() != -1) {
-					return;
-				}
-				parent->GetComponent<VertexComponent>()->SetEnabled(false);
-			}
-			EditorManager::getInstance().SetSelectedObject(nullptr);
+			SetSelectedPolygon(parent, false);
 		}
 
 	}

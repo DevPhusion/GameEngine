@@ -146,6 +146,7 @@
     <ClCompile Include="ForceGenerator.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="Gravity.cpp" />
+    <ClCompile Include="Hierarchy.cpp" />
     <ClCompile Include="imgui\imgui.cpp" />
     <ClCompile Include="imgui\imgui_demo.cpp" />
     <ClCompile Include="imgui\imgui_draw.cpp" />
@@ -160,6 +161,7 @@
     <ClCompile Include="MouseDrag.cpp" />
     <ClCompile Include="MouseInteractComponent.cpp" />
     <ClCompile Include="Object.cpp" />
+    <ClCompile Include="ObjectManager.cpp" />
     <ClCompile Include="PhysicsComponent.cpp" />
     <ClCompile Include="PhysicsEngine.cpp" />
     <ClCompile Include="Polygon.cpp" />
@@ -180,6 +182,7 @@
     <ClInclude Include="EngineStatus.h" />
     <ClInclude Include="ForceGenerator.h" />
     <ClInclude Include="Gravity.h" />
+    <ClInclude Include="Hierarchy.h" />
     <ClInclude Include="imgui\imconfig.h" />
     <ClInclude Include="imgui\imgui.h" />
     <ClInclude Include="imgui\imgui_impl_glfw.h" />
@@ -195,6 +198,7 @@
     <ClInclude Include="MouseDrag.h" />
     <ClInclude Include="MouseInteractComponent.h" />
     <ClInclude Include="Object.h" />
+    <ClInclude Include="ObjectManager.h" />
     <ClInclude Include="PhysicsComponent.h" />
     <ClInclude Include="PhysicsEngine.h" />
     <ClInclude Include="Polygon.h" />

@@ -12,20 +12,20 @@ void TransformComponent::ProcessInspectorUI() {
 	ImGui::Text("Position ");
 	ImGui::SameLine();
 	float position[] = { GetWorldPosition().x, GetWorldPosition().y };
-	if (ImGui::InputFloat2("##", position)) {
+	if (ImGui::InputFloat2("## Position", position)) {
 		UpdateWorldPosition(glm::vec3(position[0], position[1], 0));
 	}
 	ImGui::Text("Rotation ");
 	ImGui::SameLine();
 	float rotation = this->rotation;
-	if (ImGui::SliderAngle("##xx", &rotation, -180.0f, 180.0f)) {
+	if (ImGui::SliderAngle("## Rotation", &rotation, -180.0f, 180.0f)) {
 		Rotate(rotation);
 	}
 
 	ImGui::Text("Scale ");
 	ImGui::SameLine();
 	float size[] = { this->size.x, this->size.y };
-	if (ImGui::InputFloat2("##xx", size)) {
+	if (ImGui::InputFloat2("## Scale", size)) {
 		Scale(glm::vec3(size[0], size[1], 1));
 	}
 
@@ -37,13 +37,17 @@ glm::vec3 TransformComponent::GetWorldPosition() {
 
 glm::vec3 TransformComponent::ProjectToWorld(glm::vec3 point) {
 	glm::vec4 p = glm::vec4(point.x, point.y, point.z, 1.0f);
-	glm::vec4 worldPos = OriginTransform * p;
+	glm::mat4 rotated = glm::rotate(OriginTransform, rotation, glm::vec3(0, 0, 1));
+	glm::mat4 scaled = glm::scale(rotated, size);
+	glm::vec4 worldPos = scaled * p;
 	return glm::vec3(worldPos.x, worldPos.y, 0);
 }
 
 void TransformComponent::UpdateWorldPosition(glm::vec3 targetWorldPos) {
 	glm::vec4 center = glm::vec4(rotation_center.x, rotation_center.y, rotation_center.z, 1.0f);
-	glm::vec4 currentWorldPos = OriginTransform * center;
+	glm::mat4 rotated = glm::rotate(OriginTransform, rotation, glm::vec3(0, 0, 1));
+	glm::mat4 scaled = glm::scale(rotated, size);
+	glm::vec4 currentWorldPos = scaled * center;
 
 	glm::vec3 currentPosVec3 = glm::vec3(currentWorldPos.x, currentWorldPos.y, currentWorldPos.z);
 	glm::vec3 delta = targetWorldPos - currentPosVec3;

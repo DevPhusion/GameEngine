@@ -8,6 +8,10 @@ MouseDrag::MouseDrag(float k, float c) {
 void MouseDrag::updateForce(Object* object, float delta) {
 	TransformComponent* trans = object->GetComponent<TransformComponent>();
 	PhysicsComponent* phys = object->GetComponent<PhysicsComponent>();
+	
+	float scaledK = k * (1 / phys->inverseMass);
+	float scaledC = c * (1 / phys->inverseMass);
+	
 	// project to model space
 	glm::vec3 modelPos = trans->GetTransformedPoint(glm::vec3(InputManager::glX, InputManager::glY, 0), true);
 
@@ -17,7 +21,26 @@ void MouseDrag::updateForce(Object* object, float delta) {
 
 	glm::vec3 displacement = MouseWorldPos - ObjWorldPos;
 	glm::vec3 objVel = phys->velocity;
-	glm::vec3 force = (k * displacement) - (c * objVel);
+	Force = (scaledK * displacement) - (scaledC * objVel);
 
-	phys->AddForce(force);
+	phys->AddForce(Force);
+}
+
+void MouseDrag::processDisplay() {
+	if (ImGui::TreeNode("Mouse Drag")) {
+		ImGui::Text("k ");
+		ImGui::SameLine();
+		ImGui::InputFloat("## k", &k, 0.0f, 0.0f, "%.3f", ImGuiInputTextFlags_ReadOnly);
+
+		ImGui::Text("c ");
+		ImGui::SameLine();
+		ImGui::InputFloat("## c", &c, 0.0f, 0.0f, "%.3f", ImGuiInputTextFlags_ReadOnly);
+
+		ImGui::Text("Mouse Drag ");
+		ImGui::SameLine();
+		float force[] = { Force.x, Force.y };
+		ImGui::InputFloat2("## Mouse Drag", force, "%.3f N", ImGuiInputTextFlags_ReadOnly);
+
+		ImGui::TreePop();
+	}
 }
