@@ -129,6 +129,8 @@ void TransformComponent::ProcessTransform() {
 	this->transform = glm::scale(this->transform, size);
 
 	this->transform = glm::translate(this->transform, -rotation_center); // Translate back to original pos
+	glm::mat4 projection = glm::ortho(-EngineManager::getInstance().aspectRatio, EngineManager::getInstance().aspectRatio, -1.0f, 1.0f, -1.0f, 1.0f);
+	this->shader.setMat4D("projection", projection);
 	this->shader.setMat4D("transform", this->transform);
 	this->shader.setMat4D("view", Camera::getInstance().viewMatrix);
 }

@@ -7,14 +7,23 @@ Inspector::Inspector(std::string main) : EditorWindow(main) {
 }
 
 void Inspector::ProcessWindow() {
+	if (hidden) return;
+
+	ImGui::SetNextWindowPos(ImVec2(1510, 150), ImGuiCond_FirstUseEver);
+	ImGui::SetNextWindowSize(ImVec2(400, 880), ImGuiCond_FirstUseEver);
+
 	ImGui::Begin(name.c_str());
-	
 	
 	if (EditorManager::getInstance().selectedObject != nullptr) {
 		Object* selected = EditorManager::getInstance().selectedObject;
 		for (int i = 0; i < selected->components.size(); i++)
 		{
-			if (ImGui::TreeNode(selected->components[i]->Name.c_str())) {
+			ImGuiTreeNodeFlags root_flags = ImGuiTreeNodeFlags_OpenOnArrow |
+				ImGuiTreeNodeFlags_OpenOnDoubleClick |
+				ImGuiTreeNodeFlags_SpanAvailWidth |
+				ImGuiTreeNodeFlags_DefaultOpen;
+
+			if (ImGui::TreeNodeEx(selected->components[i]->Name.c_str(), root_flags)) {
 				ImGui::Text("Enable ");
 				ImGui::SameLine();
 

@@ -14,7 +14,12 @@ void Gravity::updateForce(Object* object, float delta) {
 }
 
 void Gravity::processDisplay() {
-	if (ImGui::TreeNode("Gravity")) {
+	ImGuiTreeNodeFlags root_flags = ImGuiTreeNodeFlags_OpenOnArrow |
+		ImGuiTreeNodeFlags_OpenOnDoubleClick |
+		ImGuiTreeNodeFlags_SpanAvailWidth |
+		ImGuiTreeNodeFlags_DefaultOpen;
+
+	if (ImGui::TreeNodeEx("Gravity", root_flags)) {
 		ImGui::Text("g ");
 		ImGui::SameLine();
 		ImGui::InputFloat("## Gravity accel", &gravity, 0.0f, 0.0f, "%.3f m/s²");

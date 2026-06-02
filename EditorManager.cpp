@@ -8,9 +8,13 @@ void EditorManager::Setup(GLFWwindow* window) {
 	ImGui_ImplGlfw_InitForOpenGL(window, false);
 	ImGui_ImplOpenGL3_Init("#version 330");
 
-	Windows.push_back(new Inspector("Inspector"));
-	Windows.push_back(new EngineStatus("Status"));
-	Windows.push_back(new Hierarchy("Hierarchy"));
+	AddWindow(new Inspector("Inspector"));
+	AddWindow(new EngineStatus("Status"));
+	AddWindow(new Hierarchy("Hierarchy"));
+}
+
+void EditorManager::AddWindow(EditorWindow* window) {
+	Windows.push_back(window);
 }
 
 void EditorManager::SetSelectedObject(Object* object) {

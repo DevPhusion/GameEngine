@@ -5,7 +5,7 @@ VertexPoint::VertexPoint(float x, float y, Shader shader) : Object(shader) {
 	this->y = y;
 
 	float sizeY = 0.01f;
-	float sizeX = sizeY / EngineManager::getInstance().aspectRatio;
+	float sizeX = 0.01f;
 
 	std::vector<float> vertices = {
 		x - sizeX, y - sizeY, 0.0f, 0.0f, 0.0f,
@@ -16,7 +16,6 @@ VertexPoint::VertexPoint(float x, float y, Shader shader) : Object(shader) {
 
 	AddComponent(std::make_unique<RenderComponent>(this, vertices, shader, std::vector<std::string>{"floorTiled.png"}));
 	AddComponent(std::make_unique<TransformComponent>(this, shader, glm::vec3(0)));
-	GetComponent<TransformComponent>()->SetEnabled(false);
 }
 
 void VertexPoint::UpdatePosition(float x, float y) {
@@ -24,7 +23,7 @@ void VertexPoint::UpdatePosition(float x, float y) {
 	this->y = y;
 
 	float sizeY = 0.01f;
-	float sizeX = sizeY / EngineManager::getInstance().aspectRatio;
+	float sizeX = 0.01f;
 
 	std::vector<float> vertices = {
 		x - sizeX, y - sizeY, 0.0f, 0.0f, 0.0f,

@@ -49,6 +49,8 @@ void InputManager::OnCursorPosition(GLFWwindow* window, double xpos, double ypos
 	glX = (2.0f * static_cast<float>(mouseX) / windowWidth) - 1.0f;
 	glY = 1.0f - (2.0f * static_cast<float>(mouseY) / windowHeight);
 
+	glX = glX * EngineManager::getInstance().aspectRatio;
+
 	for (int i = 0; i < CursorPositionCalls.size(); i++)
 	{
 		CursorPositionCalls[i](xpos, ypos);
@@ -86,6 +88,10 @@ void InputManager::OnMouseButton(GLFWwindow* window, int button, int action, int
 
 void InputManager::OnKeyButton(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
+
+	if (ImGui::GetIO().WantTextInput) {
+		return;
+	}
 
 	if (action == GLFW_PRESS) {
 		keys[key] = true;

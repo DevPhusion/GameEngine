@@ -1,7 +1,6 @@
 #include "EngineManager.h"
 
 void EngineManager::Setup(GLFWwindow* window) {
-	InputManager::getInstance().SetKeyButtonCallback([this](int key, int scancode, int action, int mods) {this->SwitchInteractMode(key, scancode, action, mods);});
 	int windowWidth, windowHeight;
 	glfwGetWindowSize(window, &windowWidth, &windowHeight);
 	this->windowWidth = (float)windowWidth;
@@ -21,29 +20,17 @@ void EngineManager::ProcessEngine(float delta) {
 	}
 }
 
-void EngineManager::SwitchInteractMode(int key, int scancode, int action, int mods) {
-	if (key == GLFW_KEY_E && action == GLFW_PRESS) {
-		if (EngineInteractMode == InteractMode::AddVertex) {
-			EngineInteractMode = InteractMode::EditorSelect;
-		}
-		else if (EngineInteractMode == InteractMode::EditorSelect) {
-			EngineInteractMode = InteractMode::AddVertex;
-		}
+void EngineManager::SwitchInteractMode(InteractMode mode) {
+	EngineInteractMode = mode;
 
-		for (int i = 0; i < InteractModeChangedEvents.size(); i++)
-		{
-			InteractModeChangedEvents[i]();
-		}
+	for (int i = 0; i < InteractModeChangedEvents.size(); i++)
+	{
+		InteractModeChangedEvents[i]();
 	}
 }
 
-void EngineManager::SwitchPhysicsMode() {
-	if (EnginePhysicsMode == PhysicsMode::Pause) {
-		EnginePhysicsMode = PhysicsMode::Simulate;
-	}
-	else if (EnginePhysicsMode == PhysicsMode::Simulate) {
-		EnginePhysicsMode = PhysicsMode::Pause;
-	}
+void EngineManager::SwitchPhysicsMode(PhysicsMode mode) {
+	EnginePhysicsMode = mode;
 
 	for (int i = 0; i < PhysicsModeChangedEvents.size(); i++)
 	{

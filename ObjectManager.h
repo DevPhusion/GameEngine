@@ -2,6 +2,8 @@
 #include "Polygon.h"
 #include "VertexPoint.h"
 #include "InputManager.h"
+#include "Gravity.h"
+#include "Drag.h"
 class ObjectManager
 {
 public:

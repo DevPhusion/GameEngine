@@ -10,7 +10,7 @@ PhysicsComponent::PhysicsComponent(Object* parent) : Component(parent) {
 
 void PhysicsComponent::ProcessInspectorUI() {
 	if (!this->parent->GetComponent<TransformComponent>()->Enabled) {
-		Enabled = false;
+		SetEnabled(false);
 	}
 
 	ImGui::Text("Mass ");
@@ -46,7 +46,12 @@ void PhysicsComponent::ProcessInspectorUI() {
 		this->netForce = glm::vec3(force[0], force[1], 0);
 	}
 
-	if (ImGui::TreeNode("Forces")) {
+	ImGuiTreeNodeFlags root_flags = ImGuiTreeNodeFlags_OpenOnArrow |
+		ImGuiTreeNodeFlags_OpenOnDoubleClick |
+		ImGuiTreeNodeFlags_SpanAvailWidth |
+		ImGuiTreeNodeFlags_DefaultOpen;
+
+	if (ImGui::TreeNodeEx("Forces", root_flags)) {
 		for (int i = 0; i < forceDisplayFunc.size(); i++)
 		{
 			(*forceDisplayFunc[i])();

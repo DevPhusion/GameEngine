@@ -25,9 +25,6 @@ void cursorPressedCallback(int button, int action, int mods) {
 }
 
 void keyPressed(int key, int scancode, int action, int mods) {
-	if (key == GLFW_KEY_P && action == GLFW_PRESS && EngineManager::getInstance().EngineInteractMode == EngineManager::InteractMode::AddVertex) {
-		ObjectManager::getInstance().AddPolygon();
-	}
 	if (key == GLFW_KEY_R) {
 		if (action == GLFW_PRESS) {
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);

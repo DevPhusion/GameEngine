@@ -137,6 +137,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AddObjectWindow.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="Drag.cpp" />
@@ -174,6 +175,7 @@
     <ClCompile Include="VertexPoint.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AddObjectWindow.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Component.h" />
     <ClInclude Include="Drag.h" />

@@ -6,6 +6,11 @@ EngineStatus::EngineStatus(std::string main) : EditorWindow(main) {
 }
 
 void EngineStatus::ProcessWindow() {
+	if (hidden) return;
+
+	ImGui::SetNextWindowPos(ImVec2(1510, 10), ImGuiCond_FirstUseEver);
+	ImGui::SetNextWindowSize(ImVec2(400, 130), ImGuiCond_FirstUseEver);
+
 	ImGui::Begin(name.c_str());
 
 	std::string fpsText = std::to_string(EngineManager::getInstance().fps) + " FPS";
@@ -15,12 +20,12 @@ void EngineStatus::ProcessWindow() {
 	ImGui::SameLine();
 	if (EngineManager::getInstance().EnginePhysicsMode == EngineManager::PhysicsMode::Pause) {
 		if (ImGui::Button("Run")) {
-			EngineManager::getInstance().SwitchPhysicsMode();
+			EngineManager::getInstance().SwitchPhysicsMode(EngineManager::PhysicsMode::Simulate);
 		}
 	}
 	else if (EngineManager::getInstance().EnginePhysicsMode == EngineManager::PhysicsMode::Simulate){
 		if (ImGui::Button("Pause")) {
-			EngineManager::getInstance().SwitchPhysicsMode();
+			EngineManager::getInstance().SwitchPhysicsMode(EngineManager::PhysicsMode::Pause);
 		}
 	}
 

@@ -11,7 +11,15 @@ MouseInteractComponent::MouseInteractComponent(Object* parent, bool physicsInter
 }
 
 void MouseInteractComponent::ProcessInspectorUI() {
+	if (!this->parent->GetComponent<TransformComponent>()->Enabled) {
+		SetEnabled(false);
+	}
 
+	if (parent->HasComponent<PhysicsComponent>()) {
+		ImGui::Text("Physics Interact ");
+		ImGui::SameLine();
+		ImGui::Checkbox("## Physics Interact", &physicsInteract);
+	}
 }
 
 void MouseInteractComponent::SetSelectedPolygon(Object* obj, bool enable) {

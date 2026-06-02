@@ -20,7 +20,9 @@ void VertexComponent::SetEnabled(bool enabled) {
 }
 
 void VertexComponent::ProcessInspectorUI() {
-	
+	if (!this->parent->GetComponent<TransformComponent>()->Enabled) {
+		SetEnabled(false);
+	}
 }
 
 int VertexComponent::GetSelectedVertex() {

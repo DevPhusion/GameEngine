@@ -12,7 +12,10 @@ public:
 	EditorWindow() = default;
 
 	std::string name;
+	bool hidden = false;
 
+	virtual void Hide();
+	virtual void Show();
  	virtual void ProcessWindow() = 0;
 };
 

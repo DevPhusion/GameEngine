@@ -23,7 +23,7 @@ public:
 		Simulate
 	};
 
-	InteractMode EngineInteractMode = AddVertex;
+	InteractMode EngineInteractMode = EditorSelect;
 	PhysicsMode EnginePhysicsMode = Pause;
 
 	float fps;
@@ -35,8 +35,8 @@ public:
 
 	void Setup(GLFWwindow* window);
 	void ProcessEngine(float delta);
-	void SwitchInteractMode(int key, int scancode, int action, int mods);
-	void SwitchPhysicsMode();
+	void SwitchInteractMode(InteractMode mode);
+	void SwitchPhysicsMode(PhysicsMode mode);
 	void AddInteractModeChangedEvent(std::function<void()> func);
 	void AddPhysicsModeChangedEvent(std::function<void()> func);
 private:

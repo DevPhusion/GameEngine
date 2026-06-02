@@ -156,9 +156,6 @@
     <ClCompile Include="EditorWindow.cpp">
       <Filter>Source Files\Core\Editor</Filter>
     </ClCompile>
-    <ClCompile Include="ObjectManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="EngineStatus.cpp">
       <Filter>Source Files\Core\Editor\Windows</Filter>
     </ClCompile>
@@ -167,6 +164,12 @@
     </ClCompile>
     <ClCompile Include="Inspector.cpp">
       <Filter>Source Files\Core\Editor\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="AddObjectWindow.cpp">
+      <Filter>Source Files\Core\Editor\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectManager.cpp">
+      <Filter>Source Files\Core</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -263,9 +266,6 @@
     <ClInclude Include="EditorManager.h">
       <Filter>Header Files\Core\Editor</Filter>
     </ClInclude>
-    <ClInclude Include="ObjectManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="EngineStatus.h">
       <Filter>Header Files\Core\Editor\Windows</Filter>
     </ClInclude>
@@ -274,6 +274,12 @@
     </ClInclude>
     <ClInclude Include="Inspector.h">
       <Filter>Header Files\Core\Editor\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="AddObjectWindow.h">
+      <Filter>Header Files\Core\Editor\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectManager.h">
+      <Filter>Header Files\Core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

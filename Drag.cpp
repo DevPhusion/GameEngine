@@ -16,7 +16,13 @@ void Drag::updateForce(Object* object, float delta) {
 }
 
 void Drag::processDisplay() {
-	if (ImGui::TreeNode("Drag")) {
+	ImGuiTreeNodeFlags root_flags = ImGuiTreeNodeFlags_OpenOnArrow |
+		ImGuiTreeNodeFlags_OpenOnDoubleClick |
+		ImGuiTreeNodeFlags_SpanAvailWidth |
+		ImGuiTreeNodeFlags_DefaultOpen;
+
+
+	if (ImGui::TreeNodeEx("Drag", root_flags)) {
 		ImGui::Text("k1 ");
 		ImGui::SameLine();
 		ImGui::InputFloat("## k1", &k1, 0.0f, 0.0f, "%.3f");

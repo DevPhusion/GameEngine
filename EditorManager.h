@@ -21,6 +21,7 @@ public:
 	bool WindowTyped; //keyboard action in windows
 
 	void Setup(GLFWwindow* window);
+	void AddWindow(EditorWindow* window);
 	void SetSelectedObject(Object* object);
 	void ProcessEditor();
 
