@@ -8,3 +8,8 @@ Polygon::Polygon(std::vector<float> vertices, Shader shader, std::vector<std::st
 	AddComponent(std::make_unique<MouseInteractComponent>(this, true));
 	AddComponent(std::make_unique<PhysicsComponent>(this));
 }
+
+
+void Polygon::Process(float delta) {
+
+}

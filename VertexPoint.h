@@ -10,6 +10,7 @@ class VertexPoint:public Object
 public:
 	VertexPoint(float x, float y, Shader shader);
 	VertexPoint() = default;
+	virtual void Process(float delta);
 
 	float x;
 	float y;

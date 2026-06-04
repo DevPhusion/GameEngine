@@ -16,6 +16,22 @@ void Inspector::ProcessWindow() {
 	
 	if (EditorManager::getInstance().selectedObject != nullptr) {
 		Object* selected = EditorManager::getInstance().selectedObject;
+
+		char objectNameBuffer[256];
+
+		#if defined(_MSC_VER)
+				strcpy_s(objectNameBuffer, selected->name.c_str());
+		#else
+				strncpy(objectNameBuffer, selected->name.c_str(), sizeof(selected_item_name) - 1);
+		#endif
+
+		ImGui::Text("Name ");
+		ImGui::SameLine();
+
+		if (ImGui::InputText("##ObjectName", objectNameBuffer, 128)) {
+			selected->name = std::string(objectNameBuffer);
+		}
+
 		for (int i = 0; i < selected->components.size(); i++)
 		{
 			ImGuiTreeNodeFlags root_flags = ImGuiTreeNodeFlags_OpenOnArrow |

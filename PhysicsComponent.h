@@ -12,7 +12,7 @@ public:
 	//For UI display
 	glm::vec2 netForceDisplay = glm::vec3(0);
 	glm::vec2 accelDisplay = glm::vec3(0);
-	std::vector<std::shared_ptr<std::function<void()>>> forceDisplayFunc;
+	std::vector<std::shared_ptr<std::function<void(int)>>> forceDisplayFunc;
 
 	//Physics process
 	glm::vec3 velocity = glm::vec3(0);
@@ -25,7 +25,7 @@ public:
 	void ProcessPhysics(float delta);
 	void ClearNetForce();
 	void AddForce(glm::vec3 force);
-	void AddDisplayFunc(std::shared_ptr<std::function<void()>> func);
-	void RemoveDisplayFunc(std::shared_ptr<std::function<void()>> func);
+	void AddDisplayFunc(std::shared_ptr<std::function<void(int)>> func);
+	void RemoveDisplayFunc(std::shared_ptr<std::function<void(int)>> func);
 };
 

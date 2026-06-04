@@ -71,6 +71,7 @@ int main() {
 		Camera::getInstance().ProcessCamera(delta);
 		PhysicsEngine::getInstance().ProcessPhysics(delta);
 		EngineManager::getInstance().ProcessEngine(delta);
+		ObjectManager::getInstance().ProcessObjects(delta);
 		prev_t = glfwGetTime();
 
 		glad_glClearColor(0.235f, 0.239f, 0.216f, 1.0f);

@@ -54,7 +54,7 @@ void PhysicsComponent::ProcessInspectorUI() {
 	if (ImGui::TreeNodeEx("Forces", root_flags)) {
 		for (int i = 0; i < forceDisplayFunc.size(); i++)
 		{
-			(*forceDisplayFunc[i])();
+			(*forceDisplayFunc[i])(i);
 		}
 
 		ImGui::TreePop();
@@ -91,11 +91,11 @@ void PhysicsComponent::AddForce(glm::vec3 force) {
 	netForce += force;
 }
 
-void PhysicsComponent::AddDisplayFunc(std::shared_ptr<std::function<void()>> func) {
+void PhysicsComponent::AddDisplayFunc(std::shared_ptr<std::function<void(int)>> func) {
 	forceDisplayFunc.push_back(func);
 }
 
-void PhysicsComponent::RemoveDisplayFunc(std::shared_ptr<std::function<void()>> func) {
+void PhysicsComponent::RemoveDisplayFunc(std::shared_ptr<std::function<void(int)>> func) {
 	for (int i = 0; i < forceDisplayFunc.size(); i++)
 	{
 		if (forceDisplayFunc[i] == func) {

@@ -36,7 +36,7 @@ void MouseInteractComponent::SetSelectedPolygon(Object* obj, bool enable) {
 		}
 	}
 	else {
-		if (obj->HasComponent<VertexComponent>()) {
+		if (obj->HasComponent<VertexComponent>() && EngineManager::getInstance().EnginePhysicsMode == EngineManager::PhysicsMode::Pause) {
 			obj->GetComponent<VertexComponent>()->SetEnabled(true);
 		}
 		EditorManager::getInstance().SetSelectedObject(obj);
@@ -74,9 +74,7 @@ void MouseInteractComponent::FindSelectedPolygon(int button, int action, int mod
 				mouseDragForce = new MouseDrag(150.0f, 24.5f);
 				PhysicsEngine::getInstance().RegisterForce(parent, mouseDragForce);
 			}
-			else if (EngineManager::getInstance().EnginePhysicsMode == EngineManager::PhysicsMode::Pause) {
-				SetSelectedPolygon(parent, true);
-			}
+			SetSelectedPolygon(parent, true);
 		}
 		else {
 			SetSelectedPolygon(parent, false);

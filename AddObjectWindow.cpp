@@ -61,6 +61,10 @@ void AddObjectWindow::ProcessWindow() {
 				ObjectManager::getInstance().AddObject();
 				Hide();
 			}
+			else if (SelectedType == "Spring") {
+				ObjectManager::getInstance().AddSpring();
+				Hide();
+			}
 			else if (SelectedType == "Polygon") {
 				EngineManager::getInstance().SwitchInteractMode(EngineManager::InteractMode::AddVertex);
 			}

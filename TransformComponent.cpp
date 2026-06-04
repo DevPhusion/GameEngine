@@ -35,19 +35,31 @@ glm::vec3 TransformComponent::GetWorldPosition() {
 	return ProjectToWorld(rotation_center);
 }
 
-glm::vec3 TransformComponent::ProjectToWorld(glm::vec3 point) {
+glm::vec3 TransformComponent::ProjectToWorld(glm::vec3 point, bool inverseTransform) {
 	glm::vec4 p = glm::vec4(point.x, point.y, point.z, 1.0f);
-	glm::mat4 rotated = glm::rotate(OriginTransform, rotation, glm::vec3(0, 0, 1));
-	glm::mat4 scaled = glm::scale(rotated, size);
-	glm::vec4 worldPos = scaled * p;
-	return glm::vec3(worldPos.x, worldPos.y, 0);
+	glm::mat4 trans = OriginTransform;
+	trans = glm::translate(trans, rotation_center); // Translate to
+	trans = glm::rotate(trans, rotation, glm::vec3(0, 0, 1));
+	trans = glm::scale(trans, size);
+	trans = glm::translate(trans, -rotation_center); // Translate back
+	glm::vec4 transformedPos = glm::vec4(0);
+	if (inverseTransform) {
+		transformedPos = glm::inverse(trans) * p;
+	}
+	else {
+		transformedPos = trans * p;
+	}
+	return glm::vec3(transformedPos.x, transformedPos.y, 0);
 }
 
 void TransformComponent::UpdateWorldPosition(glm::vec3 targetWorldPos) {
 	glm::vec4 center = glm::vec4(rotation_center.x, rotation_center.y, rotation_center.z, 1.0f);
-	glm::mat4 rotated = glm::rotate(OriginTransform, rotation, glm::vec3(0, 0, 1));
-	glm::mat4 scaled = glm::scale(rotated, size);
-	glm::vec4 currentWorldPos = scaled * center;
+	glm::mat4 trans = OriginTransform;
+	trans = glm::translate(trans, rotation_center); // Translate to
+	trans = glm::rotate(trans, rotation, glm::vec3(0, 0, 1));
+	trans = glm::scale(trans, size);
+	trans = glm::translate(trans, -rotation_center); // Translate back
+	glm::vec4 currentWorldPos = trans * center;
 
 	glm::vec3 currentPosVec3 = glm::vec3(currentWorldPos.x, currentWorldPos.y, currentWorldPos.z);
 	glm::vec3 delta = targetWorldPos - currentPosVec3;

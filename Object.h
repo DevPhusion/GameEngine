@@ -52,6 +52,10 @@ public:
 		}
 	}
 	
+	virtual void Process(float delta) {
+
+	}
+
 	void AddComponent(std::unique_ptr<Component> component);
 };
 

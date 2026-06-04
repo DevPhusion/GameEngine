@@ -15,27 +15,27 @@ void Drag::updateForce(Object* object, float delta) {
 	object->GetComponent<PhysicsComponent>()->AddForce(Force);
 }
 
-void Drag::processDisplay() {
+void Drag::processDisplay(int index) {
 	ImGuiTreeNodeFlags root_flags = ImGuiTreeNodeFlags_OpenOnArrow |
 		ImGuiTreeNodeFlags_OpenOnDoubleClick |
 		ImGuiTreeNodeFlags_SpanAvailWidth |
 		ImGuiTreeNodeFlags_DefaultOpen;
 
 
-	if (ImGui::TreeNodeEx("Drag", root_flags)) {
+	if (ImGui::TreeNodeEx((void*)(intptr_t)index, root_flags, "Drag", index)) {
 		ImGui::Text("k1 ");
 		ImGui::SameLine();
-		ImGui::InputFloat("## k1", &k1, 0.0f, 0.0f, "%.3f");
+		ImGui::InputFloat("##k1", &k1, 0.0f, 0.0f, "%.3f");
 
 		ImGui::Text("k2 ");
 		ImGui::SameLine();
-		ImGui::InputFloat("## k2", &k2, 0.0f, 0.0f, "%.3f");
+		ImGui::InputFloat("##k2", &k2, 0.0f, 0.0f, "%.3f");
 
 		ImGui::Text("Drag ");
 		ImGui::SameLine();
 		float force[] = { Force.x, Force.y };
-		ImGui::InputFloat2("## Drag", force, "%.3f N", ImGuiInputTextFlags_ReadOnly);
+		ImGui::InputFloat2("##ForceDisplay", force, "%.3f N", ImGuiInputTextFlags_ReadOnly);
 
-		ImGui::TreePop();
+		ImGui::TreePop(); 
 	}
 }

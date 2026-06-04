@@ -62,7 +62,6 @@ void VertexComponent::FindSelectedPoint(int button, int action, int mods) {
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
 		int index = GetSelectedVertex();
 		if (index != -1) {
-			std::cout << "Vertex found at x: " << vertexPoints[index]->x << " y: " << vertexPoints[index]->y << std::endl;
 			vertexSelected = true;
 			selectedIndex = index;
 		}

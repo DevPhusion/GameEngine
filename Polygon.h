@@ -21,6 +21,7 @@ public:
 	Polygon() = default;
 
 	void InitializeDefaultComponents();
+	virtual void Process(float delta);
 private:
 	std::vector<float> m_vertices;
 	std::vector<std::string> m_textures;

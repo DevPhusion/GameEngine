@@ -10,6 +10,6 @@ public:
 	float c;
 
 	virtual void updateForce(Object* object, float delta);
-	virtual void processDisplay();
+	virtual void processDisplay(int index);
 };
 

@@ -24,8 +24,8 @@ void PhysicsEngine::ProcessPhysics(float delta) {
 
 void PhysicsEngine::RegisterForce(Object* object, ForceGenerator* fg) {
 	ForceRegistrations.push_back(ForceRegistration(object, fg));
-	std::function<void()> Wrapper = [fg]() {fg->processDisplay();};
-	std::shared_ptr<std::function<void()>> sharedFunc = std::make_shared<std::function<void()>>(Wrapper);
+	std::function<void(int)> Wrapper = [fg](int index) {fg->processDisplay(index);};
+	std::shared_ptr<std::function<void(int)>> sharedFunc = std::make_shared<std::function<void(int)>>(Wrapper);
 	fg->setDisplayFunc(sharedFunc);
 	object->GetComponent<PhysicsComponent>()->AddDisplayFunc(sharedFunc);
 }

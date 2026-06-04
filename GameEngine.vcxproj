@@ -169,6 +169,9 @@
     <ClCompile Include="RenderComponent.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="Spring.cpp" />
+    <ClCompile Include="SpringComponent.cpp" />
+    <ClCompile Include="SpringForce.cpp" />
     <ClCompile Include="stb_image.cpp" />
     <ClCompile Include="TransformComponent.cpp" />
     <ClCompile Include="VertexComponent.cpp" />
@@ -207,6 +210,9 @@
     <ClInclude Include="RenderComponent.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="Shader.h" />
+    <ClInclude Include="Spring.h" />
+    <ClInclude Include="SpringComponent.h" />
+    <ClInclude Include="SpringForce.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="TransformComponent.h" />
     <ClInclude Include="VertexComponent.h" />

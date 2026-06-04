@@ -1,7 +1,10 @@
 #include "ObjectManager.h"
 
-void ObjectManager::ProcessObjects() {
-
+void ObjectManager::ProcessObjects(float delta) {
+	for (int i = 0; i < allObjects.size(); i++)
+	{
+		allObjects[i]->Process(delta);
+	}
 }
 
 void ObjectManager::AddObject() {
@@ -60,4 +63,9 @@ void ObjectManager::AddPolygonVertex() {
 		vertexPoints.push_back(pointIndicator.get());
 		allObjects.push_back(std::move(pointIndicator));
 	}
+}
+
+void ObjectManager::AddSpring() {
+	std::unique_ptr<Spring> spring = std::make_unique<Spring>(Shader("vertex.txt", "fragment.txt"), 150.0f, 15.0f, 5.0f);
+	allObjects.push_back(std::move(spring));
 }

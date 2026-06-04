@@ -26,13 +26,13 @@ void MouseDrag::updateForce(Object* object, float delta) {
 	phys->AddForce(Force);
 }
 
-void MouseDrag::processDisplay() {
+void MouseDrag::processDisplay(int index) {
 	ImGuiTreeNodeFlags root_flags = ImGuiTreeNodeFlags_OpenOnArrow |
 		ImGuiTreeNodeFlags_OpenOnDoubleClick |
 		ImGuiTreeNodeFlags_SpanAvailWidth |
 		ImGuiTreeNodeFlags_DefaultOpen;
 
-	if (ImGui::TreeNodeEx("Mouse Drag", root_flags)) {
+	if (ImGui::TreeNodeEx((void*)(intptr_t)index, root_flags, "Mouse Drag", index)) {
 		ImGui::Text("k ");
 		ImGui::SameLine();
 		ImGui::InputFloat("## k", &k, 0.0f, 0.0f, "%.3f", ImGuiInputTextFlags_ReadOnly);

@@ -18,6 +18,10 @@ VertexPoint::VertexPoint(float x, float y, Shader shader) : Object(shader) {
 	AddComponent(std::make_unique<TransformComponent>(this, shader, glm::vec3(0)));
 }
 
+void VertexPoint::Process(float delta) {
+
+}
+
 void VertexPoint::UpdatePosition(float x, float y) {
 	this->x = x;
 	this->y = y;
