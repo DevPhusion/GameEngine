@@ -5,9 +5,9 @@ bool MouseInteractComponent::ObjectSelected = false;
 MouseInteractComponent::MouseInteractComponent(Object* parent, bool physicsInteract) : Component(parent) {
 	Name = "Mouse Interact Component";
 	this->physicsInteract = physicsInteract;
-	InputManager::getInstance().SetMouseButtonCallback([this](int button, int action, int mods) {this->FindSelectedPolygon(button, action, mods);});
-	InputManager::getInstance().SetCursorPositionCallback([this](double xpos, double ypos) {this->DragPolygon(xpos, ypos);});
-	EngineManager::getInstance().AddPhysicsModeChangedEvent([this]() {this->OnPhysicsModeChanged();});
+	mouseButtonCallbackID = InputManager::getInstance().SetMouseButtonCallback([this](int button, int action, int mods) {this->FindSelectedPolygon(button, action, mods);});
+	cursorPosCallbackID = InputManager::getInstance().SetCursorPositionCallback([this](double xpos, double ypos) {this->DragPolygon(xpos, ypos);});
+	physicsModeChangedCallbackID = EngineManager::getInstance().AddPhysicsModeChangedEvent([this]() {this->OnPhysicsModeChanged();});
 }
 
 void MouseInteractComponent::ProcessInspectorUI() {
@@ -20,6 +20,12 @@ void MouseInteractComponent::ProcessInspectorUI() {
 		ImGui::SameLine();
 		ImGui::Checkbox("## Physics Interact", &physicsInteract);
 	}
+}
+
+void MouseInteractComponent::OnDelete() {
+	InputManager::getInstance().RemoveMouseButtonCallback(mouseButtonCallbackID);
+	InputManager::getInstance().RemoveCursorPositionCallback(cursorPosCallbackID);
+	EngineManager::getInstance().RemovePhysicsModeChangedEvent(physicsModeChangedCallbackID);
 }
 
 void MouseInteractComponent::SetSelectedPolygon(Object* obj, bool enable) {
@@ -61,6 +67,9 @@ void MouseInteractComponent::FindSelectedPolygon(int button, int action, int mod
 			return;
 		}
 
+		if (parent == nullptr)
+			return;
+
 		glm::vec3 mousePos = parent->GetComponent<TransformComponent>()->GetTransformedPoint(glm::vec3(InputManager::glX, InputManager::glY, 0), true);
 		if (parent->GetComponent<RenderComponent>()->IsInsideShape(mousePos)) {
 			Selected = true;
@@ -96,6 +105,9 @@ void MouseInteractComponent::FindSelectedPolygon(int button, int action, int mod
 }
 
 void MouseInteractComponent::DragPolygon(double xpos, double ypos) {
+	if (parent == nullptr)
+		return;
+
 	if (InputManager::mouseLeftHold || InputManager::mouseRightHold) 
 	{
 		if (parent->HasComponent<VertexComponent>()) {

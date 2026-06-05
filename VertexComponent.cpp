@@ -25,6 +25,11 @@ void VertexComponent::ProcessInspectorUI() {
 	}
 }
 
+void VertexComponent::OnDelete() {
+	InputManager::getInstance().RemoveMouseButtonCallback(mouseButtonCallbackID);
+	InputManager::getInstance().RemoveCursorPositionCallback(cursorPosCallbackID);
+}
+
 int VertexComponent::GetSelectedVertex() {
 
 	for (int i = 0; i < vertexPoints.size(); i++)
@@ -43,8 +48,8 @@ int VertexComponent::GetSelectedVertex() {
 
 void VertexComponent::SetVertexPoints(std::vector<VertexPoint*> vertexPoints) {
 	this->vertexPoints =  std::move(vertexPoints);
-	InputManager::getInstance().SetMouseButtonCallback([this](int button, int action, int mods) { this->FindSelectedPoint(button, action, mods); });
-	InputManager::getInstance().SetCursorPositionCallback([this](double xpos, double ypos) { this->DragPoint(xpos, ypos); });
+	mouseButtonCallbackID = InputManager::getInstance().SetMouseButtonCallback([this](int button, int action, int mods) { this->FindSelectedPoint(button, action, mods); });
+	cursorPosCallbackID = InputManager::getInstance().SetCursorPositionCallback([this](double xpos, double ypos) { this->DragPoint(xpos, ypos); });
 	for (int i = 0; i < this->vertexPoints.size(); i++)
 	{
 		this->vertexPoints[i]->GetComponent<TransformComponent>()->SetEnabled(true);

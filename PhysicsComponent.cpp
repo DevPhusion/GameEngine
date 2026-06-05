@@ -1,4 +1,5 @@
 #include "PhysicsComponent.h"
+#include "PhysicsEngine.h"
 
 PhysicsComponent::PhysicsComponent(Object* parent) : Component(parent) {
 	Name = "Physics Component";
@@ -59,6 +60,10 @@ void PhysicsComponent::ProcessInspectorUI() {
 
 		ImGui::TreePop();
 	}
+}
+
+void PhysicsComponent::OnDelete() {
+	PhysicsEngine::getInstance().UnRegisterAllForce(parent);
 }
 
 void PhysicsComponent::ProcessPhysics(float delta) {

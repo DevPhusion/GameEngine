@@ -14,7 +14,7 @@ VertexPoint::VertexPoint(float x, float y, Shader shader) : Object(shader) {
 		x - sizeX, y + sizeY, 0.0f, 0.0f, 1.0f
 	};
 
-	AddComponent(std::make_unique<RenderComponent>(this, vertices, shader, std::vector<std::string>{"floorTiled.png"}));
+	AddComponent(std::make_unique<RenderComponent>(this, vertices, shader, "floorTiled.png"));
 	AddComponent(std::make_unique<TransformComponent>(this, shader, glm::vec3(0)));
 }
 

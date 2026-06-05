@@ -56,6 +56,26 @@ public:
 
 	}
 
+	virtual void OnDelete() {
+		auto safeCallbacks = OnDeleteCallbacks;
+		for (const auto& [id, func] : safeCallbacks) {	
+			if (func) {
+				func();
+			}
+		}
+
+		for (int i = 0; i < components.size(); i++)
+		{
+			components[i]->OnDelete();
+		}
+	}
+
+	std::unordered_map<int, std::function<void()>> OnDeleteCallbacks;
+
 	void AddComponent(std::unique_ptr<Component> component);
+	int AddOnDeleteCallback(std::function<void()> func);
+	void RemoveOnDeleteCallback(int ID);
+private:
+	int CurrentOnRemoveID = -1;
 };
 

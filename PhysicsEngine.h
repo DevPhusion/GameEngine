@@ -25,6 +25,7 @@ public:
 	void ProcessPhysics(float delta);
 	void RegisterForce(Object* object, ForceGenerator* fg);
 	void UnRegisterForce(Object* object, ForceGenerator* fg);
+	void UnRegisterAllForce(Object* object);
 	void ClearRegistry();
 private:
 	PhysicsEngine() = default;

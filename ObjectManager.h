@@ -25,6 +25,7 @@ public:
 	void AddPolygon();
 	void AddPolygonVertex();
 	void AddSpring();
+	void RemoveObject(Object* obj);
 
 	void ProcessObjects(float delta);
 

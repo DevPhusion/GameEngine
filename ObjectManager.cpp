@@ -20,7 +20,7 @@ void ObjectManager::AddObject() {
 		- sizeX, + sizeY, 0.0f, 0.0f, 1.0f
 	};
 
-	obj->AddComponent(std::make_unique<RenderComponent>(obj.get(), vertices, obj.get()->shader, std::vector<std::string> {"floorTiled.png"}));
+	obj->AddComponent(std::make_unique<RenderComponent>(obj.get(), vertices, obj.get()->shader, "floorTiled.png"));
 	obj->AddComponent(std::make_unique<TransformComponent>(obj.get(), obj.get()->shader, obj.get()->GetComponent<RenderComponent>()->GetCenter()));
 	obj->AddComponent(std::make_unique<MouseInteractComponent>(obj.get(), false));
 
@@ -33,7 +33,7 @@ void ObjectManager::AddPolygon() {
 		return;
 	}
 
-	std::unique_ptr<Polygon> poly = std::make_unique<Polygon>(vertices, Shader("vertex.txt", "fragment.txt"), std::vector<std::string> {"floorTiled.png"});
+	std::unique_ptr<Polygon> poly = std::make_unique<Polygon>(vertices, Shader("vertex.txt", "fragment.txt"), "floorTiled.png");
 
 	auto* vc = poly->GetComponent<VertexComponent>();
 	auto* tc = poly->GetComponent<TransformComponent>();
@@ -68,4 +68,25 @@ void ObjectManager::AddPolygonVertex() {
 void ObjectManager::AddSpring() {
 	std::unique_ptr<Spring> spring = std::make_unique<Spring>(Shader("vertex.txt", "fragment.txt"), 150.0f, 15.0f, 5.0f);
 	allObjects.push_back(std::move(spring));
+}
+
+void ObjectManager::RemoveObject(Object* obj) {
+	for (int i = 0; i < allObjects.size(); i++)
+	{
+		if (allObjects[i].get() == obj) {
+			if (obj->HasComponent<VertexComponent>()) {
+				std::vector<VertexPoint*> points = obj->GetComponent<VertexComponent>()->vertexPoints;
+				obj->OnDelete();
+				allObjects.erase(allObjects.begin() + i);
+				for (int j = 0; j < points.size(); j++)
+				{
+					RemoveObject(points[j]);
+				}
+			}
+			else {
+				obj->OnDelete();
+				allObjects.erase(allObjects.begin() + i);
+			}
+		}
+	}
 }

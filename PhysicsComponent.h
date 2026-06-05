@@ -21,6 +21,7 @@ public:
 
 	float inverseMass; 
 
+	virtual void OnDelete();
 	virtual void ProcessInspectorUI();
 	void ProcessPhysics(float delta);
 	void ClearNetForce();

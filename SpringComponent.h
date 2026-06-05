@@ -18,8 +18,12 @@ public:
 	float damping;
 	float restLength;
 
+	virtual void OnDelete();
 	virtual void ProcessInspectorUI();
 private:
+	int TopObjectOnDeleteID;
+	int BotObjectOnDeleteID;
+
 	void AddTopObject(Object* obj);
 	void AddBottomObject(Object* obj);
 	void RemoveTopObject(Object* obj);

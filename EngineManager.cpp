@@ -23,25 +23,35 @@ void EngineManager::ProcessEngine(float delta) {
 void EngineManager::SwitchInteractMode(InteractMode mode) {
 	EngineInteractMode = mode;
 
-	for (int i = 0; i < InteractModeChangedEvents.size(); i++)
-	{
-		InteractModeChangedEvents[i]();
+	for (const auto& [id, func] : InteractModeChangedEvents) {
+		func();
 	}
 }
 
 void EngineManager::SwitchPhysicsMode(PhysicsMode mode) {
 	EnginePhysicsMode = mode;
 
-	for (int i = 0; i < PhysicsModeChangedEvents.size(); i++)
-	{
-		PhysicsModeChangedEvents[i]();
+	for (const auto& [id, func] : PhysicsModeChangedEvents) {
+		func();
 	}
 }
 
-void EngineManager::AddInteractModeChangedEvent(std::function<void()> func) {
-	InteractModeChangedEvents.push_back(func);
+int EngineManager::AddInteractModeChangedEvent(std::function<void()> func) {
+	CurrentInteractModeChangedID += 1;
+	InteractModeChangedEvents[CurrentInteractModeChangedID] = func;
+	return CurrentInteractModeChangedID;
 }
 
-void EngineManager::AddPhysicsModeChangedEvent(std::function<void()> func) {
-	PhysicsModeChangedEvents.push_back(func);
+int EngineManager::AddPhysicsModeChangedEvent(std::function<void()> func) {
+	CurrentPhysicsModeChangedID += 1;
+	PhysicsModeChangedEvents[CurrentPhysicsModeChangedID] = func;
+	return CurrentPhysicsModeChangedID;
+}
+
+void EngineManager::RemoveInteractModeChangedEvent(int ID) {
+	InteractModeChangedEvents.erase(ID);
+}
+
+void EngineManager::RemovePhysicsModeChangedEvent(int ID) {
+	PhysicsModeChangedEvents.erase(ID);
 }

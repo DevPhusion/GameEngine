@@ -30,16 +30,20 @@ public:
 	float windowWidth;
 	float windowHeight;
 	float aspectRatio;
-	std::vector<std::function<void()>> InteractModeChangedEvents;
-	std::vector<std::function<void()>> PhysicsModeChangedEvents;
+	std::unordered_map<int, std::function<void()>> InteractModeChangedEvents;
+	std::unordered_map<int, std::function<void()>> PhysicsModeChangedEvents;
 
 	void Setup(GLFWwindow* window);
 	void ProcessEngine(float delta);
 	void SwitchInteractMode(InteractMode mode);
 	void SwitchPhysicsMode(PhysicsMode mode);
-	void AddInteractModeChangedEvent(std::function<void()> func);
-	void AddPhysicsModeChangedEvent(std::function<void()> func);
+	int AddInteractModeChangedEvent(std::function<void()> func);
+	int AddPhysicsModeChangedEvent(std::function<void()> func);
+	void RemovePhysicsModeChangedEvent(int ID);
+	void RemoveInteractModeChangedEvent(int ID);
 private:
+	int CurrentInteractModeChangedID = -1;
+	int CurrentPhysicsModeChangedID = -1;
 	float time;
 	float frameCount;
 	EngineManager() = default;

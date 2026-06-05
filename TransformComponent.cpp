@@ -31,6 +31,10 @@ void TransformComponent::ProcessInspectorUI() {
 
 }
 
+void TransformComponent::OnDelete() {
+
+}
+
 glm::vec3 TransformComponent::GetWorldPosition() {
 	return ProjectToWorld(rotation_center);
 }

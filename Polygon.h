@@ -17,7 +17,7 @@
 class Polygon : public Object
 {
 public:
-	Polygon(std::vector<float> vertices, Shader shader, std::vector<std::string> textures);
+	Polygon(std::vector<float> vertices, Shader shader, std::string texture_path);
 	Polygon() = default;
 
 	void InitializeDefaultComponents();

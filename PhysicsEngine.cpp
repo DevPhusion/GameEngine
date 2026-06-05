@@ -41,6 +41,22 @@ void PhysicsEngine::UnRegisterForce(Object* object, ForceGenerator* fg) {
 	}
 }
 
+void PhysicsEngine::UnRegisterAllForce(Object* object) {
+	for (auto it = ForceRegistrations.begin(); it != ForceRegistrations.end(); )
+	{
+		if (it->object == object) {
+			std::cout << "Remove" << std::endl;
+
+			object->GetComponent<PhysicsComponent>()->RemoveDisplayFunc(it->fg->displayFunc);
+			it->fg->displayFunc = nullptr;
+			it = ForceRegistrations.erase(it);
+		}
+		else {
+			++it;
+		}
+	}
+}
+
 void PhysicsEngine::ClearRegistry() {
 	ForceRegistrations.clear();
 }

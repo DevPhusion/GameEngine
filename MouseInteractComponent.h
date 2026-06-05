@@ -21,10 +21,16 @@ public:
 
 	MouseDrag* mouseDragForce = nullptr;
 
+
 	virtual void ProcessInspectorUI();
+	virtual void OnDelete();
 	void FindSelectedPolygon(int button, int action, int mods);
 	void DragPolygon(double xpos, double ypos);
 	void SetSelectedPolygon(Object* obj, bool enable);
 	void OnPhysicsModeChanged();
+private:
+	int mouseButtonCallbackID;
+	int cursorPosCallbackID;
+	int physicsModeChangedCallbackID;
 };
 

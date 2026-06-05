@@ -9,13 +9,15 @@
 class RenderComponent:public Component
 {
 public:
-	RenderComponent(Object* parent, std::vector<float> vertices, Shader shader, std::vector<std::string> textures);
+	RenderComponent(Object* parent, std::vector<float> vertices, Shader shader, std::string texture_path);
 	RenderComponent() = default;
 	std::vector<float> Vertices;
 	std::vector<unsigned int> Indices;
 	std::vector<std::vector<float>> points;
 	std::vector<std::vector<std::vector<float>>> edges;
+	std::string texture_path;
 
+	virtual void OnDelete();
 	virtual void ProcessInspectorUI();
 	std::vector<unsigned int> Triangulate(std::vector<float> vertices);
 	glm::vec3 GetCenter();

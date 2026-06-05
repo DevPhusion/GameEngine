@@ -132,8 +132,14 @@ void SpringComponent::ProcessInspectorUI() {
 	}
 }
 
+void SpringComponent::OnDelete() {
+	RemoveTopObject(topObject);
+	RemoveBottomObject(bottomObject);
+}
+
 void SpringComponent::AddTopObject(Object* object) {
 	topObject = object;
+	TopObjectOnDeleteID = topObject->AddOnDeleteCallback([this]() {this->RemoveTopObject(topObject);});
 
 
 	if (springForceTop == nullptr) {
@@ -154,6 +160,7 @@ void SpringComponent::AddTopObject(Object* object) {
 
 void SpringComponent::AddBottomObject(Object* object) {
 	bottomObject = object;
+	BotObjectOnDeleteID = bottomObject->AddOnDeleteCallback([this]() {this->RemoveBottomObject(bottomObject);});
 
 	if (springForceBot == nullptr) {
 		springForceBot = new SpringForce(bottomObject, topObject, springConstant, damping, restLength);
@@ -172,16 +179,28 @@ void SpringComponent::AddBottomObject(Object* object) {
 }
 
 void SpringComponent::RemoveTopObject(Object* object) {
-	if (object == nullptr || !object->HasComponent<PhysicsComponent>() || springForceTop == nullptr) return;
-
-	PhysicsEngine::getInstance().UnRegisterForce(object, springForceTop);
+	if (object == nullptr) return;
+	topObject->RemoveOnDeleteCallback(TopObjectOnDeleteID);
 	topObject = nullptr;
+
+	if (object->HasComponent<PhysicsComponent>() && springForceTop != nullptr) {
+		PhysicsEngine::getInstance().UnRegisterForce(object, springForceTop);	
+	}
+
+	if (bottomObject != nullptr && bottomObject->HasComponent<PhysicsComponent>() && springForceBot != nullptr) {
+		PhysicsEngine::getInstance().UnRegisterForce(bottomObject, springForceBot);
+	}
 }
 
 void SpringComponent::RemoveBottomObject(Object* object) {
-	if (object == nullptr || !object->HasComponent<PhysicsComponent>() || springForceBot == nullptr) return;
-
-	PhysicsEngine::getInstance().UnRegisterForce(object, springForceBot);
-	
+	if (object == nullptr) return;
+	bottomObject->RemoveOnDeleteCallback(BotObjectOnDeleteID);
 	bottomObject = nullptr;
+	if (object->HasComponent<PhysicsComponent>() && springForceBot != nullptr) {
+		PhysicsEngine::getInstance().UnRegisterForce(object, springForceBot);
+	}
+
+	if (topObject != nullptr && topObject->HasComponent<PhysicsComponent>() && springForceTop != nullptr) {
+		PhysicsEngine::getInstance().UnRegisterForce(topObject, springForceTop);
+	}
 }

@@ -22,19 +22,31 @@ public:
 	static bool mouseLeftHold;
 	static bool mouseRightHold;
 
-	static std::vector <std::function<void(int, int, int)>> MouseButtonCalls;
-	static std::vector <std::function<void(double, double)>> CursorPositionCalls;
-	static std::vector <std::function<void(int, int, int, int)>> KeyButtonCalls;
-	static std::vector <std::function<void(double, double)>> MouseScrollCalls;
+	static std::unordered_map <int, std::function<void(int, int, int)>> MouseButtonCalls;
+	static std::unordered_map <int, std::function<void(double, double)>> CursorPositionCalls;
+	static std::unordered_map <int, std::function<void(int, int, int, int)>> KeyButtonCalls;
+	static std::unordered_map <int, std::function<void(double, double)>> MouseScrollCalls;
 	static std::unordered_map<int, bool> keys;
 
 	void Setup(GLFWwindow* window);
-	void SetMouseButtonCallback(std::function<void(int, int, int)> func);
-	void SetCursorPositionCallback(std::function<void(double, double)> func);
-	void SetKeyButtonCallback(std::function<void(int, int, int, int)> func);
-	void SetMouseScrollCallback(std::function<void(double, double)> func);
+	int SetMouseButtonCallback(std::function<void(int, int, int)> func);
+	int SetCursorPositionCallback(std::function<void(double, double)> func);
+	int SetKeyButtonCallback(std::function<void(int, int, int, int)> func);
+	int SetMouseScrollCallback(std::function<void(double, double)> func);
+
+	void RemoveMouseButtonCallback(int ID);
+	void RemoveCursorPositionCallback(int ID);
+	void RemoveKeyButtonCallback(int ID);
+	void RemoveMouseScrollCallback(int ID);
+
 private:
 	InputManager() {};
+
+	int CurrentMouseButtonID = -1;
+	int CurrentCursorPositionID = -1;
+	int CurrentKeyButtonID = -1;
+	int CurrentMouseScrollID = -1;
+
 	static void OnCursorPosition(GLFWwindow* window, double xpos, double ypos);
 	static void OnMouseButton(GLFWwindow* window, int button, int action, int mods);
 	static void OnKeyButton(GLFWwindow* window, int key, int scancode, int action, int mods);

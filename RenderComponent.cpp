@@ -1,11 +1,12 @@
 #include "RenderComponent.h"
 
-RenderComponent::RenderComponent(Object* parent, std::vector<float> vertices, Shader shader, std::vector<std::string> textures) : Component(parent) {
+RenderComponent::RenderComponent(Object* parent, std::vector<float> vertices, Shader shader, std::string texture_path) : Component(parent) {
 	Name = "Render Component";
 
 	Vertices = vertices;
 	Indices = Triangulate(vertices);
 	this->shader = shader;
+	this->texture_path = texture_path;
 
 	points.clear();
 	edges.clear();
@@ -53,34 +54,55 @@ RenderComponent::RenderComponent(Object* parent, std::vector<float> vertices, Sh
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	// Load textures
-	for (int i = 0; i < textures.size(); i++)
-	{
-		int width, height, nrChannels;
-		stbi_set_flip_vertically_on_load(true);
-		unsigned char* data = stbi_load(textures[i].c_str(), &width, &height, &nrChannels, 0);
-		unsigned int texture;
-		glGenTextures(1, &texture);
-		glActiveTexture(GL_TEXTURE0 + i);
-		glBindTexture(GL_TEXTURE_2D, texture);
+	int width, height, nrChannels;
+	stbi_set_flip_vertically_on_load(true);
+	unsigned char* data = stbi_load(texture_path.c_str(), &width, &height, &nrChannels, 0);
+	unsigned int texture;
+	glGenTextures(1, &texture);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture);
 
-		if (data) {
-			if (nrChannels == 3) {
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-			}
-			else if (nrChannels == 4) {
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-			}
-			glGenerateMipmap(GL_TEXTURE_2D);
+	if (data) {
+		if (nrChannels == 3) {
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 		}
-		else {
-			std::cout << "Failed to load texture" << std::endl;
+		else if (nrChannels == 4) {
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 		}
-		stbi_image_free(data);
+		glGenerateMipmap(GL_TEXTURE_2D);
 	}
+	else {
+		std::cout << "Failed to load texture" << std::endl;
+	}
+	stbi_image_free(data);
 }
 
 void RenderComponent::ProcessInspectorUI() {
-	
+	ImGui::Text("Texture ");
+	char selected_texture_path[128] = "None (Click to choose...)";
+
+	if (texture_path != "") {
+		#if defined(_MSC_VER)
+			strcpy_s(selected_texture_path, texture_path.c_str());
+		#else
+			strncpy(selected_texture_path, texture_path.c_str(), sizeof(selected_item_name_top) - 1);
+		#endif
+	}
+
+
+	ImGui::InputText("##Texture path select field", selected_texture_path, IM_ARRAYSIZE(selected_texture_path), ImGuiInputTextFlags_ReadOnly);
+
+	if (ImGui::IsItemHovered()) {
+		ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+	}
+
+	if (ImGui::IsItemClicked()) {
+		
+	}
+}
+
+void RenderComponent::OnDelete() {
+
 }
 
 float calcTriangleArea(std::vector<float> a, std::vector<float> b, std::vector<float> c) {

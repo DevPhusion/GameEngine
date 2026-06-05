@@ -1,7 +1,7 @@
 #include "Polygon.h"
 
-Polygon::Polygon(std::vector<float> vertices, Shader shader, std::vector<std::string> textures) : Object(shader) {
-	AddComponent(std::make_unique<RenderComponent>(this, vertices, shader, textures));
+Polygon::Polygon(std::vector<float> vertices, Shader shader, std::string texture_path) : Object(shader) {
+	AddComponent(std::make_unique<RenderComponent>(this, vertices, shader, texture_path));
 	auto* render = GetComponent<RenderComponent>();
 	AddComponent(std::make_unique<TransformComponent>(this, shader, render->GetCenter()));
 	AddComponent(std::make_unique<VertexComponent>(this));  
@@ -11,5 +11,5 @@ Polygon::Polygon(std::vector<float> vertices, Shader shader, std::vector<std::st
 
 
 void Polygon::Process(float delta) {
-
+	
 }

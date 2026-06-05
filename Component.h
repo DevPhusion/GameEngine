@@ -17,5 +17,6 @@ public:
 	std::string Name;
 	virtual void SetEnabled(bool enabled);
 	virtual void ProcessInspectorUI() = 0;
+	virtual void OnDelete() = 0;
 };
 

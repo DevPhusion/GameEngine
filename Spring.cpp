@@ -11,7 +11,7 @@ Spring::Spring(Shader shader, float springConstant, float damping, float restLen
 		-sizeX, +sizeY, 0.0f, 0.0f, 1.0f
 	};
 
-	AddComponent(std::make_unique<RenderComponent>(this, vertices, shader, std::vector<std::string> { "floorTiled.png" }));
+	AddComponent(std::make_unique<RenderComponent>(this, vertices, shader, "floorTiled.png"));
 	AddComponent(std::make_unique<TransformComponent>(this, shader, GetComponent<RenderComponent>()->GetCenter()));
 	AddComponent(std::make_unique<SpringComponent>(this, springConstant, damping, restLength));
 	GetComponent<RenderComponent>()->SetEnabled(false);

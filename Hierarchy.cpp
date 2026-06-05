@@ -3,6 +3,7 @@
 
 Hierarchy::Hierarchy(std::string name) {
 	this->name = name;
+	InputManager::getInstance().SetKeyButtonCallback([this](int key, int scancode, int action, int mods) {this->OnKeyPressed(key, scancode, action, mods);});
 }
 
 void Hierarchy::ProcessWindow() {
@@ -51,6 +52,9 @@ void Hierarchy::ProcessWindow() {
 		for (int i = 0; i < obj->size(); i++)
 		{
 			Object* currentObj = (*obj)[i].get();
+
+			if (currentObj == nullptr)
+				return;
 
 			if (currentObj->hidden || currentObj->name.find(filter_buffer) == std::string::npos) continue;
 
@@ -118,4 +122,14 @@ void Hierarchy::ProcessWindow() {
 	ImGui::PopStyleVar();
 
 	ImGui::End();
+}
+
+void Hierarchy::OnKeyPressed(int key, int scancode, int action, int mods) {
+	if (key == GLFW_KEY_DELETE && action == GLFW_PRESS) {
+		if (EditorManager::getInstance().selectedObject != nullptr) {
+			Object* obj = EditorManager::getInstance().selectedObject;
+			EditorManager::getInstance().SetSelectedObject(nullptr);
+			ObjectManager::getInstance().RemoveObject(obj);
+		}
+	}
 }

@@ -21,6 +21,7 @@ public:
 	std::function<void()> transformCallback;
 	float rotation = 0;
 
+	virtual void OnDelete();
 	virtual void ProcessInspectorUI();
 	// model space -> screen space (inverse: screen space -> model space) 
 	glm::vec3 GetTransformedPoint(glm::vec3 point, bool inverseTransform = false); 
