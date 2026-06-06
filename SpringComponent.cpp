@@ -105,7 +105,7 @@ void SpringComponent::ProcessInspectorUI() {
 
 			ImGui::EndPopup();
 		}
-
+		
 		ImGui::Text("Spring Constant ");
 		ImGui::SameLine();
 		ImGui::InputFloat("## Spring Constant", &springConstant, 0.0f, 0.0f, "%.3f N/m");
@@ -179,28 +179,30 @@ void SpringComponent::AddBottomObject(Object* object) {
 }
 
 void SpringComponent::RemoveTopObject(Object* object) {
-	if (object == nullptr) return;
+	if (object == nullptr || topObject == nullptr) return;
 	topObject->RemoveOnDeleteCallback(TopObjectOnDeleteID);
 	topObject = nullptr;
 
 	if (object->HasComponent<PhysicsComponent>() && springForceTop != nullptr) {
 		PhysicsEngine::getInstance().UnRegisterForce(object, springForceTop);	
+		springForceTop = nullptr;
 	}
 
 	if (bottomObject != nullptr && bottomObject->HasComponent<PhysicsComponent>() && springForceBot != nullptr) {
-		PhysicsEngine::getInstance().UnRegisterForce(bottomObject, springForceBot);
+		springForceBot->otherObject = nullptr;
 	}
 }
 
 void SpringComponent::RemoveBottomObject(Object* object) {
-	if (object == nullptr) return;
+	if (object == nullptr || bottomObject == nullptr) return;
 	bottomObject->RemoveOnDeleteCallback(BotObjectOnDeleteID);
 	bottomObject = nullptr;
 	if (object->HasComponent<PhysicsComponent>() && springForceBot != nullptr) {
 		PhysicsEngine::getInstance().UnRegisterForce(object, springForceBot);
+		springForceBot = nullptr;
 	}
 
 	if (topObject != nullptr && topObject->HasComponent<PhysicsComponent>() && springForceTop != nullptr) {
-		PhysicsEngine::getInstance().UnRegisterForce(topObject, springForceTop);
+		springForceTop->otherObject = nullptr;
 	}
 }

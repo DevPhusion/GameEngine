@@ -6,6 +6,7 @@
 #include <GLFW/glfw3.h>
 #include <glm/vec2.hpp>
 #include <glm/gtx/vector_angle.hpp>
+#include "imgui/ImGuiFileDialog.h"
 class RenderComponent:public Component
 {
 public:
@@ -21,6 +22,7 @@ public:
 	virtual void ProcessInspectorUI();
 	std::vector<unsigned int> Triangulate(std::vector<float> vertices);
 	glm::vec3 GetCenter();
+	void SetTexture(std::string texture_path);
 	bool IsInsideShape(glm::vec3 point);
 	void UpdateShape(std::vector<float> vertices, std::vector<unsigned int> indices);
 	void Draw();
@@ -30,5 +32,6 @@ private:
 	unsigned int VAO;
 	unsigned int VBO;
 	unsigned int EBO;
+	unsigned int TextureID;
 };
 

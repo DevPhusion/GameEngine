@@ -15,7 +15,6 @@
 #include "VertexPoint.h"
 #include "MouseDrag.h"
 
-
 Renderer renderer = Renderer(&ObjectManager::getInstance().allObjects);
 
 void cursorPressedCallback(int button, int action, int mods) {
