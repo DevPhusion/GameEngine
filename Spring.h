@@ -10,6 +10,8 @@ public:
 	Spring() = default;
 
 	void UpdateVertex();
+	void GenerateSegment(glm::vec2 start, glm::vec2 end, float thickness,
+		std::vector<float>& vertices, std::vector<unsigned int>& indices);
 	virtual void Process(float delta);
 };
 

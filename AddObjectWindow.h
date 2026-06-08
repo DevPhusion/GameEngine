@@ -5,7 +5,7 @@
 class AddObjectWindow : public EditorWindow
 {
 public:
-	std::vector<std::string> ObjectTypes = { "Object", "Polygon", "Spring"};
+	std::vector<std::string> ObjectTypes = { "Object", "Polygon", "Spring", "Cable"};
 	std::string SelectedType = "";
 
 	AddObjectWindow(std::string name);

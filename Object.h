@@ -3,6 +3,7 @@
 #include "Shader.h"
 #include <vector>
 #include <type_traits>
+#include <typeinfo>
 
 template <typename T>
 concept AllowedTypes = std::is_base_of_v<Component, T>;

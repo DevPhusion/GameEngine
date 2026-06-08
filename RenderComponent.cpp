@@ -274,18 +274,27 @@ void RenderComponent::ProcessInspectorUI() {
 #endif
 	}
 
-
+	ImGui::SameLine();
 	ImGui::InputText("##Texture path select field", selected_texture_path, IM_ARRAYSIZE(selected_texture_path), ImGuiInputTextFlags_ReadOnly);
 
 	if (ImGui::IsItemHovered()) {
 		ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
 	}
 
+
 	if (ImGui::IsItemClicked()) {
 		IGFD::FileDialogConfig config;
 		config.path = ".";
 		config.countSelectionMax = 1;
 		ImGuiFileDialog::Instance()->OpenDialog("Choose Texture Window", "Choose Texture", ".png,.jpeg", config);
+	}
+
+	if (!initialized) {
+		auto places_ptr = ImGuiFileDialog::Instance()->GetPlacesGroupPtr("Devices");
+		if (places_ptr != nullptr) {
+			places_ptr->AddPlace("D: ", "D:\\", true);
+			initialized = true;
+		}
 	}
 
 	if (ImGuiFileDialog::Instance()->Display("Choose Texture Window", 32, ImVec2(100, 200))) {
@@ -297,8 +306,14 @@ void RenderComponent::ProcessInspectorUI() {
 
 		ImGuiFileDialog::Instance()->Close();
 	}
+
+	ImGui::Text("Z index ");
+	ImGui::SameLine();
+	ImGui::InputInt("## Z index", &z_index);
 }
 
 void RenderComponent::OnDelete() {
-
+	glDeleteBuffers(1, &VBO);
+	glDeleteBuffers(1, &EBO);
+	glDeleteVertexArrays(1, &VAO);
 }

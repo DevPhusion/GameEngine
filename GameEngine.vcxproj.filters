@@ -61,6 +61,12 @@
     <Filter Include="Source Files\Core\Editor\Windows">
       <UniqueIdentifier>{6770e569-9613-4472-9c44-87c45af5979d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Components\Object Link Components">
+      <UniqueIdentifier>{b3f08802-e337-4ada-94f8-af5d2c98b0b7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Components\Object Link Components">
+      <UniqueIdentifier>{70ac4485-025f-4b4c-9202-2cf56b52e8c3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glad.c">
@@ -177,11 +183,23 @@
     <ClCompile Include="Spring.cpp">
       <Filter>Source Files\Objects</Filter>
     </ClCompile>
-    <ClCompile Include="SpringComponent.cpp">
-      <Filter>Source Files\Components</Filter>
-    </ClCompile>
     <ClCompile Include="imgui\ImGuiFileDialog.cpp">
       <Filter>Source Files\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="Contact.cpp">
+      <Filter>Source Files\Core\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="Cable.cpp">
+      <Filter>Source Files\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectLinkComponent.cpp">
+      <Filter>Source Files\Components\Object Link Components</Filter>
+    </ClCompile>
+    <ClCompile Include="SpringComponent.cpp">
+      <Filter>Source Files\Components\Object Link Components</Filter>
+    </ClCompile>
+    <ClCompile Include="CableComponent.cpp">
+      <Filter>Source Files\Components\Object Link Components</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -299,9 +317,6 @@
     <ClInclude Include="Spring.h">
       <Filter>Header Files\Objects</Filter>
     </ClInclude>
-    <ClInclude Include="SpringComponent.h">
-      <Filter>Header Files\Components</Filter>
-    </ClInclude>
     <ClInclude Include="imgui\ImGuiFileDialog.h">
       <Filter>Header Files\ImGUI</Filter>
     </ClInclude>
@@ -310,6 +325,21 @@
     </ClInclude>
     <ClInclude Include="imgui\dirent.h">
       <Filter>Header Files\ImGUI</Filter>
+    </ClInclude>
+    <ClInclude Include="Contact.h">
+      <Filter>Header Files\Core\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="Cable.h">
+      <Filter>Header Files\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="SpringComponent.h">
+      <Filter>Header Files\Components\Object Link Components</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectLinkComponent.h">
+      <Filter>Header Files\Components\Object Link Components</Filter>
+    </ClInclude>
+    <ClInclude Include="CableComponent.h">
+      <Filter>Header Files\Components\Object Link Components</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

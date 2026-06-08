@@ -187,6 +187,9 @@
 //////////////////////////////////////
 
 // a group for bookmarks will be added by default, but you can also create it yourself and many more
+#define USE_PLACES_FEATURE
+#define USE_PLACES_BOOKMARKS
+#define USE_PLACES_DEVICES
 // #define USE_PLACES_BOOKMARKS
 // #define PLACES_BOOKMARK_DEFAULT_OPEPEND true
 // #define placesBookmarksGroupName "Bookmarks"

@@ -138,8 +138,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AddObjectWindow.cpp" />
+    <ClCompile Include="Cable.cpp" />
+    <ClCompile Include="CableComponent.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Component.cpp" />
+    <ClCompile Include="Contact.cpp" />
     <ClCompile Include="Drag.cpp" />
     <ClCompile Include="EditorManager.cpp" />
     <ClCompile Include="EngineManager.cpp" />
@@ -163,6 +166,7 @@
     <ClCompile Include="MouseDrag.cpp" />
     <ClCompile Include="MouseInteractComponent.cpp" />
     <ClCompile Include="Object.cpp" />
+    <ClCompile Include="ObjectLinkComponent.cpp" />
     <ClCompile Include="ObjectManager.cpp" />
     <ClCompile Include="PhysicsComponent.cpp" />
     <ClCompile Include="PhysicsEngine.cpp" />
@@ -180,8 +184,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AddObjectWindow.h" />
+    <ClInclude Include="Cable.h" />
+    <ClInclude Include="CableComponent.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Component.h" />
+    <ClInclude Include="Contact.h" />
     <ClInclude Include="Drag.h" />
     <ClInclude Include="EditorManager.h" />
     <ClInclude Include="EngineManager.h" />
@@ -207,6 +214,7 @@
     <ClInclude Include="MouseDrag.h" />
     <ClInclude Include="MouseInteractComponent.h" />
     <ClInclude Include="Object.h" />
+    <ClInclude Include="ObjectLinkComponent.h" />
     <ClInclude Include="ObjectManager.h" />
     <ClInclude Include="PhysicsComponent.h" />
     <ClInclude Include="PhysicsEngine.h" />

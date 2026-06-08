@@ -17,6 +17,7 @@ public:
 	std::vector<std::vector<float>> points;
 	std::vector<std::vector<std::vector<float>>> edges;
 	std::string texture_path;
+	int z_index; // ordering when drawing
 
 	virtual void OnDelete();
 	virtual void ProcessInspectorUI();
@@ -28,6 +29,7 @@ public:
 	void Draw();
 
 private:
+	bool initialized = false;
 	Shader shader;
 	unsigned int VAO;
 	unsigned int VBO;

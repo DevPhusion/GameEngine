@@ -5,7 +5,7 @@
 #include "InputManager.h"
 #include "Gravity.h"
 #include "Drag.h"
-#include "SpringForce.h"
+#include "Cable.h"
 class ObjectManager
 {
 public:
@@ -25,6 +25,7 @@ public:
 	void AddPolygon();
 	void AddPolygonVertex();
 	void AddSpring();
+	void AddCable();
 	void RemoveObject(Object* obj);
 
 	void ProcessObjects(float delta);

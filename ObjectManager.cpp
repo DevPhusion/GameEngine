@@ -70,6 +70,11 @@ void ObjectManager::AddSpring() {
 	allObjects.push_back(std::move(spring));
 }
 
+void ObjectManager::AddCable() {
+	std::unique_ptr<Cable> cable = std::make_unique<Cable>(Shader("vertex.txt", "fragment.txt"), 15.0f, 0.0f);
+	allObjects.push_back(std::move(cable));
+}
+
 void ObjectManager::RemoveObject(Object* obj) {
 	for (int i = 0; i < allObjects.size(); i++)
 	{

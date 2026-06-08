@@ -9,6 +9,8 @@ void PhysicsEngine::ProcessPhysics(float delta) {
 		return;
 	}
 
+	ResolveContacts(delta);
+
 	for (int i = 0; i < ForceRegistrations.size(); i++)
 	{
 		ForceRegistrations[i].fg->updateForce(ForceRegistrations[i].object, delta);
@@ -59,4 +61,34 @@ void PhysicsEngine::UnRegisterAllForce(Object* object) {
 
 void PhysicsEngine::ClearRegistry() {
 	ForceRegistrations.clear();
+}
+
+void PhysicsEngine::AddContact(Contact* contact) {
+	contactArray.push_back(contact);
+}
+
+void PhysicsEngine::ResolveContacts(float delta) {
+	if (contactArray.size() <= 0)
+		return;
+
+	float iterationUsed = 0;
+	while (iterationUsed < contactArray.size() * 2) {
+		float max = 0;
+		unsigned int maxIndex = 0;
+		for (int i = 0; i < contactArray.size(); i++)
+		{
+			float sepVel = contactArray[i]->CalculateSeparatingVelocity();
+			if (sepVel < max) {
+				max = sepVel;
+				maxIndex = i;
+			}
+		}
+
+		contactArray[maxIndex]->ResolveContact(delta);
+		delete contactArray[maxIndex];
+		contactArray.erase(contactArray.begin() + maxIndex);
+		iterationUsed++;
+
+		if (contactArray.empty()) break;
+	}
 }
