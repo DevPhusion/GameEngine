@@ -5,11 +5,12 @@
 class CableComponent : public ObjectLinkComponent
 {
 public:
-	CableComponent(Object* parent, float maxLength, float restitution);
+	CableComponent(Object* parent, float maxLength, float restitution, bool retractable);
 	CableComponent() = default;
 	
 	float maxLength;
 	float restitution;
+	bool retractable;
 
 	virtual void ProcessInspectorUI();
 	

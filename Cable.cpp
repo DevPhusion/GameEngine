@@ -13,7 +13,7 @@ Cable::Cable(Shader shader, float maxLength, float restitution) : Object(shader)
 
 	AddComponent(std::make_unique<RenderComponent>(this, vertices, shader, "floorTiled.png"));
 	AddComponent(std::make_unique<TransformComponent>(this, shader, GetComponent<RenderComponent>()->GetCenter()));
-	AddComponent(std::make_unique<CableComponent>(this, maxLength, restitution));
+	AddComponent(std::make_unique<CableComponent>(this, maxLength, restitution, true));
 	GetComponent<RenderComponent>()->SetEnabled(false);
 	GetComponent<RenderComponent>()->z_index = -999;
 }

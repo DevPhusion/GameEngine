@@ -33,7 +33,6 @@ public:
 	//Contact resolution
 	std::vector<Contact*> contactArray;
 	void AddContact(Contact* contact);
-	void SetContactResolveIterations(unsigned int iterations);
 	void ResolveContacts(float delta);
 private:
 	PhysicsEngine() = default;

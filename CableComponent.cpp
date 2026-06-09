@@ -1,9 +1,10 @@
 #include "CableComponent.h"
 
-CableComponent::CableComponent(Object* parent, float maxLength, float restitution) : ObjectLinkComponent(parent) {
+CableComponent::CableComponent(Object* parent, float maxLength, float restitution, bool retractable = true) : ObjectLinkComponent(parent) {
 	this->Name = "Cable Component";
 	this->maxLength = maxLength;
 	this->restitution = restitution;
+	this->retractable = retractable;
 }
 
 void CableComponent::ProcessInspectorUI() {
@@ -13,7 +14,10 @@ void CableComponent::ProcessInspectorUI() {
 		ImGuiTreeNodeFlags_DefaultOpen;
 
 	ObjectSelectUI();
-
+	
+	ImGui::Text("Retractable ");
+	ImGui::SameLine();
+	ImGui::Checkbox("## Retractable", &retractable);
 	ImGui::Text("Max Length ");
 	ImGui::SameLine();
 	ImGui::InputFloat("## Max Length", &maxLength, 0.0f, 0.0f, "%.3f m");
@@ -28,12 +32,18 @@ void CableComponent::FillContact() {
 	glm::vec3 topPos = topObject->GetComponent<TransformComponent>()->GetWorldPosition();
 	glm::vec3 bottomPos = bottomObject->GetComponent<TransformComponent>()->GetWorldPosition();
 	float length = glm::length(topPos - bottomPos);
-	if (length < maxLength) {
-		return;
-	}
 	glm::vec3 normal = glm::normalize(bottomPos - topPos);
+	float penetration = length - maxLength;
+	
+	if (length < maxLength) {
+		if (retractable)
+			return;
+		
+		normal = normal * -1.0f;
+		penetration = maxLength - length;
+	}
 
-	CableContact = new Contact(std::vector<Object*> {topObject, bottomObject}, normal, length - maxLength, restitution);
+	CableContact = new Contact(std::vector<Object*> {topObject, bottomObject}, normal, penetration, restitution);
 
 	PhysicsEngine::getInstance().AddContact(CableContact);
 }
