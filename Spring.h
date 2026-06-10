@@ -6,7 +6,7 @@
 class Spring : public Object
 {
 public:
-	Spring(Shader shader, float springConstant, float damping, float restLength);
+	Spring(Shader shader, float springConstant, float damping, float restLength, float angularSpringConstant, float angularDamping, float restAngle);
 	Spring() = default;
 
 	void UpdateVertex();

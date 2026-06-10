@@ -22,6 +22,7 @@ public:
 	virtual void OnDelete();
 	virtual void ProcessInspectorUI();
 	std::vector<unsigned int> Triangulate(std::vector<float> vertices);
+	float GetArea();
 	glm::vec3 GetCenter();
 	void SetTexture(std::string texture_path);
 	bool IsInsideShape(glm::vec3 point);

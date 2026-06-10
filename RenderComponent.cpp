@@ -186,6 +186,16 @@ std::vector<unsigned int> RenderComponent::Triangulate(std::vector<float> vertic
 	return indices;
 }
 
+float RenderComponent::GetArea() {
+	float totalArea = 0;
+	for (int i = 0; i < Indices.size(); i+=3)
+	{
+	 	totalArea += calcTriangleArea(points[Indices[i]], points[Indices[i + 1]], points[Indices[i + 2]]);
+	}
+
+	return totalArea;
+}
+
 glm::vec3 RenderComponent::GetCenter() {
 	float A = 0;
 	float C_x = 0;

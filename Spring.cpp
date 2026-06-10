@@ -1,6 +1,6 @@
 #include "Spring.h"
 
-Spring::Spring(Shader shader, float springConstant, float damping, float restLength) : Object(shader) {
+Spring::Spring(Shader shader, float springConstant, float damping, float restLength, float angularSpringConstant, float angularDamping, float restAngle) : Object(shader) {
 	float sizeY = 0.01f;
 	float sizeX = 0.01f;
 
@@ -13,7 +13,7 @@ Spring::Spring(Shader shader, float springConstant, float damping, float restLen
 
 	AddComponent(std::make_unique<RenderComponent>(this, vertices, shader, "floorTiled.png"));
 	AddComponent(std::make_unique<TransformComponent>(this, shader, GetComponent<RenderComponent>()->GetCenter()));
-	AddComponent(std::make_unique<SpringComponent>(this, springConstant, damping, restLength));
+	AddComponent(std::make_unique<SpringComponent>(this, springConstant, damping, restLength, angularSpringConstant, angularDamping, restAngle));
 	GetComponent<RenderComponent>()->SetEnabled(false);
 	GetComponent<RenderComponent>()->z_index = -999;
 }

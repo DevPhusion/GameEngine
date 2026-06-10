@@ -66,7 +66,7 @@ void ObjectManager::AddPolygonVertex() {
 }
 
 void ObjectManager::AddSpring() {
-	std::unique_ptr<Spring> spring = std::make_unique<Spring>(Shader("vertex.txt", "fragment.txt"), 150.0f, 15.0f, 5.0f);
+	std::unique_ptr<Spring> spring = std::make_unique<Spring>(Shader("vertex.txt", "fragment.txt"), 150.0f, 15.0f, 5.0f, 15.0f, 5.0f, 0.0f);
 	allObjects.push_back(std::move(spring));
 }
 

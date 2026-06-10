@@ -50,14 +50,14 @@ void Contact::resolveVelocity(float delta) {
 
 	glm::vec3 accCausedVel = glm::vec3(0);
 	if (objects[0]->HasComponent<PhysicsComponent>()) {
-		accCausedVel = glm::vec3(objects[0]->GetComponent<PhysicsComponent>()->accelDisplay, 0.0f);
+		accCausedVel = glm::vec3(objects[0]->GetComponent<PhysicsComponent>()->netAcceleration, 0.0f);
 		if (objects[1]->HasComponent<PhysicsComponent>()) {
-			accCausedVel -= glm::vec3(objects[1]->GetComponent<PhysicsComponent>()->accelDisplay, 0.0f);
+			accCausedVel -= glm::vec3(objects[1]->GetComponent<PhysicsComponent>()->netAcceleration, 0.0f);
 		}
 	}
 	else if (objects[1]->HasComponent<PhysicsComponent>()) {
 		//  If Object 0 is static, relative acceleration is -Object1
-		accCausedVel = glm::vec3(-objects[1]->GetComponent<PhysicsComponent>()->accelDisplay, 0.0f);
+		accCausedVel = glm::vec3(-objects[1]->GetComponent<PhysicsComponent>()->netAcceleration, 0.0f);
 	}
 
 	float accCausedSepVel = glm::dot(accCausedVel, contactNormal * delta);

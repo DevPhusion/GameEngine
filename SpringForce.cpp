@@ -1,12 +1,22 @@
 #include "SpringForce.h"
 #include "ObjectManager.h"
 
-SpringForce::SpringForce(Object* thisObject, Object* otherObject, float springConstant, float damping, float restLength) {
+SpringForce::SpringForce(
+	Object* thisObject, Object* otherObject, 
+	glm::vec3 thisConnectionPoint, glm::vec3 otherConnectionPoint, 
+	float springConstant, float damping, float restLength, 
+	float angularSpringConstant, float angularDamping, float restAngle) {
+	
 	this->thisObject = thisObject;
 	this->otherObject = otherObject;
 	this->springConstant = springConstant;
 	this->damping = damping;
 	this->restLength = restLength;
+	this->thisConnectionPoint = thisConnectionPoint;
+	this->otherConnectionPoint = otherConnectionPoint;
+	this->angularSpringConstant = angularSpringConstant;
+	this->angularDamping = angularDamping;
+	this->restAngle = restAngle;
 }
 
 
@@ -19,10 +29,13 @@ void SpringForce::updateForce(Object* object, float delta) {
 		return;
 	}
 
-	glm::vec3 thisPos = object->GetComponent<TransformComponent>()->GetWorldPosition();
-	glm::vec3 otherPos = otherObject->GetComponent<TransformComponent>()->GetWorldPosition();
+	glm::vec3 thisPos = object->GetComponent<TransformComponent>()->ProjectToWorld(thisConnectionPoint);
+	glm::vec3 otherPos = otherObject->GetComponent<TransformComponent>()->ProjectToWorld(otherConnectionPoint);
 	glm::vec3 thisVel = object->GetComponent<PhysicsComponent>()->velocity;
 	glm::vec3 otherVel = glm::vec3(0);
+
+	float thisAngularVel = object->GetComponent<PhysicsComponent>()->angularVelocity;
+	float thisRotation = object->GetComponent<TransformComponent>()->rotation;
 
 	if (otherObject->HasComponent<PhysicsComponent>()) {
 		otherVel = otherObject->GetComponent<PhysicsComponent>()->velocity;
@@ -33,10 +46,12 @@ void SpringForce::updateForce(Object* object, float delta) {
 	float length = glm::length(d);
 
 	glm::vec3 springForce = -springConstant * (length - restLength) * dir;
+	float restoringTorque = -angularSpringConstant * (thisRotation - restAngle) - angularDamping * thisAngularVel;
 
 	Force = springForce - damping * (thisVel - otherVel);
 	
-	object->GetComponent<PhysicsComponent>()->AddForce(Force);
+	object->GetComponent<PhysicsComponent>()->AddForceAtPoint(Force, thisPos);
+	object->GetComponent<PhysicsComponent>()->Torque += restoringTorque;
 }
 
 void SpringForce::processDisplay(int index) {
@@ -99,6 +114,17 @@ void SpringForce::processDisplay(int index) {
 		ImGui::Text("Rest Length ");
 		ImGui::SameLine();
 		ImGui::InputFloat("## Rest Length", &restLength, 0.0f, 0.0f, "%.3f m");
+
+		ImGui::Text("Angular Spring Constant ");
+		ImGui::SameLine();
+		ImGui::InputFloat("## Angular Spring Constant", &angularSpringConstant, 0.0f, 0.0f, "%.3f Nm/rad");
+		ImGui::Text("Angular Damping ");
+		ImGui::SameLine();
+		ImGui::InputFloat("## Angular Damping", &angularDamping, 0.0f, 0.0f, "%.3f Nms/rad");
+		ImGui::Text("Rest Angle ");
+		ImGui::SameLine();
+		ImGui::SliderAngle("## Rest Angle", &restAngle);
+
 		ImGui::Text("Spring Force ");
 		ImGui::SameLine();
 		float force[] = { Force.x, Force.y };

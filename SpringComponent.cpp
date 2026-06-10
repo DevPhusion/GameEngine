@@ -1,10 +1,13 @@
 #include "SpringComponent.h"
 
-SpringComponent::SpringComponent(Object* parent, float springConstant, float damping, float restLength) : ObjectLinkComponent(parent) {
+SpringComponent::SpringComponent(Object* parent, float springConstant, float damping, float restLength, float angularSpringConstant, float angularDamping, float restAngle) : ObjectLinkComponent(parent) {
 	Name = "Spring Component";
 	this->springConstant = springConstant;
 	this->damping = damping;
 	this->restLength = restLength;
+	this->angularSpringConstant = angularSpringConstant;
+	this->angularDamping = angularDamping;
+	this->restAngle = restAngle;
 }
 
 void SpringComponent::ProcessInspectorUI() {
@@ -20,31 +23,60 @@ void SpringComponent::ProcessInspectorUI() {
 	ImGui::SameLine();
 	ImGui::InputFloat("## Rest Length", &restLength, 0.0f, 0.0f, "%.3f m");
 
+	ImGui::Text("Angular Spring Constant ");
+	ImGui::SameLine();
+	ImGui::InputFloat("## Angular Spring Constant", &angularSpringConstant, 0.0f, 0.0f, "%.3f Nm/rad");
+	ImGui::Text("Angular Damping ");
+	ImGui::SameLine();
+	ImGui::InputFloat("## Angular Damping", &angularDamping, 0.0f, 0.0f, "%.3f Nms/rad");
+	ImGui::Text("Rest Angle ");
+	ImGui::SameLine();
+	ImGui::SliderAngle("## Rest Angle", &restAngle);
+
 	if (springForceBot != nullptr) {
 		springForceBot->springConstant = springConstant;
 		springForceBot->damping = damping;
 		springForceBot->restLength = restLength;
+		springForceBot->angularSpringConstant = angularSpringConstant;
+		springForceBot->angularDamping = angularDamping;
+		springForceBot->restAngle = restAngle;
 	}
 
 	if (springForceTop != nullptr) {
 		springForceTop->springConstant = springConstant;
 		springForceTop->damping = damping;
 		springForceTop->restLength = restLength;
+		springForceTop->angularSpringConstant = angularSpringConstant;
+		springForceTop->angularDamping = angularDamping;
+		springForceTop->restAngle = restAngle;
 	}
 }
 
 void SpringComponent::AddTopObject(Object* object)  {
 	ObjectLinkComponent::AddTopObject(object);
 
+	topConnectPoint = topObject->GetComponent<RenderComponent>()->GetCenter();
+	topConnectPoint.y += 0.001f;
+
 	if (springForceTop == nullptr) {
-		springForceTop = new SpringForce(topObject, bottomObject, springConstant, damping, restLength);
+		if (bottomObject != nullptr) {
+			bottomConnectPoint = bottomObject->GetComponent<RenderComponent>()->GetCenter();
+			bottomConnectPoint.y += 0.001f;
+		}
+		springForceTop = new SpringForce(topObject, bottomObject, 
+			topConnectPoint, bottomConnectPoint, 
+			springConstant, damping, restLength,
+			angularSpringConstant, angularDamping, restAngle
+		);
 	}
 	else {
+		springForceTop->thisConnectionPoint = topConnectPoint;
 		springForceTop->thisObject = topObject;
 	}
 
 	if (springForceBot != nullptr) {
 		springForceBot->otherObject = topObject;
+		springForceBot->otherConnectionPoint = topConnectPoint;
 	}
 
 	if (!topObject->HasComponent<PhysicsComponent>()) return;
@@ -55,14 +87,27 @@ void SpringComponent::AddTopObject(Object* object)  {
 void SpringComponent::AddBottomObject(Object* object) {
 	ObjectLinkComponent::AddBottomObject(object);
 
+	bottomConnectPoint = bottomObject->GetComponent<RenderComponent>()->GetCenter();
+	bottomConnectPoint.y += 0.001f;
+
 	if (springForceBot == nullptr) {
-		springForceBot = new SpringForce(bottomObject, topObject, springConstant, damping, restLength);
+		if (topObject != nullptr) {
+			topConnectPoint = topObject->GetComponent<RenderComponent>()->GetCenter();
+			topConnectPoint.y += 0.001f;
+		}
+		springForceBot = new SpringForce(bottomObject, topObject, 
+			bottomConnectPoint, topConnectPoint, 
+			springConstant, damping, restLength,
+			angularSpringConstant, angularDamping, restAngle
+		);
 	}
 	else {
+		springForceBot->thisConnectionPoint = bottomConnectPoint;
 		springForceBot->thisObject = bottomObject;
 	}
 
 	if (springForceTop != nullptr) {
+		springForceTop->otherConnectionPoint = bottomConnectPoint;
 		springForceTop->otherObject = bottomObject;
 	}
 

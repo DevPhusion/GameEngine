@@ -11,7 +11,9 @@ public:
 
 	//For UI display
 	glm::vec2 netForceDisplay = glm::vec3(0);
-	glm::vec2 accelDisplay = glm::vec3(0);
+	glm::vec2 netAcceleration = glm::vec3(0);
+	float torqueDisplay = 0;
+	float angularAcceleration = 0;
 	std::vector<std::shared_ptr<std::function<void(int)>>> forceDisplayFunc;
 
 	//Physics process
@@ -19,13 +21,22 @@ public:
 	glm::vec3 acceleration = glm::vec3(0);
 	glm::vec3 netForce = glm::vec3(0);
 
+	float angularDamping = 0.9f;
+	float angularVelocity;
+	float Torque;
+	float Inertia;
+	float inverseInertia;
+
 	float inverseMass; 
 
 	virtual void OnDelete();
 	virtual void ProcessInspectorUI();
 	void ProcessPhysics(float delta);
-	void ClearNetForce();
+	void ClearAccumulators();
 	void AddForce(glm::vec3 force);
+	void AddForceAtBodyPoint(glm::vec3 force, glm::vec3 point); // point is in model space
+	void AddForceAtPoint(glm::vec3 force, glm::vec3 point); // point is in world space
+	void CalculateInertia();
 	void AddDisplayFunc(std::shared_ptr<std::function<void(int)>> func);
 	void RemoveDisplayFunc(std::shared_ptr<std::function<void(int)>> func);
 };

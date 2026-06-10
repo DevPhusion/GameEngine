@@ -55,7 +55,7 @@ void VertexComponent::SetVertexPoints(std::vector<VertexPoint*> vertexPoints) {
 		this->vertexPoints[i]->GetComponent<TransformComponent>()->SetEnabled(true);
 	}
 
-	this->parent->GetComponent<TransformComponent>()->SetTransformCallback([this] { this->UpdateTransform(); });
+	this->parent->GetComponent<TransformComponent>()->AddTransformCallback([this] { this->UpdateTransform(); });
 	SetEnabled(EngineManager::getInstance().EngineInteractMode == EngineManager::InteractMode::EditorSelect);
 }
 
@@ -87,6 +87,7 @@ void VertexComponent::DragPoint(double xpos, double ypos) {
 			parent->GetComponent<TransformComponent>()->SetRotationCenter(render->GetCenter());
 
 			vertexPoints[selectedIndex]->UpdatePosition(pos.x, pos.y);
+			this->parent->GetComponent<TransformComponent>()->UpdateWorldPosition(this->parent->GetComponent<TransformComponent>()->GetWorldPosition());
 		}
 	}
 	else {

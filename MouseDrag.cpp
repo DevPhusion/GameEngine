@@ -23,7 +23,15 @@ void MouseDrag::updateForce(Object* object, float delta) {
 	glm::vec3 objVel = phys->velocity;
 	Force = (scaledK * displacement) - (scaledC * objVel);
 
-	phys->AddForce(Force);
+	glm::vec3 interactCenter = object->GetComponent<RenderComponent>()->GetCenter();
+	if (Force.x > 1) {
+		interactCenter.x += 0.01f / Force.x;
+	}
+	if (Force.y > 1) {
+		interactCenter.y += 0.01f / Force.y;
+	}
+
+	phys->AddForceAtBodyPoint(Force, interactCenter);
 }
 
 void MouseDrag::processDisplay(int index) {

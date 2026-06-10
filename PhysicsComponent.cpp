@@ -7,6 +7,8 @@ PhysicsComponent::PhysicsComponent(Object* parent) : Component(parent) {
 	this->acceleration = glm::vec3(0);
 	this->velocity = glm::vec3(0);
 	this->netForce = glm::vec3(0);
+	CalculateInertia();
+	parent->GetComponent<TransformComponent>()->AddTransformCallback([this]() {this->CalculateInertia();});
 }
 
 void PhysicsComponent::ProcessInspectorUI() {
@@ -23,6 +25,7 @@ void PhysicsComponent::ProcessInspectorUI() {
 		}
 		else {
 			inverseMass = 1 / mass;
+			CalculateInertia();
 		}
 	}
 
@@ -35,10 +38,24 @@ void PhysicsComponent::ProcessInspectorUI() {
 
 	ImGui::Text("Acceleration ");
 	ImGui::SameLine();
-	float accel[] = { this->accelDisplay.x, this->accelDisplay.y };
-	if (ImGui::InputFloat2("##Acceleration", accel, "%.3f m/s²")) {
-		this->acceleration = glm::vec3(accel[0], accel[1], 0);
-	}
+	float accel[] = { this->netAcceleration.x, this->netAcceleration.y };
+	ImGui::InputFloat2("##Acceleration", accel, "%.3f m/s²", ImGuiInputTextFlags_ReadOnly);
+
+	ImGui::Text("Angular Velocity ");
+	ImGui::SameLine();
+	ImGui::InputFloat("## Angular Velocity", &angularVelocity, 0.0f, 0.0f, "%.3f rad/s");
+
+	ImGui::Text("Angular Acceleration ");
+	ImGui::SameLine();
+	ImGui::InputFloat("##Angular Acceleration", &angularAcceleration, 0.0f, 0.0f, "%.3f rad/s²", ImGuiInputTextFlags_ReadOnly);
+
+	ImGui::Text("Inertia ");
+	ImGui::SameLine();
+	ImGui::InputFloat("## Inertia", &Inertia, 0.0f, 0.0f, "%.3f", ImGuiInputTextFlags_ReadOnly);
+
+	ImGui::Text("Torque ");
+	ImGui::SameLine();
+	ImGui::InputFloat("## Torque", &torqueDisplay, 0.0f, 0.0f, "%.3f", ImGuiInputTextFlags_ReadOnly);
 
 	ImGui::Text("Net Force ");
 	ImGui::SameLine();
@@ -73,27 +90,91 @@ void PhysicsComponent::ProcessPhysics(float delta) {
 
 	TransformComponent* transform = this->parent->GetComponent<TransformComponent>();
 	glm::vec3 position = transform->GetWorldPosition();
-
-	position += velocity * delta;
+	float rotation = transform->rotation;
 
 	glm::vec3 resultingAcc = acceleration;
 	resultingAcc += netForce * inverseMass;
-	velocity += resultingAcc * delta;
 	
+	float angularAcc = Torque * inverseInertia;
+
+	velocity += resultingAcc * delta;
+	angularVelocity += angularAcc * delta;
+	
+	position += velocity * delta;
+	rotation += angularVelocity;
+	rotation = atan2(sin(rotation), cos(rotation));
+	
+	if (std::abs(angularVelocity) <= 0.001f) {
+		angularVelocity = 0.0f; 
+	}
+	else {
+		angularVelocity *= powf(angularDamping, delta);
+	}
+
+	transform->rotation = rotation;
 	transform->UpdateWorldPosition(position);
 
-	accelDisplay = glm::vec2(resultingAcc.x, resultingAcc.y);
+	netAcceleration = glm::vec2(resultingAcc.x, resultingAcc.y);
 	netForceDisplay = glm::vec2(netForce.x, netForce.y);
+	torqueDisplay = Torque;
+	angularAcceleration = angularAcc;
 
-	ClearNetForce();
+	ClearAccumulators();
 }
 
-void PhysicsComponent::ClearNetForce() {
+void PhysicsComponent::ClearAccumulators() {
 	netForce = glm::vec3(0);
+	Torque = 0.0f;
 }
 
 void PhysicsComponent::AddForce(glm::vec3 force) {
 	netForce += force;
+}
+
+void PhysicsComponent::AddForceAtBodyPoint(glm::vec3 force, glm::vec3 point) {
+	glm::vec3 worldPoint = this->parent->GetComponent<TransformComponent>()->ProjectToWorld(point);
+	AddForceAtPoint(force, worldPoint);
+}
+
+void PhysicsComponent::AddForceAtPoint(glm::vec3 force, glm::vec3 point) {
+	glm::vec3 relativePoint = point - parent->GetComponent<TransformComponent>()->GetWorldPosition();
+	Torque += relativePoint.x * force.y - relativePoint.y * force.x;
+	netForce += force;
+}
+
+float calcTriangleArea(glm::vec3 a, glm::vec3 b, glm::vec3 c) {
+	return 0.5f * std::abs((a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y)));
+}
+
+float calculateTriangleInertia(glm::vec3 a, glm::vec3 b, glm::vec3 c, glm::vec3 centerOfMass, float massTriangle) {
+	float inertia = (massTriangle / 36) * (glm::length2(a - b) + glm::length2(b - c) + glm::length2(c - a));
+	glm::vec3 centroid = (a + b + c) / 3.0f;
+	return inertia + (massTriangle * glm::distance(centroid, centerOfMass));
+}
+
+void PhysicsComponent::CalculateInertia() {
+	TransformComponent* tc = parent->GetComponent<TransformComponent>();
+	RenderComponent* rc = parent->GetComponent<RenderComponent>();
+	std::vector<std::vector<float>> points = rc->points;
+	std::vector<unsigned int> indices = rc->Indices;
+	
+	float sum = 0;
+	float mass = 1.0f / inverseMass;
+
+	for (int i = 0; i < indices.size(); i+=3)
+	{
+		glm::vec3 a = glm::vec3(points[indices[i]][0], points[indices[i]][1], 0.0f);
+		glm::vec3 b = glm::vec3(points[indices[i+1]][0], points[indices[i+1]][1], 0.0f);
+		glm::vec3 c = glm::vec3(points[indices[i+2]][0], points[indices[i+2]][1], 0.0f);
+
+		float m_triangle = mass * (calcTriangleArea(a, b, c) / rc->GetArea());
+		sum += calculateTriangleInertia(tc->ProjectToWorld(a), tc->ProjectToWorld(b), tc->ProjectToWorld(c), tc->GetWorldPosition(), m_triangle);
+	}
+
+	this->Inertia = sum;
+	if (Inertia > 0) {
+		this->inverseInertia = 1.0f / Inertia;
+	}
 }
 
 void PhysicsComponent::AddDisplayFunc(std::shared_ptr<std::function<void(int)>> func) {

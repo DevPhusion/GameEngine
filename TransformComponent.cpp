@@ -101,35 +101,39 @@ void TransformComponent::SetRotationCenter(glm::vec3 rotation_center) {
 
 void TransformComponent::SetOriginTransform(glm::mat4 transform) {
 	this->OriginTransform = transform;
-	if (transformCallback != nullptr) {
-		transformCallback();
+	for (int i = 0; i < transformCallback.size(); i++)
+	{
+		transformCallback[i]();
 	}
 }
 
 void TransformComponent::Translate(glm::vec3 translation) {
 	position = translation;
-	if (transformCallback != nullptr) {
-		transformCallback();
+	for (int i = 0; i < transformCallback.size(); i++)
+	{
+		transformCallback[i]();
 	}
 }
 
 void TransformComponent::Rotate(float angle)
 {
 	rotation = angle;
-	if (transformCallback != nullptr) {
-		transformCallback();
+	for (int i = 0; i < transformCallback.size(); i++)
+	{
+		transformCallback[i]();
 	}
 }
 
 void TransformComponent::Scale(glm::vec3 scale) {
 	size = scale;
-	if (transformCallback != nullptr) {
-		transformCallback();
+	for (int i = 0; i < transformCallback.size(); i++)
+	{
+		transformCallback[i]();
 	}
 }
 
-void TransformComponent::SetTransformCallback(std::function<void()> func) {
-	this->transformCallback = func;
+void TransformComponent::AddTransformCallback(std::function<void()> func) {
+	this->transformCallback.push_back(func);
 }
 
 void TransformComponent::ProcessTransform() {
