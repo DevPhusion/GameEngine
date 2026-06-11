@@ -5,6 +5,18 @@
 #include<GLFW/glfw3.h>
 #include<functional>
 #include<unordered_map>
+
+struct VectorHasher {
+	size_t operator()(const std::vector<int>& v) const {
+		size_t seed = 0;
+		for (int i : v) {
+			// Combine hash of each element
+			seed ^= std::hash<int>{}(i)+0x9e3779b9 + (seed << 6) + (seed >> 2);
+		}
+		return seed;
+	}
+};
+
 class InputManager
 {
 public:
@@ -22,22 +34,22 @@ public:
 	static bool mouseLeftHold;
 	static bool mouseRightHold;
 
-	static std::unordered_map <int, std::function<void(int, int, int)>> MouseButtonCalls;
-	static std::unordered_map <int, std::function<void(double, double)>> CursorPositionCalls;
-	static std::unordered_map <int, std::function<void(int, int, int, int)>> KeyButtonCalls;
-	static std::unordered_map <int, std::function<void(double, double)>> MouseScrollCalls;
+	static std::unordered_map <std::vector<int>, std::function<void(int, int, int)>, VectorHasher> MouseButtonCalls;
+	static std::unordered_map <std::vector<int>, std::function<void(double, double)>, VectorHasher> CursorPositionCalls;
+	static std::unordered_map <std::vector<int>, std::function<void(int, int, int, int)>, VectorHasher> KeyButtonCalls;
+	static std::unordered_map <std::vector<int>, std::function<void(double, double)>, VectorHasher> MouseScrollCalls;
 	static std::unordered_map<int, bool> keys;
 
 	void Setup(GLFWwindow* window);
-	int SetMouseButtonCallback(std::function<void(int, int, int)> func);
-	int SetCursorPositionCallback(std::function<void(double, double)> func);
-	int SetKeyButtonCallback(std::function<void(int, int, int, int)> func);
-	int SetMouseScrollCallback(std::function<void(double, double)> func);
+	std::vector<int> SetMouseButtonCallback(std::function<void(int, int, int)> func, int priorityIndex);
+	std::vector<int> SetCursorPositionCallback(std::function<void(double, double)> func, int priorityIndex);
+	std::vector<int> SetKeyButtonCallback(std::function<void(int, int, int, int)> func, int priorityIndex);
+	std::vector<int> SetMouseScrollCallback(std::function<void(double, double)> func, int priorityIndex);
 
-	void RemoveMouseButtonCallback(int ID);
-	void RemoveCursorPositionCallback(int ID);
-	void RemoveKeyButtonCallback(int ID);
-	void RemoveMouseScrollCallback(int ID);
+	void RemoveMouseButtonCallback(std::vector<int> ID);
+	void RemoveCursorPositionCallback(std::vector<int> ID);
+	void RemoveKeyButtonCallback(std::vector<int> ID);
+	void RemoveMouseScrollCallback(std::vector<int> ID);
 
 private:
 	InputManager() {};

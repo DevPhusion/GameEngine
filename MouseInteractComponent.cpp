@@ -5,8 +5,9 @@ bool MouseInteractComponent::ObjectSelected = false;
 MouseInteractComponent::MouseInteractComponent(Object* parent, bool physicsInteract) : Component(parent) {
 	Name = "Mouse Interact Component";
 	this->physicsInteract = physicsInteract;
-	mouseButtonCallbackID = InputManager::getInstance().SetMouseButtonCallback([this](int button, int action, int mods) {this->FindSelectedPolygon(button, action, mods);});
-	cursorPosCallbackID = InputManager::getInstance().SetCursorPositionCallback([this](double xpos, double ypos) {this->DragPolygon(xpos, ypos);});
+	int priority = parent->GetComponent<RenderComponent>()->z_index;
+	mouseButtonCallbackID = InputManager::getInstance().SetMouseButtonCallback([this](int button, int action, int mods) {this->FindSelectedPolygon(button, action, mods);}, priority);
+	cursorPosCallbackID = InputManager::getInstance().SetCursorPositionCallback([this](double xpos, double ypos) {this->DragPolygon(xpos, ypos);}, priority);
 	physicsModeChangedCallbackID = EngineManager::getInstance().AddPhysicsModeChangedEvent([this]() {this->OnPhysicsModeChanged();});
 }
 
@@ -29,7 +30,6 @@ void MouseInteractComponent::OnDelete() {
 }
 
 void MouseInteractComponent::SetSelectedPolygon(Object* obj, bool enable) {
-
 	if (!enable) {
 		if (obj->HasComponent<VertexComponent>()) {
 			if (obj->GetComponent<VertexComponent>()->GetSelectedVertex() != -1) {
@@ -45,13 +45,18 @@ void MouseInteractComponent::SetSelectedPolygon(Object* obj, bool enable) {
 		if (obj->HasComponent<VertexComponent>() && EngineManager::getInstance().EnginePhysicsMode == EngineManager::PhysicsMode::Pause) {
 			obj->GetComponent<VertexComponent>()->SetEnabled(true);
 		}
-		EditorManager::getInstance().SetSelectedObject(obj);
+		if (this != nullptr && Inspectable) {
+			EditorManager::getInstance().SetSelectedObject(obj);
+		}
+		else if (this == nullptr) {
+			EditorManager::getInstance().SetSelectedObject(obj);
+		}
 	}
 
 }
 
 void MouseInteractComponent::FindSelectedPolygon(int button, int action, int mods) {
-	if (EngineManager::getInstance().EngineInteractMode != EngineManager::InteractMode::EditorSelect) {
+	if (EngineManager::getInstance().EngineInteractMode != EngineManager::InteractMode::EditorSelect || !Enabled) {
 		return;
 	}
 

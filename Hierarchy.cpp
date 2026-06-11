@@ -3,7 +3,7 @@
 
 Hierarchy::Hierarchy(std::string name) {
 	this->name = name;
-	InputManager::getInstance().SetKeyButtonCallback([this](int key, int scancode, int action, int mods) {this->OnKeyPressed(key, scancode, action, mods);});
+	InputManager::getInstance().SetKeyButtonCallback([this](int key, int scancode, int action, int mods) {this->OnKeyPressed(key, scancode, action, mods);}, 999);
 }
 
 void Hierarchy::ProcessWindow() {

@@ -5,10 +5,10 @@ float InputManager::glY = 0.0f;
 bool InputManager::mouseLeftHold = false;
 bool InputManager::mouseRightHold = false;
 
-std::unordered_map<int, std::function<void(int, int, int)>> InputManager::MouseButtonCalls = {};
-std::unordered_map <int, std::function<void(double, double)>> InputManager::CursorPositionCalls = {};
-std::unordered_map <int, std::function<void(int, int, int, int)>> InputManager::KeyButtonCalls = {};
-std::unordered_map <int, std::function<void(double, double)>> InputManager::MouseScrollCalls = {};
+std::unordered_map<std::vector<int>, std::function<void(int, int, int)>, VectorHasher> InputManager::MouseButtonCalls = {};
+std::unordered_map <std::vector<int>, std::function<void(double, double) >, VectorHasher> InputManager::CursorPositionCalls = {};
+std::unordered_map <std::vector<int>, std::function<void(int, int, int, int)>, VectorHasher> InputManager::KeyButtonCalls = {};
+std::unordered_map <std::vector<int>, std::function<void(double, double)>, VectorHasher> InputManager::MouseScrollCalls = {};
 
 std::unordered_map<int, bool> InputManager::keys = {};
 
@@ -22,43 +22,47 @@ void InputManager::Setup(GLFWwindow* window) {
 	glfwSetCharCallback(this->window, ImGui_ImplGlfw_CharCallback);
 }
 
-int InputManager::SetMouseButtonCallback(std::function<void(int, int, int)> func) {
+std::vector<int> InputManager::SetMouseButtonCallback(std::function<void(int, int, int)> func, int priorityIndex) {
 	CurrentMouseButtonID += 1;
-	MouseButtonCalls[CurrentMouseButtonID] = func;
-	return CurrentMouseButtonID;
+	std::vector<int> ID = { CurrentMouseButtonID, priorityIndex };
+	MouseButtonCalls[ID] = func;
+	return ID;
 }
 
-int InputManager::SetCursorPositionCallback(std::function<void(double, double)> func) {
+std::vector<int> InputManager::SetCursorPositionCallback(std::function<void(double, double)> func, int priorityIndex) {
 	CurrentCursorPositionID += 1;
-	CursorPositionCalls[CurrentCursorPositionID] = func;
-	return CurrentCursorPositionID;
+	std::vector<int> ID = { CurrentCursorPositionID, priorityIndex };
+	CursorPositionCalls[ID] = func;
+	return ID;
 }
 
-int InputManager::SetKeyButtonCallback(std::function<void(int, int, int, int)> func) {
+std::vector<int> InputManager::SetKeyButtonCallback(std::function<void(int, int, int, int)> func, int priorityIndex) {
 	CurrentKeyButtonID += 1;
-	KeyButtonCalls[CurrentKeyButtonID] = func;
-	return CurrentKeyButtonID;
+	std::vector<int> ID = { CurrentKeyButtonID, priorityIndex };
+	KeyButtonCalls[ID] = func;
+	return ID;
 }
 
-int InputManager::SetMouseScrollCallback(std::function<void(double, double)> func) {
+std::vector<int> InputManager::SetMouseScrollCallback(std::function<void(double, double)> func, int priorityIndex) {
 	CurrentMouseScrollID += 1;
-	MouseScrollCalls[CurrentMouseScrollID] = func;
-	return CurrentMouseScrollID;
+	std::vector<int> ID = { CurrentMouseScrollID, priorityIndex };
+	MouseScrollCalls[ID] = func;
+	return ID;
 }
 
-void InputManager::RemoveMouseButtonCallback(int ID) {
+void InputManager::RemoveMouseButtonCallback(std::vector<int> ID) {
 	MouseButtonCalls.erase(ID);
 }
 
-void InputManager::RemoveCursorPositionCallback(int ID) {
+void InputManager::RemoveCursorPositionCallback(std::vector<int> ID) {
 	CursorPositionCalls.erase(ID);
 }
 
-void InputManager::RemoveKeyButtonCallback(int ID) {
+void InputManager::RemoveKeyButtonCallback(std::vector<int> ID) {
 	KeyButtonCalls.erase(ID);
 }
 
-void InputManager::RemoveMouseScrollCallback(int ID) {
+void InputManager::RemoveMouseScrollCallback(std::vector<int> ID) {
 	MouseScrollCalls.erase(ID);
 }
 
@@ -74,10 +78,19 @@ void InputManager::OnCursorPosition(GLFWwindow* window, double xpos, double ypos
 
 	glX = glX * EngineManager::getInstance().aspectRatio;
 
-	for (const auto& [id, func] : CursorPositionCalls) {
-		func(xpos, ypos);
+	std::vector<std::pair<std::vector<int>, std::function<void(double, double)>>> sortedCalls;
+
+	for (const auto& entry : CursorPositionCalls) {
+		sortedCalls.push_back(entry);
 	}
 
+	std::sort(sortedCalls.begin(), sortedCalls.end(), [](const auto& a, const auto& b) {
+		return a.first[1] > b.first[1]; // Sort by priority index
+	});
+
+	for (const auto& [id, func] : sortedCalls) {
+		func(xpos, ypos);
+	}
 }
 
 void InputManager::OnMouseButton(GLFWwindow* window, int button, int action, int mods) {
@@ -103,7 +116,17 @@ void InputManager::OnMouseButton(GLFWwindow* window, int button, int action, int
 		return;
 	}
 
-	for (const auto& [id, func] : MouseButtonCalls) {
+	std::vector<std::pair<std::vector<int>, std::function<void(int, int, int)>>> sortedCalls;
+
+	for (const auto& entry : MouseButtonCalls) {
+		sortedCalls.push_back(entry);
+	}
+
+	std::sort(sortedCalls.begin(), sortedCalls.end(), [](const auto& a, const auto& b) {
+		return a.first[1] > b.first[1]; // Sort by priority index
+		});
+
+	for (const auto& [id, func] : sortedCalls) {
 		func(button, action, mods);
 	}
 }
@@ -126,7 +149,17 @@ void InputManager::OnKeyButton(GLFWwindow* window, int key, int scancode, int ac
 		return;
 	}
 
-	for (const auto& [id, func] : KeyButtonCalls) {
+	std::vector<std::pair<std::vector<int>, std::function<void(int, int, int, int)>>> sortedCalls;
+
+	for (const auto& entry : KeyButtonCalls) {
+		sortedCalls.push_back(entry);
+	}
+
+	std::sort(sortedCalls.begin(), sortedCalls.end(), [](const auto& a, const auto& b) {
+		return a.first[1] > b.first[1]; // Sort by priority index
+		});
+
+	for (const auto& [id, func] : sortedCalls) {
 		func(key, scancode, action, mods);
 	}
 }
@@ -138,7 +171,17 @@ void InputManager::OnMouseScroll(GLFWwindow* window, double xoffset, double yoff
 		return;
 	}
 
-	for (const auto& [id, func] : MouseScrollCalls) {
+	std::vector<std::pair<std::vector<int>, std::function<void(double, double)>>> sortedCalls;
+
+	for (const auto& entry : MouseScrollCalls) {
+		sortedCalls.push_back(entry);
+	}
+
+	std::sort(sortedCalls.begin(), sortedCalls.end(), [](const auto& a, const auto& b) {
+		return a.first[1] > b.first[1]; // Sort by priority index
+		});
+
+	for (const auto& [id, func] : sortedCalls) {
 		func(xoffset, yoffset);
 	}
 }

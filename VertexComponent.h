@@ -18,8 +18,8 @@ public:
 	std::vector<VertexPoint*> vertexPoints;
 	int selectedIndex = -1;
 
-	int mouseButtonCallbackID;
-	int cursorPosCallbackID;
+	std::vector<int> mouseButtonCallbackID;
+	std::vector<int> cursorPosCallbackID;
 
 	virtual void OnDelete();
 	virtual void ProcessInspectorUI();

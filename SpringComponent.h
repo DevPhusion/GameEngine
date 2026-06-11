@@ -11,9 +11,6 @@ public:
 	SpringForce* springForceTop = nullptr;
 	SpringForce* springForceBot = nullptr;
 
-	glm::vec3 topConnectPoint = glm::vec3(0);
-	glm::vec3 bottomConnectPoint = glm::vec3(0);
-
 	float springConstant;
 	float damping;
 	float restLength;
@@ -27,5 +24,7 @@ public:
 	virtual void AddBottomObject(Object* obj);
 	virtual void RemoveTopObject();
 	virtual void RemoveBottomObject();
+	virtual void OnTopDisplayUpdatePos();
+	virtual void OnBottomDisplayUpdatePos();
 };
 

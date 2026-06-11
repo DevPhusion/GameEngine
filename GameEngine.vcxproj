@@ -238,6 +238,7 @@
     <Image Include="face.jpg" />
     <Image Include="floor.png" />
     <Image Include="floorTiled.png" />
+    <Image Include="red.jpg" />
     <Image Include="wall.jpg" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

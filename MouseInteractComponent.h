@@ -18,6 +18,7 @@ public:
 	static bool ObjectSelected; //prevent multiple selection;
 	bool physicsInteract;
 	bool Selected;
+	bool Inspectable = true;
 
 	MouseDrag* mouseDragForce = nullptr;
 
@@ -29,8 +30,8 @@ public:
 	void SetSelectedPolygon(Object* obj, bool enable);
 	void OnPhysicsModeChanged();
 private:
-	int mouseButtonCallbackID;
-	int cursorPosCallbackID;
+	std::vector<int> mouseButtonCallbackID;
+	std::vector<int> cursorPosCallbackID;
 	int physicsModeChangedCallbackID;
 };
 

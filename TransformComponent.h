@@ -18,7 +18,7 @@ public:
 	glm::vec3 rotation_center = glm::vec3(0);
 	glm::vec3 position = glm::vec3(0);
 	glm::vec3 size = glm::vec3(1);
-	std::vector<std::function<void()>> transformCallback;
+	std::unordered_map<int, std::function<void()>> transformCallback;
 	float rotation = 0;
 
 	virtual void OnDelete();
@@ -34,9 +34,11 @@ public:
 	void Translate(glm::vec3 translation);
 	void Rotate(float angle);
 	void Scale(glm::vec3 scale);
-	void AddTransformCallback(std::function<void()> func);
+	int AddTransformCallback(std::function<void()> func);
+	void RemoveTransformCallback(int ID);
 	void ProcessTransform();
 private:
+	int CurrentTransformCallbackID = -1;
 	Shader shader;
 };
 

@@ -55,14 +55,7 @@ void SpringComponent::ProcessInspectorUI() {
 void SpringComponent::AddTopObject(Object* object)  {
 	ObjectLinkComponent::AddTopObject(object);
 
-	topConnectPoint = topObject->GetComponent<RenderComponent>()->GetCenter();
-	topConnectPoint.y += 0.001f;
-
 	if (springForceTop == nullptr) {
-		if (bottomObject != nullptr) {
-			bottomConnectPoint = bottomObject->GetComponent<RenderComponent>()->GetCenter();
-			bottomConnectPoint.y += 0.001f;
-		}
 		springForceTop = new SpringForce(topObject, bottomObject, 
 			topConnectPoint, bottomConnectPoint, 
 			springConstant, damping, restLength,
@@ -87,14 +80,7 @@ void SpringComponent::AddTopObject(Object* object)  {
 void SpringComponent::AddBottomObject(Object* object) {
 	ObjectLinkComponent::AddBottomObject(object);
 
-	bottomConnectPoint = bottomObject->GetComponent<RenderComponent>()->GetCenter();
-	bottomConnectPoint.y += 0.001f;
-
 	if (springForceBot == nullptr) {
-		if (topObject != nullptr) {
-			topConnectPoint = topObject->GetComponent<RenderComponent>()->GetCenter();
-			topConnectPoint.y += 0.001f;
-		}
 		springForceBot = new SpringForce(bottomObject, topObject, 
 			bottomConnectPoint, topConnectPoint, 
 			springConstant, damping, restLength,
@@ -140,4 +126,22 @@ void SpringComponent::RemoveBottomObject() {
 	}
 
 	ObjectLinkComponent::RemoveBottomObject();
+}
+
+void SpringComponent::OnTopDisplayUpdatePos() {
+	ObjectLinkComponent::OnTopDisplayUpdatePos();
+
+	springForceTop->thisConnectionPoint = topConnectPoint;
+	if (springForceBot != nullptr) {
+		springForceBot->otherConnectionPoint = topConnectPoint;
+	}
+}
+
+void SpringComponent::OnBottomDisplayUpdatePos() {
+	ObjectLinkComponent::OnBottomDisplayUpdatePos();
+
+	springForceBot->thisConnectionPoint = bottomConnectPoint;
+	if (springForceTop != nullptr) {
+		springForceTop->otherConnectionPoint = bottomConnectPoint;
+	}
 }

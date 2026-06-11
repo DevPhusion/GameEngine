@@ -48,8 +48,8 @@ int VertexComponent::GetSelectedVertex() {
 
 void VertexComponent::SetVertexPoints(std::vector<VertexPoint*> vertexPoints) {
 	this->vertexPoints =  std::move(vertexPoints);
-	mouseButtonCallbackID = InputManager::getInstance().SetMouseButtonCallback([this](int button, int action, int mods) { this->FindSelectedPoint(button, action, mods); });
-	cursorPosCallbackID = InputManager::getInstance().SetCursorPositionCallback([this](double xpos, double ypos) { this->DragPoint(xpos, ypos); });
+	mouseButtonCallbackID = InputManager::getInstance().SetMouseButtonCallback([this](int button, int action, int mods) { this->FindSelectedPoint(button, action, mods); }, 0);
+	cursorPosCallbackID = InputManager::getInstance().SetCursorPositionCallback([this](double xpos, double ypos) { this->DragPoint(xpos, ypos); }, 0);
 	for (int i = 0; i < this->vertexPoints.size(); i++)
 	{
 		this->vertexPoints[i]->GetComponent<TransformComponent>()->SetEnabled(true);

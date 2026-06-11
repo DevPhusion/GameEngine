@@ -101,39 +101,41 @@ void TransformComponent::SetRotationCenter(glm::vec3 rotation_center) {
 
 void TransformComponent::SetOriginTransform(glm::mat4 transform) {
 	this->OriginTransform = transform;
-	for (int i = 0; i < transformCallback.size(); i++)
-	{
-		transformCallback[i]();
+	for (const auto& [id, func] : transformCallback) {
+		func();
 	}
 }
 
 void TransformComponent::Translate(glm::vec3 translation) {
 	position = translation;
-	for (int i = 0; i < transformCallback.size(); i++)
-	{
-		transformCallback[i]();
+	for (const auto& [id, func] : transformCallback) {
+		func();
 	}
 }
 
 void TransformComponent::Rotate(float angle)
 {
 	rotation = angle;
-	for (int i = 0; i < transformCallback.size(); i++)
-	{
-		transformCallback[i]();
+	for (const auto& [id, func] : transformCallback) {
+		func();
 	}
 }
 
 void TransformComponent::Scale(glm::vec3 scale) {
 	size = scale;
-	for (int i = 0; i < transformCallback.size(); i++)
-	{
-		transformCallback[i]();
+	for (const auto& [id, func] : transformCallback) {
+		func();
 	}
 }
 
-void TransformComponent::AddTransformCallback(std::function<void()> func) {
-	this->transformCallback.push_back(func);
+int TransformComponent::AddTransformCallback(std::function<void()> func) {
+	CurrentTransformCallbackID += 1;
+	this->transformCallback[CurrentTransformCallbackID] = func;
+	return CurrentTransformCallbackID;
+}
+
+void TransformComponent::RemoveTransformCallback(int ID) {
+	this->transformCallback.erase(ID);
 }
 
 void TransformComponent::ProcessTransform() {

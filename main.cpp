@@ -53,8 +53,8 @@ int main() {
 	EditorManager::getInstance().Setup(window);
 
 	InputManager::getInstance().Setup(window);
-	InputManager::getInstance().SetKeyButtonCallback(keyPressed);
-	InputManager::getInstance().SetMouseButtonCallback(cursorPressedCallback);
+	InputManager::getInstance().SetKeyButtonCallback(keyPressed, 999);
+	InputManager::getInstance().SetMouseButtonCallback(cursorPressedCallback, 999);
 
 	EngineManager::getInstance().Setup(window);
 	PhysicsEngine::getInstance().Setup(&ObjectManager::getInstance().allObjects);

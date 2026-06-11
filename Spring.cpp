@@ -65,13 +65,11 @@ void Spring::UpdateVertex() {
 	glm::vec2 topVert = glm::vec2(0);
 	glm::vec2 botVert = glm::vec2(0);
 
-	glm::vec3 topPos = topObject->GetComponent<TransformComponent>()->GetWorldPosition();
 	// Project world -> screen
-	glm::vec3 top = topObject->GetComponent<TransformComponent>()->GetTransformedPoint(topObject->GetComponent<TransformComponent>()->ProjectToWorld(topPos, true));
+	glm::vec3 top = topObject->GetComponent<TransformComponent>()->GetTransformedPoint(GetComponent<SpringComponent>()->topConnectPoint);
 	topVert = GetComponent<TransformComponent>()->GetTransformedPoint(top, true);
-	glm::vec3 botPos = bottomObject->GetComponent<TransformComponent>()->GetWorldPosition();
 	//Project world -> screen
-	glm::vec3 bot = bottomObject->GetComponent<TransformComponent>()->GetTransformedPoint(bottomObject->GetComponent<TransformComponent>()->ProjectToWorld(botPos, true));
+	glm::vec3 bot = bottomObject->GetComponent<TransformComponent>()->GetTransformedPoint(GetComponent<SpringComponent>()->bottomConnectPoint);
 	botVert = GetComponent<TransformComponent>()->GetTransformedPoint(bot, true);
 	std::vector<float> vertices = {};
 

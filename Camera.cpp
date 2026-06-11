@@ -3,7 +3,7 @@
 #include <glm/gtx/io.hpp>
 
 void Camera::Setup() {
-	InputManager::getInstance().SetMouseScrollCallback([this](double xoffset, double yoffset) {this->ScrollCallback(xoffset, yoffset);});
+	InputManager::getInstance().SetMouseScrollCallback([this](double xoffset, double yoffset) {this->ScrollCallback(xoffset, yoffset);}, 999);
 }
 
 void Camera::ProcessCamera(float delta) {
