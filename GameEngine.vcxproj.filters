@@ -67,6 +67,12 @@
     <Filter Include="Source Files\Components\Object Link Components">
       <UniqueIdentifier>{70ac4485-025f-4b4c-9202-2cf56b52e8c3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Core\Physics\Collision">
+      <UniqueIdentifier>{105493c5-a704-470f-b288-276d1393bf8c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Core\Physics\Collision">
+      <UniqueIdentifier>{c6559538-3c53-4289-bd19-93ee607f1486}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glad.c">
@@ -200,6 +206,15 @@
     </ClCompile>
     <ClCompile Include="CableComponent.cpp">
       <Filter>Source Files\Components\Object Link Components</Filter>
+    </ClCompile>
+    <ClCompile Include="BAHNode.cpp">
+      <Filter>Source Files\Core\Physics\Collision</Filter>
+    </ClCompile>
+    <ClCompile Include="CollisionComponent.cpp">
+      <Filter>Source Files\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="BoundingCircle.cpp">
+      <Filter>Source Files\Core\Physics\Collision</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -340,6 +355,15 @@
     </ClInclude>
     <ClInclude Include="CableComponent.h">
       <Filter>Header Files\Components\Object Link Components</Filter>
+    </ClInclude>
+    <ClInclude Include="CollisionComponent.h">
+      <Filter>Header Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="BAHNode.h">
+      <Filter>Header Files\Core\Physics\Collision</Filter>
+    </ClInclude>
+    <ClInclude Include="BoundingCircle.h">
+      <Filter>Header Files\Core\Physics\Collision</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

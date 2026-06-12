@@ -22,6 +22,10 @@ void PhysicsEngine::ProcessPhysics(float delta) {
 			(*allObjects)[i]->GetComponent<PhysicsComponent>()->ProcessPhysics(delta);
 		}
 	}
+
+	PotentialContact contacts[200];
+	unsigned totalContacts = root.getPotentialContacts(contacts, 200);
+	std::cout << totalContacts << std::endl;
 }
 
 void PhysicsEngine::RegisterForce(Object* object, ForceGenerator* fg) {
@@ -91,4 +95,24 @@ void PhysicsEngine::ResolveContacts(float delta) {
 
 		if (contactArray.empty()) break;
 	}
+}
+
+BAHNode<BoundingCircle>* PhysicsEngine::RegisterBoundingAreaNode(Object* obj, BoundingCircle boundingCircle) {
+	if (root.obj == nullptr && root.children[0] == nullptr) {
+		root.obj = obj;
+		root.area = boundingCircle;
+		return &root;
+	}
+	else {
+		return root.insert(obj, boundingCircle);
+	}
+}
+
+void PhysicsEngine::UnRegisterBoundingAreaNode(Object* obj) {
+	BAHNode<BoundingCircle>* node = root.searchFor(obj);
+	node->removeLeaf();
+}
+
+void PhysicsEngine::UpdateBoundingAreaHierarchy() {
+
 }

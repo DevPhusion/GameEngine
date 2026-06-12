@@ -2,7 +2,9 @@
 #include "Object.h"
 #include "Contact.h"
 #include "PhysicsComponent.h"
+#include "CollisionComponent.h"
 #include "ForceGenerator.h"
+#include "BAHNode.h"
 class PhysicsEngine
 {
 protected:
@@ -29,6 +31,12 @@ public:
 	void UnRegisterForce(Object* object, ForceGenerator* fg);
 	void UnRegisterAllForce(Object* object);
 	void ClearRegistry();
+
+	//Collision detection
+	BAHNode<BoundingCircle> root;
+	BAHNode<BoundingCircle>* RegisterBoundingAreaNode(Object* obj, BoundingCircle boundingCircle);
+	void UnRegisterBoundingAreaNode(Object* obj);
+	void UpdateBoundingAreaHierarchy();
 
 	//Contact resolution
 	std::vector<Contact*> contactArray;

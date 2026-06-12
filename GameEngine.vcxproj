@@ -138,9 +138,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AddObjectWindow.cpp" />
+    <ClCompile Include="BoundingCircle.cpp" />
     <ClCompile Include="Cable.cpp" />
     <ClCompile Include="CableComponent.cpp" />
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="BAHNode.cpp" />
+    <ClCompile Include="CollisionComponent.cpp" />
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="Contact.cpp" />
     <ClCompile Include="Drag.cpp" />
@@ -184,9 +187,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AddObjectWindow.h" />
+    <ClInclude Include="BoundingCircle.h" />
     <ClInclude Include="Cable.h" />
     <ClInclude Include="CableComponent.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="BAHNode.h" />
+    <ClInclude Include="CollisionComponent.h" />
     <ClInclude Include="Component.h" />
     <ClInclude Include="Contact.h" />
     <ClInclude Include="Drag.h" />

@@ -8,6 +8,7 @@
 #include "VertexComponent.h"
 #include "PhysicsComponent.h"
 #include "MouseInteractComponent.h"
+#include "CollisionComponent.h"
 #include <glad/glad.h>
 #include <iostream>
 #include <vector>
