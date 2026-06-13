@@ -21,11 +21,16 @@ void PhysicsEngine::ProcessPhysics(float delta) {
 		if ((*allObjects)[i]->HasComponent<PhysicsComponent>()) {
 			(*allObjects)[i]->GetComponent<PhysicsComponent>()->ProcessPhysics(delta);
 		}
+		if ((*allObjects)[i]->HasComponent<CollisionComponent>()) {
+			(*allObjects)[i]->GetComponent<RenderComponent>()->color = glm::vec4(1);
+		}
 	}
 
 	PotentialContact contacts[200];
 	unsigned totalContacts = root.getPotentialContacts(contacts, 200);
-	std::cout << totalContacts << std::endl;
+	if (totalContacts > 0) {
+		CheckCollision(contacts, totalContacts);
+	}
 }
 
 void PhysicsEngine::RegisterForce(Object* object, ForceGenerator* fg) {
@@ -97,22 +102,125 @@ void PhysicsEngine::ResolveContacts(float delta) {
 	}
 }
 
+void PhysicsEngine::CheckCollision(PotentialContact* contacts, unsigned numContacts) {
+	for (int i = 0; i < numContacts; i++)
+	{
+		Object* objA = contacts[i].obj[0];
+		Object* objB = contacts[i].obj[1];
+
+		if (objA == nullptr || objB == nullptr) return;
+
+		if (SAT(objA, objB)) {
+			objA->GetComponent<RenderComponent>()->color = glm::vec4(0, 1, 0, 1);
+			objB->GetComponent<RenderComponent>()->color = glm::vec4(0, 1, 0, 1);
+		}
+		else {
+			objA->GetComponent<RenderComponent>()->color = glm::vec4(1, 0, 0, 1);
+			objB->GetComponent<RenderComponent>()->color = glm::vec4(1, 0, 0, 1);
+		}
+	}
+}
+
+bool PhysicsEngine::SAT(Object* objA, Object* objB) {
+	RenderComponent* rcA = objA->GetComponent<RenderComponent>();
+	TransformComponent* tcA = objA->GetComponent<TransformComponent>();
+	RenderComponent* rcB = objB->GetComponent<RenderComponent>();
+	TransformComponent* tcB = objB->GetComponent<TransformComponent>();
+
+	std::vector<Edge> edgesA = rcA->edges;
+	std::vector<Edge> edgesB = rcB->edges;
+
+	std::vector<SeparatingAxis> Axes;
+	std::vector<glm::vec3> vertsA;
+	std::vector<glm::vec3> vertsB;
+
+	for (int i = 0; i < edgesA.size(); i++)
+	{
+		glm::vec3 start = edgesA[i].start;
+		glm::vec3 end = edgesA[i].end;
+
+		SeparatingAxis axis = SeparatingAxis();
+		axis.start = tcA->ProjectToWorld(start);
+		axis.end = tcA->ProjectToWorld(end);
+		vertsA.push_back(axis.start);
+		glm::vec3 tangent = axis.end - axis.start;
+		axis.normal = glm::normalize(glm::vec3(tangent.y, -tangent.x, 0));
+		Axes.push_back(axis);
+	}
+
+	for (int i = 0; i < edgesB.size(); i++)
+	{
+		glm::vec3 start = edgesB[i].start;
+		glm::vec3 end = edgesB[i].end;
+
+		SeparatingAxis axis = SeparatingAxis();
+		axis.start = tcB->ProjectToWorld(start);
+		axis.end = tcB->ProjectToWorld(end);
+		vertsB.push_back(axis.start);
+		glm::vec3 tangent = axis.end - axis.start;
+		axis.normal = glm::normalize(glm::vec3(tangent.y, -tangent.x, 0));
+		Axes.push_back(axis);
+	}
+	
+	for (int i = 0; i < Axes.size(); i++)
+	{
+		Projection projA = ProjectOntoAxis(vertsA, Axes[i]);
+		Projection projB = ProjectOntoAxis(vertsB, Axes[i]);
+
+		if (!projA.Overlaps(projB)) return false;
+	}
+
+	return true;
+}
+
+Projection PhysicsEngine::ProjectOntoAxis(std::vector<glm::vec3>& vertices, SeparatingAxis axis) {
+	float max = -INFINITY;
+	float min = INFINITY;
+
+	for (int i = 0; i < vertices.size(); i++)
+	{
+		float p = glm::dot(vertices[i], axis.normal);
+		if (p > max) {
+			max = p;
+		}
+		if (p < min) {
+			min = p;
+		}
+	}
+
+	Projection projection = Projection();
+	projection.max = max;
+	projection.min = min;
+	return projection;
+}
+
 BAHNode<BoundingCircle>* PhysicsEngine::RegisterBoundingAreaNode(Object* obj, BoundingCircle boundingCircle) {
 	if (root.obj == nullptr && root.children[0] == nullptr) {
 		root.obj = obj;
 		root.area = boundingCircle;
+		for (int i = 0; i < allObjects->size(); i++)
+		{
+			if ((*allObjects)[i]->HasComponent<CollisionComponent>()) {
+				(*allObjects)[i]->GetComponent<CollisionComponent>()->BAHnode = root.searchFor((*allObjects)[i].get());
+			}
+		}
 		return &root;
 	}
 	else {
-		return root.insert(obj, boundingCircle);
+		BAHNode<BoundingCircle>* node = root.insert(obj, boundingCircle);
+
+		for (int i = 0; i < allObjects->size(); i++)
+		{
+			if ((*allObjects)[i]->HasComponent<CollisionComponent>()) {
+				(*allObjects)[i]->GetComponent<CollisionComponent>()->BAHnode = root.searchFor((*allObjects)[i].get());
+			}
+		}
+
+		return node;
 	}
 }
 
 void PhysicsEngine::UnRegisterBoundingAreaNode(Object* obj) {
 	BAHNode<BoundingCircle>* node = root.searchFor(obj);
 	node->removeLeaf();
-}
-
-void PhysicsEngine::UpdateBoundingAreaHierarchy() {
-
 }

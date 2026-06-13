@@ -26,6 +26,12 @@ void Renderer::Draw() {
         return zA < zB; 
     });
 
+    BAHNode<BoundingCircle>* bvhRoot = &PhysicsEngine::getInstance().root;
+
+    glLineWidth(2.0f); // Make lines easily visible
+    bvhRoot->DrawBoundingArea();
+    glLineWidth(1.0f); // Reset line size back to default
+
     for (Object* obj : renderQueue) {
         obj->GetComponent<RenderComponent>()->Draw();
         if (obj->HasComponent<TransformComponent>()) {

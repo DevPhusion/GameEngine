@@ -13,17 +13,20 @@ RenderComponent::RenderComponent(Object* parent, std::vector<float> vertices, Sh
 	{
 		points.push_back(std::vector<float> {
 			vertices[i],
-				vertices[i + 1],
-				float(int(i / 5))
+			vertices[i + 1],
+			float(int(i / 5))
 		});
 		i += 3;
 	}
 
 	for (int i = 0; i < points.size(); i++)
 	{
-		std::vector<float> p1 = points[i];
-		std::vector<float> p2 = points[(i + 1) % points.size()];
-		edges.push_back(std::vector<std::vector<float>> {p1, p2});
+		glm::vec3 p1 = glm::vec3(points[i][0], points[i][1], 0);
+		glm::vec3 p2 = glm::vec3(points[(i + 1) % points.size()][0], points[(i + 1) % points.size()][1], 0);
+		Edge edge = Edge();
+		edge.start = p1;
+		edge.end = p2;
+		edges.push_back(edge);
 	}
 
 	glGenVertexArrays(1, &this->VAO);
@@ -37,7 +40,6 @@ RenderComponent::RenderComponent(Object* parent, std::vector<float> vertices, Sh
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
-
 
 	glGenBuffers(1, &this->EBO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->EBO);
@@ -91,6 +93,7 @@ void RenderComponent::Draw() {
 	if (!Enabled)
 		return;
 
+	this->shader.setVec4D("aColor", this->color);
 
 	if (this->TextureID != 0) {
 		glActiveTexture(this->TextureID);
@@ -241,9 +244,12 @@ void RenderComponent::UpdateShape(std::vector<float> vertices, std::vector<unsig
 
 	for (int i = 0; i < points.size(); i++)
 	{
-		std::vector<float> p1 = points[i];
-		std::vector<float> p2 = points[(i + 1) % points.size()];
-		edges.push_back(std::vector<std::vector<float>> {p1, p2});
+		glm::vec3 p1 = glm::vec3(points[i][0], points[i][1], 0);
+		glm::vec3 p2 = glm::vec3(points[(i + 1) % points.size()][0], points[(i + 1) % points.size()][1], 0);
+		Edge edge = Edge();
+		edge.start = p1;
+		edge.end = p2;
+		edges.push_back(edge);
 	}
 
 	glBindVertexArray(this->VAO);
@@ -259,8 +265,8 @@ bool RenderComponent::IsInsideShape(glm::vec3 point) {
 	int cnt = 0;
 	for (int i = 0; i < edges.size(); i++)
 	{
-		std::vector<float> point1 = edges[i][0];
-		std::vector<float> point2 = edges[i][1];
+		std::vector<float> point1 = std::vector<float>{ edges[i].start.x, edges[i].start.y };
+		std::vector<float> point2 = std::vector<float>{ edges[i].end.x, edges[i].end.y };
 		bool ycheck = (point.y < point1[1]) != (point.y < point2[1]);
 		bool xcheck = point.x < point1[0] + ((point.y - point1[1]) / (point2[1] - point1[1])) * (point2[0] - point1[0]);
 
@@ -315,6 +321,12 @@ void RenderComponent::ProcessInspectorUI() {
 		}
 
 		ImGuiFileDialog::Instance()->Close();
+	}
+
+	ImGui::Text("Color ");
+	float displayColor[4] = { color.x, color.y, color.z, color.a };
+	if (ImGui::ColorPicker4("##Color ", displayColor)) {
+		this->color = glm::vec4(displayColor[0], displayColor[1], displayColor[2], displayColor[3]);
 	}
 
 	ImGui::Text("Z index ");

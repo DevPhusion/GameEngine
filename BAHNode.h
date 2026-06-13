@@ -1,5 +1,6 @@
 #pragma once
 #include "Object.h"
+#include "DebugCircle.h"
 
 struct PotentialContact {
 	Object* obj[2];
@@ -28,11 +29,11 @@ public:
 	BAHNode<BoundingAreaClass>* insert(Object* newObject, const BoundingAreaClass& newArea);
 	void removeLeaf();
 	void recalculateBoundingArea();
-	void printBAHTree(int depth = 0) const;
 	BAHNode<BoundingAreaClass>* searchFor(Object* target);
 	bool overlaps(const BAHNode<BoundingAreaClass>* other) const;
 	unsigned getPotentialContacts(PotentialContact* contacts, unsigned limit) const;
 	unsigned getPotentialContactsWith(const BAHNode<BoundingAreaClass>* other, PotentialContact* contacts, unsigned limit) const;
+	void DrawBoundingArea() const;
 };
 
 template<class BoundingAreaClass> 
@@ -171,32 +172,13 @@ BAHNode<BoundingAreaClass>* BAHNode<BoundingAreaClass>::searchFor(Object* target
 }
 
 template<class BoundingAreaClass>
-void BAHNode<BoundingAreaClass>::printBAHTree(int depth) const {
-	// Create visual indentation based on tree depth
-	std::string indent(depth * 4, ' ');
+void BAHNode<BoundingAreaClass>::DrawBoundingArea() const {
+	DebugCircle::getInstance().DrawCircle(area.center, area.radius, Shader("vertex.txt", "fragment.txt"));
 
-	std::cout << indent;
-	if (isLeaf()) {
-		std::cout << "└── [LEAF] ";
+	if (children[0] != nullptr) {
+		children[0]->DrawBoundingArea();
 	}
-	else {
-		std::cout << "├── [NODE] ";
-	}
-
-	// Print out the BoundingCircle data directly from 'area'
-	std::cout << "Center: (" << area.center.x << ", "
-		<< area.center.y << ", "
-		<< area.center.z << ") | "
-		<< "Radius: " << area.radius;
-
-	if (isLeaf() && obj) {
-		std::cout << " | Object Address: " << obj;
-	}
-	std::cout << "\n";
-
-	// Recursively print children if it's an internal branch node
-	if (!isLeaf()) {
-		if (children[0]) children[0]->printBAHTree(depth + 1);
-		if (children[1]) children[1]->printBAHTree(depth + 1);
+	if (children[1] != nullptr) {
+		children[1]->DrawBoundingArea();
 	}
 }

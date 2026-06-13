@@ -3,6 +3,7 @@
 #include "Object.h"
 #include "RenderComponent.h"
 #include "TransformComponent.h"
+#include "PhysicsEngine.h"
 #include<glad/glad.h>
 #include<GLFW/glfw3.h>
 #include <vector>

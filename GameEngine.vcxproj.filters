@@ -216,6 +216,9 @@
     <ClCompile Include="BoundingCircle.cpp">
       <Filter>Source Files\Core\Physics\Collision</Filter>
     </ClCompile>
+    <ClCompile Include="DebugCircle.cpp">
+      <Filter>Source Files\Core\Physics\Collision</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stb_image.h">
@@ -363,6 +366,9 @@
       <Filter>Header Files\Core\Physics\Collision</Filter>
     </ClInclude>
     <ClInclude Include="BoundingCircle.h">
+      <Filter>Header Files\Core\Physics\Collision</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugCircle.h">
       <Filter>Header Files\Core\Physics\Collision</Filter>
     </ClInclude>
   </ItemGroup>

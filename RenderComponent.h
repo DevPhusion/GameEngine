@@ -7,6 +7,12 @@
 #include <glm/vec2.hpp>
 #include <glm/gtx/vector_angle.hpp>
 #include "imgui/ImGuiFileDialog.h"
+
+struct Edge {
+	glm::vec3 start;
+	glm::vec3 end;
+};
+
 class RenderComponent:public Component
 {
 public:
@@ -15,8 +21,9 @@ public:
 	std::vector<float> Vertices;
 	std::vector<unsigned int> Indices;
 	std::vector<std::vector<float>> points;
-	std::vector<std::vector<std::vector<float>>> edges;
+	std::vector<Edge> edges;
 	std::string texture_path;
+	glm::vec4 color = glm::vec4(1.0f);
 	int z_index; // ordering when drawing
 
 	virtual void OnDelete();
