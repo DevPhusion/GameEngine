@@ -31,7 +31,8 @@ void MouseDrag::updateForce(Object* object, float delta) {
 		interactCenter.y += 0.01f / Force.y;
 	}
 
-	phys->AddForceAtBodyPoint(Force, interactCenter);
+	phys->AddForce(Force);
+	//phys->AddForceAtBodyPoint(Force, interactCenter);
 }
 
 void MouseDrag::processDisplay(int index) {

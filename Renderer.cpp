@@ -38,4 +38,10 @@ void Renderer::Draw() {
            obj->GetComponent<TransformComponent>()->ProcessTransform();
         }
     }
+
+    for (int i = 0; i < PhysicsEngine::getInstance().allContactPoints.size(); i++)
+    {
+        DebugPoint point = DebugPoint();
+        point.DrawPoint(PhysicsEngine::getInstance().allContactPoints[i].point, 15, Shader("vertex.txt", "fragment.txt"));
+    }
 }

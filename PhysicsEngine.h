@@ -5,6 +5,20 @@
 #include "CollisionComponent.h"
 #include "ForceGenerator.h"
 #include "BAHNode.h"
+#include "DebugPoint.h"
+
+struct ContactPoint {
+	glm::vec3 point;
+	float penetration;
+};
+
+struct CollisionData {
+	bool isColliding = false;
+	float penetration = 0.0f;
+	glm::vec3 normal = glm::vec3(0.0f);
+	std::vector<Edge> objAEdges;
+	std::vector<Edge> objBEdges;
+};
 
 struct SeparatingAxis {
 	glm::vec3 normal;
@@ -49,13 +63,18 @@ public:
 	void ClearRegistry();
 
 	//Collision detection
+	std::vector<ContactPoint> allContactPoints;
 	BAHNode<BoundingCircle> root;
 	BAHNode<BoundingCircle>* RegisterBoundingAreaNode(Object* obj, BoundingCircle boundingCircle);
 	void UnRegisterBoundingAreaNode(Object* obj);
 	void CheckCollision(PotentialContact* contacts, unsigned numContacts);
-	bool SAT(Object* objA, Object* objB);
+	CollisionData SAT(Object* objA, Object* objB);
 	Projection ProjectOntoAxis(std::vector<glm::vec3>& vertices, SeparatingAxis axis);
-	void GenerateContact();
+	std::vector<ContactPoint> GenerateContactPoints(CollisionData collisionData);
+	float ComputeSignedArea(const std::vector<glm::vec3>& vertices);
+	Edge FindMostParallelEdge(const std::vector<Edge>& edges, const glm::vec3& normal);
+	Edge FindMostAntiParallelEdge(const std::vector<Edge>& edges, const glm::vec3& normal);
+	int ClipSegmentToLine(glm::vec3 vOut[2], const glm::vec3 vIn[2], int numInPoints, const glm::vec3& normal, float offset);
 
 	//Contact resolution
 	std::vector<Contact*> contactArray;

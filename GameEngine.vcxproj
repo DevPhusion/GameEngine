@@ -147,6 +147,7 @@
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="Contact.cpp" />
     <ClCompile Include="DebugCircle.cpp" />
+    <ClCompile Include="DebugPoint.cpp" />
     <ClCompile Include="Drag.cpp" />
     <ClCompile Include="EditorManager.cpp" />
     <ClCompile Include="EngineManager.cpp" />
@@ -197,6 +198,7 @@
     <ClInclude Include="Component.h" />
     <ClInclude Include="Contact.h" />
     <ClInclude Include="DebugCircle.h" />
+    <ClInclude Include="DebugPoint.h" />
     <ClInclude Include="Drag.h" />
     <ClInclude Include="EditorManager.h" />
     <ClInclude Include="EngineManager.h" />

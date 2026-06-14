@@ -28,6 +28,7 @@ public:
 
 	BAHNode<BoundingAreaClass>* insert(Object* newObject, const BoundingAreaClass& newArea);
 	void removeLeaf();
+
 	void recalculateBoundingArea();
 	BAHNode<BoundingAreaClass>* searchFor(Object* target);
 	bool overlaps(const BAHNode<BoundingAreaClass>* other) const;
@@ -38,7 +39,11 @@ public:
 
 template<class BoundingAreaClass> 
 void BAHNode<BoundingAreaClass>::removeLeaf() {
-	if (!parent) return;
+	if (!parent) {
+		obj = nullptr;
+		area = BoundingAreaClass();
+		return;
+	}
 
 	BAHNode<BoundingAreaClass>* sibling = (parent->children[0] == this) ? parent->children[1] : parent->children[0];
 
@@ -98,7 +103,7 @@ bool BAHNode<BoundingAreaClass>::overlaps(const BAHNode<BoundingAreaClass>* othe
 
 template<class BoundingAreaClass>
 unsigned BAHNode<BoundingAreaClass>::getPotentialContacts(PotentialContact* contacts, unsigned limit) const {
-	if (isLeaf() || limit == 0) return 0; // if no room for contacts / is a leaf node -> return
+	if ((children[0] == nullptr && children[1] == nullptr) || isLeaf() || limit == 0) return 0; // if no room for contacts / is a leaf node -> return
 
 	unsigned count = children[0]->getPotentialContactsWith(children[1], contacts, limit);
 
@@ -115,6 +120,7 @@ unsigned BAHNode<BoundingAreaClass>::getPotentialContacts(PotentialContact* cont
 
 template<class BoundingAreaClass>
 unsigned BAHNode<BoundingAreaClass>::getPotentialContactsWith(const BAHNode<BoundingAreaClass>* other, PotentialContact* contacts, unsigned limit) const {
+	if (other == nullptr || obj == nullptr) return 0;
 	if (!overlaps(other) || limit == 0) return 0;
 
 	if (isLeaf() && other->isLeaf()) {

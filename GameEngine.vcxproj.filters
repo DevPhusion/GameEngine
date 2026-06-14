@@ -219,6 +219,9 @@
     <ClCompile Include="DebugCircle.cpp">
       <Filter>Source Files\Core\Physics\Collision</Filter>
     </ClCompile>
+    <ClCompile Include="DebugPoint.cpp">
+      <Filter>Source Files\Core\Physics\Collision</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stb_image.h">
@@ -369,6 +372,9 @@
       <Filter>Header Files\Core\Physics\Collision</Filter>
     </ClInclude>
     <ClInclude Include="DebugCircle.h">
+      <Filter>Header Files\Core\Physics\Collision</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugPoint.h">
       <Filter>Header Files\Core\Physics\Collision</Filter>
     </ClInclude>
   </ItemGroup>
