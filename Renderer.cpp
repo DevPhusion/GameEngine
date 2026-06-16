@@ -26,12 +26,6 @@ void Renderer::Draw() {
         return zA < zB; 
     });
 
-    BAHNode<BoundingCircle>* bvhRoot = &PhysicsEngine::getInstance().root;
-
-    glLineWidth(2.0f); // Make lines easily visible
-    bvhRoot->DrawBoundingArea();
-    glLineWidth(1.0f); // Reset line size back to default
-
     for (Object* obj : renderQueue) {
         obj->GetComponent<RenderComponent>()->Draw();
         if (obj->HasComponent<TransformComponent>()) {
@@ -39,9 +33,19 @@ void Renderer::Draw() {
         }
     }
 
-    for (int i = 0; i < PhysicsEngine::getInstance().allContactPoints.size(); i++)
-    {
-        DebugPoint point = DebugPoint();
-        point.DrawPoint(PhysicsEngine::getInstance().allContactPoints[i].point, 15, Shader("vertex.txt", "fragment.txt"));
+    if (EngineManager::getInstance().debugMode) {
+        BAHNode<BoundingCircle>* bvhRoot = &PhysicsEngine::getInstance().root;
+
+        glLineWidth(2.0f);
+        bvhRoot->DrawBoundingArea();
+
+        for (int i = 0; i < PhysicsEngine::getInstance().allContactPoints.size(); i++)
+        {
+            DebugPoint point = DebugPoint();
+            point.DrawPoint(PhysicsEngine::getInstance().allContactPoints[i].point, 15, Shader("vertex.txt", "fragment.txt"));
+        }
+
+        glLineWidth(1.0f);
     }
+
 }

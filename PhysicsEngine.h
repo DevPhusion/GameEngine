@@ -8,6 +8,7 @@
 #include "DebugPoint.h"
 
 struct ContactPoint {
+	glm::vec3 normal;
 	glm::vec3 point;
 	float penetration;
 };
@@ -67,7 +68,7 @@ public:
 	BAHNode<BoundingCircle> root;
 	BAHNode<BoundingCircle>* RegisterBoundingAreaNode(Object* obj, BoundingCircle boundingCircle);
 	void UnRegisterBoundingAreaNode(Object* obj);
-	void CheckCollision(PotentialContact* contacts, unsigned numContacts);
+	std::vector<Contact> GetContacts(PotentialContact* contacts, unsigned numContacts);
 	CollisionData SAT(Object* objA, Object* objB);
 	Projection ProjectOntoAxis(std::vector<glm::vec3>& vertices, SeparatingAxis axis);
 	std::vector<ContactPoint> GenerateContactPoints(CollisionData collisionData);
@@ -77,9 +78,10 @@ public:
 	int ClipSegmentToLine(glm::vec3 vOut[2], const glm::vec3 vIn[2], int numInPoints, const glm::vec3& normal, float offset);
 
 	//Contact resolution
-	std::vector<Contact*> contactArray;
-	void AddContact(Contact* contact);
-	void ResolveContacts(float delta);
+	void ResolveContacts(std::vector<Contact>& contacts, float delta);
+	void PrepareContacts(std::vector<Contact>& contacts, float delta);
+	void AdjustPositions(std::vector<Contact>& contacts, float delta);
+	void AdjustVelocities(std::vector<Contact>& contacts, float delta);
 private:
 	PhysicsEngine() = default;
 	std::vector<std::unique_ptr<Object>>* allObjects;

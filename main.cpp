@@ -62,18 +62,28 @@ int main() {
 	Camera::getInstance().Setup();
 
 	float prev_t = 0;
+	float physicsAccumulator = 0.0f;
+	const float PHYSICS_STEP = 1.0f / 60.0f;
 
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
 
-		float delta = glfwGetTime() - prev_t;
+		float now = glfwGetTime();
+		float delta = now - prev_t;
+		prev_t = now;
+		if (delta > 0.1f) delta = 0.1f;
+		physicsAccumulator += delta;
 		Camera::getInstance().ProcessCamera(delta);
-		PhysicsEngine::getInstance().ProcessPhysics(delta);
+		while (physicsAccumulator >= PHYSICS_STEP) {
+			PhysicsEngine::getInstance().ProcessPhysics(PHYSICS_STEP);
+			physicsAccumulator -= PHYSICS_STEP;
+		}
 		EngineManager::getInstance().ProcessEngine(delta);
 		ObjectManager::getInstance().ProcessObjects(delta);
 		prev_t = glfwGetTime();
 
 		glad_glClearColor(0.235f, 0.239f, 0.216f, 1.0f);
+		//glad_glClearColor(1, 1, 1, 1);
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		renderer.Draw();

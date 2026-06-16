@@ -16,6 +16,11 @@ void EngineStatus::ProcessWindow() {
 	std::string fpsText = std::to_string(EngineManager::getInstance().fps) + " FPS";
 	ImGui::Text(fpsText.c_str());
 	ImGui::Text(InteractModeText.c_str());
+
+	ImGui::Text("Debug mode: ");
+	ImGui::SameLine();
+	ImGui::Checkbox("##Debug mode", &EngineManager::getInstance().debugMode);
+
 	ImGui::Text("Physics: ");
 	ImGui::SameLine();
 	if (EngineManager::getInstance().EnginePhysicsMode == EngineManager::PhysicsMode::Pause) {

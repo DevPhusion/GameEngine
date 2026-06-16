@@ -9,8 +9,6 @@ void PhysicsEngine::ProcessPhysics(float delta) {
 		return;
 	}
 
-	ResolveContacts(delta);
-
 	for (int i = 0; i < ForceRegistrations.size(); i++)
 	{
 		ForceRegistrations[i].fg->updateForce(ForceRegistrations[i].object, delta);
@@ -26,10 +24,11 @@ void PhysicsEngine::ProcessPhysics(float delta) {
 		}
 	}
 
-	PotentialContact contacts[200];
-	unsigned totalContacts = root.getPotentialContacts(contacts, 200);
+	PotentialContact potentialContacts[200];
+	unsigned totalContacts = root.getPotentialContacts(potentialContacts, 200);
 	if (totalContacts > 0) {
-		CheckCollision(contacts, totalContacts);
+		std::vector<Contact> contacts = GetContacts(potentialContacts, totalContacts);
+		ResolveContacts(contacts, delta);
 	}
 }
 
@@ -72,63 +71,168 @@ void PhysicsEngine::ClearRegistry() {
 	ForceRegistrations.clear();
 }
 
-void PhysicsEngine::AddContact(Contact* contact) {
-	contactArray.push_back(contact);
+void PhysicsEngine::ResolveContacts(std::vector<Contact>& contacts, float delta) {
+	if (contacts.size() == 0) return;
+	
+	PrepareContacts(contacts, delta);
+
+	AdjustPositions(contacts, delta);
+
+	AdjustVelocities(contacts, delta);
 }
 
-void PhysicsEngine::ResolveContacts(float delta) {
-	if (contactArray.size() <= 0)
-		return;
+void PhysicsEngine::PrepareContacts(std::vector<Contact>& contacts, float delta) {
+	for (auto& c : contacts)
+	{
+		c.calculateInternals(delta);
+	}
+}
 
-	float iterationUsed = 0;
-	while (iterationUsed < contactArray.size() * 2) {
-		float max = 0;
-		unsigned int maxIndex = 0;
-		for (int i = 0; i < contactArray.size(); i++)
+void PhysicsEngine::AdjustVelocities(std::vector<Contact>& contacts, float delta) {
+	unsigned int velocityIterationsUsed = 0;
+	unsigned int velocityIterations = contacts.size() * 2;
+
+	while (velocityIterationsUsed < velocityIterations) {
+		float maxVioloation = -0.005f;
+		int maxIndex = -1;
+
+		for (size_t i = 0; i < contacts.size(); i++)
 		{
-			float sepVel = contactArray[i]->CalculateSeparatingVelocity();
-			if (sepVel < max) {
-				max = sepVel;
+			if (contacts[i].desiredDeltaVelocity < maxVioloation) {
+				maxVioloation = contacts[i].desiredDeltaVelocity;
 				maxIndex = i;
 			}
 		}
 
-		contactArray[maxIndex]->ResolveContact(delta);
-		delete contactArray[maxIndex];
-		contactArray.erase(contactArray.begin() + maxIndex);
-		iterationUsed++;
+		if (maxIndex == -1) break;
+		Contact& resolveContact = contacts[maxIndex];
+		resolveContact.resolveVelocity(delta);
 
-		if (contactArray.empty()) break;
+		for (size_t i = 0; i < contacts.size(); i++)
+		{
+			if (i == maxIndex) continue;
+
+			for (int resolvedObjIndex = 0; resolvedObjIndex < 2; resolvedObjIndex++)
+			{
+				Object* sharedObj = resolveContact.objects[resolvedObjIndex];
+				if (!sharedObj) continue;
+
+				glm::vec3 vChange = resolveContact.velocityChange[resolvedObjIndex];
+				float wChange = resolveContact.angularVelocityChange[resolvedObjIndex];
+
+				if (contacts[i].objects[0] == sharedObj) {
+					glm::vec3 deltaRotVel = glm::vec3(-wChange * contacts[i].relativeContactPosition[0].y,
+						wChange * contacts[i].relativeContactPosition[0].x, 0.0f);
+					glm::vec3 totalPointVelChange = vChange + deltaRotVel;
+
+					contacts[i].contactVelocity -= contacts[i].WorldToContact(totalPointVelChange);  
+					contacts[i].desiredDeltaVelocity = -contacts[i].contactVelocity.x * (1 + contacts[i].contactRestitution);
+				}
+
+				if (contacts[i].objects[1] == sharedObj) {
+					glm::vec3 deltaRotVel = glm::vec3(-wChange * contacts[i].relativeContactPosition[1].y,
+						wChange * contacts[i].relativeContactPosition[1].x, 0.0f);
+					glm::vec3 totalPointVelChange = vChange + deltaRotVel;
+
+					contacts[i].contactVelocity += contacts[i].WorldToContact(totalPointVelChange);  
+					contacts[i].desiredDeltaVelocity = -contacts[i].contactVelocity.x * (1 + contacts[i].contactRestitution);
+				}
+			}
+		}
+
+		velocityIterationsUsed++;
 	}
 }
 
-void PhysicsEngine::CheckCollision(PotentialContact* contacts, unsigned numContacts) {
+void PhysicsEngine::AdjustPositions(std::vector<Contact>& contacts, float delta) {
+	unsigned int positionIterationsUsed = 0;
+	unsigned int positionIterations = contacts.size() * 2;
+	float positionEpsilon = 0.01f;
+
+	while (positionIterationsUsed < positionIterations) {
+		float maxPenetration = positionEpsilon;
+		int maxIndex = -1;
+
+		for (size_t i = 0; i < contacts.size(); i++)
+		{
+			if (contacts[i].penetration > maxPenetration) {
+				maxPenetration = contacts[i].penetration;
+				maxIndex = i;
+			}
+		}
+
+		if (maxIndex == -1) break;
+		Contact& resolveContact = contacts[maxIndex];
+		resolveContact.resolveInterpenetration(delta);
+		resolveContact.penetration = 0.0f;
+
+		for (size_t i = 0; i < contacts.size(); i++)
+		{
+			if (i == maxIndex) continue;
+
+			for (int resolvedObjIndex = 0; resolvedObjIndex < 2; resolvedObjIndex++)
+			{
+				Object* sharedObj = resolveContact.objects[resolvedObjIndex];
+				if (!sharedObj) continue;
+
+				glm::vec3 posChange = resolveContact.positionChange[resolvedObjIndex];
+				float rotChange = resolveContact.rotationChange[resolvedObjIndex];
+
+				if (contacts[i].objects[0] == sharedObj) {
+					glm::vec3 deltaRotPos = glm::vec3(-rotChange * contacts[i].relativeContactPosition[0].y,
+						rotChange * contacts[i].relativeContactPosition[0].x, 0.0f);
+					glm::vec3 totalPointDisplacement = posChange + deltaRotPos;
+					contacts[i].penetration -= glm::dot(totalPointDisplacement, contacts[i].contactNormal);
+				}
+
+				if (contacts[i].objects[1] == sharedObj) {
+					glm::vec3 deltaRotPos = glm::vec3(-rotChange * contacts[i].relativeContactPosition[1].y,
+						rotChange * contacts[i].relativeContactPosition[1].x, 0.0f);
+					glm::vec3 totalPointDisplacement = posChange + deltaRotPos;
+					contacts[i].penetration += glm::dot(totalPointDisplacement, contacts[i].contactNormal);
+				}
+			}
+		}
+
+		positionIterationsUsed++;
+	}
+}
+
+std::vector<Contact> PhysicsEngine::GetContacts(PotentialContact* contacts, unsigned numContacts) {
 	allContactPoints = {};
+	std::vector<Contact> allContacts = {};
 
 	for (int i = 0; i < numContacts; i++)
 	{
 		Object* objA = contacts[i].obj[0];
 		Object* objB = contacts[i].obj[1];
 
-		if (objA == nullptr || objB == nullptr) return;
+		if (objA == nullptr || objB == nullptr) continue;
 
 		CollisionData colData = SAT(objA, objB);
 
 		if (colData.isColliding) {
-			objA->GetComponent<RenderComponent>()->color = glm::vec4(0, 1, 0, 1);
-			objB->GetComponent<RenderComponent>()->color = glm::vec4(0, 1, 0, 1);
+			if (EngineManager::getInstance().debugMode) {
+				objA->GetComponent<RenderComponent>()->color = glm::vec4(0, 1, 0, 1);
+				objB->GetComponent<RenderComponent>()->color = glm::vec4(0, 1, 0, 1);
+			}
 
 			std::vector<ContactPoint> points = GenerateContactPoints(colData);
 			for (int i = 0; i < points.size(); i++)
 			{
 				allContactPoints.push_back(points[i]);
+				Contact contact = Contact(std::vector<Object*> {objA, objB}, points[i].normal, points[i].point, colData.penetration, 0.6f);
+				allContacts.push_back(contact);
 			}
+
 		}
-		else {
+		else if (EngineManager::getInstance().debugMode) {
 			objA->GetComponent<RenderComponent>()->color = glm::vec4(1, 0, 0, 1);
 			objB->GetComponent<RenderComponent>()->color = glm::vec4(1, 0, 0, 1);
 		}
 	}
+
+	return allContacts;
 }
 
 std::vector<ContactPoint> PhysicsEngine::GenerateContactPoints(CollisionData collisionData) {
@@ -200,6 +304,7 @@ std::vector<ContactPoint> PhysicsEngine::GenerateContactPoints(CollisionData col
 			ContactPoint Cpoint = ContactPoint();
 			Cpoint.point = clipPoints2[i];
 			Cpoint.penetration = -separation;  
+			Cpoint.normal = collisionData.normal;
 			ContactPoints.push_back(Cpoint);
 		}
 	}
@@ -286,7 +391,7 @@ CollisionData PhysicsEngine::SAT(Object* objA, Object* objB) {
 	}
 	glm::vec3 centerA = tcA->GetWorldPosition();
 	glm::vec3 centerB = tcB->GetWorldPosition();
-	glm::vec3 dirAB = centerB - centerA;
+	glm::vec3 dirAB = centerA - centerB;
 
 	if (glm::dot(minAxisNormal, dirAB) < 0.0f) {
 		minAxisNormal = -minAxisNormal;
@@ -296,7 +401,7 @@ CollisionData PhysicsEngine::SAT(Object* objA, Object* objB) {
 	data.penetration = minOverlap;
 	data.normal = minAxisNormal;
 
-	if (ComputeSignedArea(vertsA) < 0.0f) {
+	if (ComputeSignedArea(vertsA) > 0.0f) {
 		std::reverse(vertsA.begin(), vertsA.end());
 		globalEdgesA.clear();
 		for (int i = 0; i < vertsA.size(); i++) {
@@ -307,7 +412,7 @@ CollisionData PhysicsEngine::SAT(Object* objA, Object* objB) {
 		}
 	}
 
-	if (ComputeSignedArea(vertsB) < 0.0f) {
+	if (ComputeSignedArea(vertsB) > 0.0f) {
 		std::reverse(vertsB.begin(), vertsB.end());
 		globalEdgesB.clear();
 		for (int i = 0; i < vertsB.size(); i++) {

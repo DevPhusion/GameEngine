@@ -39,21 +39,25 @@ glm::vec3 TransformComponent::GetWorldPosition() {
 	return ProjectToWorld(rotation_center);
 }
 
+glm::mat4 TransformComponent::GetWorldMatrix() {
+	if (worldMatrixDirty) {
+		WorldMatrix = OriginTransform;
+		WorldMatrix = glm::translate(WorldMatrix, rotation_center);
+		WorldMatrix = glm::rotate(WorldMatrix, rotation, glm::vec3(0, 0, 1));
+		WorldMatrix = glm::scale(WorldMatrix, size);
+		WorldMatrix = glm::translate(WorldMatrix, -rotation_center);
+		worldMatrixDirty = false;
+	}
+	return WorldMatrix;
+}
+
 glm::vec3 TransformComponent::ProjectToWorld(glm::vec3 point, bool inverseTransform) {
+	glm::mat4 trans = GetWorldMatrix();
 	glm::vec4 p = glm::vec4(point.x, point.y, point.z, 1.0f);
-	glm::mat4 trans = OriginTransform;
-	trans = glm::translate(trans, rotation_center); // Translate to
-	trans = glm::rotate(trans, rotation, glm::vec3(0, 0, 1));
-	trans = glm::scale(trans, size);
-	trans = glm::translate(trans, -rotation_center); // Translate back
-	glm::vec4 transformedPos = glm::vec4(0);
 	if (inverseTransform) {
-		transformedPos = glm::inverse(trans) * p;
+		return glm::vec3(glm::inverse(trans) * p);
 	}
-	else {
-		transformedPos = trans * p;
-	}
-	return glm::vec3(transformedPos.x, transformedPos.y, 0);
+	return glm::vec3(trans * p);
 }
 
 void TransformComponent::UpdateWorldPosition(glm::vec3 targetWorldPos) {
@@ -101,6 +105,7 @@ void TransformComponent::SetRotationCenter(glm::vec3 rotation_center) {
 
 void TransformComponent::SetOriginTransform(glm::mat4 transform) {
 	this->OriginTransform = transform;
+	worldMatrixDirty = true;
 	for (const auto& [id, func] : transformCallback) {
 		func();
 	}
@@ -108,6 +113,7 @@ void TransformComponent::SetOriginTransform(glm::mat4 transform) {
 
 void TransformComponent::Translate(glm::vec3 translation) {
 	position = translation;
+	worldMatrixDirty = true;
 	for (const auto& [id, func] : transformCallback) {
 		func();
 	}
@@ -116,6 +122,7 @@ void TransformComponent::Translate(glm::vec3 translation) {
 void TransformComponent::Rotate(float angle)
 {
 	rotation = angle;
+	worldMatrixDirty = true;
 	for (const auto& [id, func] : transformCallback) {
 		func();
 	}
@@ -123,6 +130,7 @@ void TransformComponent::Rotate(float angle)
 
 void TransformComponent::Scale(glm::vec3 scale) {
 	size = scale;
+	worldMatrixDirty = true;
 	for (const auto& [id, func] : transformCallback) {
 		func();
 	}

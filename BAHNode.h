@@ -120,8 +120,12 @@ unsigned BAHNode<BoundingAreaClass>::getPotentialContacts(PotentialContact* cont
 
 template<class BoundingAreaClass>
 unsigned BAHNode<BoundingAreaClass>::getPotentialContactsWith(const BAHNode<BoundingAreaClass>* other, PotentialContact* contacts, unsigned limit) const {
-	if (other == nullptr || obj == nullptr) return 0;
-	if (!overlaps(other) || limit == 0) return 0;
+	if (other == nullptr) {
+		return 0;
+	}
+	if (!overlaps(other) || limit == 0) {
+		return 0;
+	}
 
 	if (isLeaf() && other->isLeaf()) {
 		contacts->obj[0] = obj;

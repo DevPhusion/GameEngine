@@ -30,6 +30,7 @@ public:
 	float windowWidth;
 	float windowHeight;
 	float aspectRatio;
+	bool debugMode = false;
 	std::unordered_map<int, std::function<void()>> InteractModeChangedEvents;
 	std::unordered_map<int, std::function<void()>> PhysicsModeChangedEvents;
 

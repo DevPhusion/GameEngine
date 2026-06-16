@@ -23,6 +23,7 @@ void ObjectManager::AddObject() {
 	obj->AddComponent(std::make_unique<RenderComponent>(obj.get(), vertices, obj.get()->shader, "floorTiled.png"));
 	obj->AddComponent(std::make_unique<TransformComponent>(obj.get(), obj.get()->shader, obj.get()->GetComponent<RenderComponent>()->GetCenter()));
 	obj->AddComponent(std::make_unique<MouseInteractComponent>(obj.get(), false));
+	obj->AddComponent(std::make_unique<CollisionComponent>(obj.get()));
 
 	allObjects.push_back(std::move(obj));
 }

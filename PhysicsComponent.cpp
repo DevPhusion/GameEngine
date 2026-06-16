@@ -8,7 +8,7 @@ PhysicsComponent::PhysicsComponent(Object* parent) : Component(parent) {
 	this->velocity = glm::vec3(0);
 	this->netForce = glm::vec3(0);
 	CalculateInertia();
-	parent->GetComponent<TransformComponent>()->AddTransformCallback([this]() {this->CalculateInertia();});
+	//parent->GetComponent<TransformComponent>()->AddTransformCallback([this]() {this->CalculateInertia();});
 }
 
 void PhysicsComponent::ProcessInspectorUI() {
@@ -94,26 +94,29 @@ void PhysicsComponent::ProcessPhysics(float delta) {
 
 	glm::vec3 resultingAcc = acceleration;
 	resultingAcc += netForce * inverseMass;
-	
+
 	float angularAcc = Torque * inverseInertia;
 
 	velocity += resultingAcc * delta;
 	angularVelocity += angularAcc * delta;
-	
+
+	// Damping before position integration
+	velocity *= powf(linearDamping, delta);
+	angularVelocity *= powf(angularDamping, delta);
+
+	// Hard stop very small motion to prevent micro-jitter
+	if (glm::length(velocity) < 0.001f) velocity = glm::vec3(0.0f);
+	if (std::abs(angularVelocity) < 0.001f) angularVelocity = 0.0f;
+
+	// Integrate position
 	position += velocity * delta;
-	rotation += angularVelocity;
+	rotation += angularVelocity * delta;  // FIXED: was missing * delta
 	rotation = atan2(sin(rotation), cos(rotation));
-	
-	if (std::abs(angularVelocity) <= 0.001f) {
-		angularVelocity = 0.0f; 
-	}
-	else {
-		angularVelocity *= powf(angularDamping, delta);
-	}
 
 	transform->rotation = rotation;
 	transform->UpdateWorldPosition(position);
 
+	// Record net acceleration BEFORE clearing (so contact solver sees gravity)
 	netAcceleration = glm::vec2(resultingAcc.x, resultingAcc.y);
 	netForceDisplay = glm::vec2(netForce.x, netForce.y);
 	torqueDisplay = Torque;

@@ -13,7 +13,9 @@ public:
 
 	glm::mat4 OriginTransform = glm::mat4(1.0f);
 	glm::mat4 OriginTransformedInverse = glm::mat4(1.0f);
-	glm::mat4 transform = glm::mat4(1.0f); // transformation matrix
+	glm::mat4 transform = glm::mat4(1.0f); 
+	glm::mat4 WorldMatrix = glm::mat4(1.0f);
+	bool worldMatrixDirty = true;
 
 	glm::vec3 rotation_center = glm::vec3(0);
 	glm::vec3 position = glm::vec3(0);
@@ -38,6 +40,7 @@ public:
 	void RemoveTransformCallback(int ID);
 	void ProcessTransform();
 private:
+	glm::mat4 GetWorldMatrix();
 	int CurrentTransformCallbackID = -1;
 	Shader shader;
 };

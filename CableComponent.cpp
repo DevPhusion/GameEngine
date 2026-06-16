@@ -27,6 +27,7 @@ void CableComponent::ProcessInspectorUI() {
 }
 
 void CableComponent::FillContact() {
+	/*
 	if (topObject == nullptr || bottomObject == nullptr || EngineManager::getInstance().EnginePhysicsMode == EngineManager::PhysicsMode::Pause) return;
 
 	glm::vec3 topPos = topObject->GetComponent<TransformComponent>()->GetWorldPosition();
@@ -46,4 +47,5 @@ void CableComponent::FillContact() {
 	CableContact = new Contact(std::vector<Object*> {topObject, bottomObject}, normal, penetration, restitution);
 
 	PhysicsEngine::getInstance().AddContact(CableContact);
+	*/
 }

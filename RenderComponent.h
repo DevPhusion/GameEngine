@@ -37,6 +37,7 @@ public:
 	void Draw();
 
 private:
+	std::vector<std::function<void()>> OnShapeUpdateCallbacks;
 	bool initialized = false;
 	Shader shader;
 	unsigned int VAO;

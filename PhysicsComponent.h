@@ -22,7 +22,8 @@ public:
 	glm::vec3 acceleration = glm::vec3(0);
 	glm::vec3 netForce = glm::vec3(0);
 
-	float angularDamping = 0.9f;
+	float angularDamping = 0.995f;
+	float linearDamping = 0.995f;
 	float angularVelocity;
 	float Torque;
 	float Inertia;
