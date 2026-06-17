@@ -1,11 +1,13 @@
 #include "Contact.h"
 
-Contact::Contact(std::vector<Object*> objects, glm::vec3 contactNormal, glm::vec3 contactPoint, float penetration, float restitution) {
+Contact::Contact(std::vector<Object*> objects, glm::vec3 contactNormal, glm::vec3 contactPoint, float penetration, float restitution, float staticFriction, float dynamicFriction) {
 	this->objects = objects;
 	this->contactNormal = contactNormal;
 	this->contactPoint = contactPoint;
 	this->penetration = penetration;
 	this->contactRestitution = restitution;
+	this->staticFrictionCoefficient = staticFriction;
+	this->dynamicFrictionCoefficient = dynamicFriction;
 }
 
 glm::vec3 Contact::WorldToContact(glm::vec3 worldPos) {
@@ -42,8 +44,7 @@ void Contact::calculateInternals(float delta) {
 
 	glm::vec3 relativeVel = velB - velA;
 	contactVelocity = WorldToContact(relativeVel);
-	
-	// Compute velFromAcc the same way resolveVelocity does
+
 	float velFromAccA = 0.0f, velFromAccB = 0.0f;
 	if (objects[0] && objects[0]->HasComponent<PhysicsComponent>()) {
 		PhysicsComponent* pc = objects[0]->GetComponent<PhysicsComponent>();
@@ -55,7 +56,8 @@ void Contact::calculateInternals(float delta) {
 	}
 	float velFromAcc = velFromAccB - velFromAccA;
 	float closingVel = contactVelocity.x - velFromAcc;
-	float restitution = (abs(contactVelocity.x) < 0.01f) ? 0.0f : contactRestitution;
+	float restitution = (abs(contactVelocity.x) < 0.5f) ? 0.0f : contactRestitution;
+	desiredRestitutionVelocity = restitution * closingVel;
 	desiredDeltaVelocity = -(1 + restitution) * closingVel;  
 }
 
@@ -140,7 +142,7 @@ void Contact::resolveInterpenetration(float delta) {
 			linearMove = totalMove - angularMove;
 		}
 
-		float torqueB = r[1].x * contactNormal.y - r[1].y * contactNormal.x;
+		float torqueB = -(r[1].x * contactNormal.y - r[1].y * contactNormal.x);
 		
 		positionChange[1] = contactNormal * linearMove;
 		rotationChange[1] = (torqueB == 0.0f) ? 0.0f : angularMove / torqueB;
@@ -150,7 +152,8 @@ void Contact::resolveInterpenetration(float delta) {
 }
 
 void Contact::resolveVelocity(float delta) {
-	float deltaVelocity = 0;
+	float deltaVelocityNormal = 0;
+	float deltaVelocityTangent = 0;
 	glm::vec3 velA = glm::vec3(0);
 	glm::vec3 velB = glm::vec3(0);
 	PhysicsComponent* pcA = objects[0]->GetComponent<PhysicsComponent>();
@@ -162,39 +165,44 @@ void Contact::resolveVelocity(float delta) {
 	TransformComponent* tcB = objects[1]->GetComponent<TransformComponent>();
 	glm::vec3 rB = contactPoint - tcB->GetWorldPosition();
 
-	float velFromAccA = 0.0f;
-	float velFromAccB = 0.0f;
+	glm::vec3 contactTangent = glm::vec3(-contactNormal.y, contactNormal.x, 0.0f);
 
 	if (pcA != nullptr) {
-		float torqueA = rA.x * contactNormal.y - rA.y * contactNormal.x; // find torque at point A
-		deltaVelocity += pcA->inverseMass + (torqueA * torqueA) * pcA->inverseInertia; // contribution to change in velocity
+		float torqueANormal = rA.x * contactNormal.y - rA.y * contactNormal.x;
+		float torqueATangent = rA.x * contactTangent.y - rA.y * contactTangent.x;
+		deltaVelocityNormal += pcA->inverseMass + (torqueANormal * torqueANormal) * pcA->inverseInertia;
+		deltaVelocityTangent += pcA->inverseMass + (torqueATangent * torqueATangent) * pcA->inverseInertia;
 
-		glm::vec3 rotVelA = glm::vec3(-pcA->angularVelocity * rA.y, pcA->angularVelocity * rA.x, 0.0f); // change angular motion into linear motion
+		glm::vec3 rotVelA = glm::vec3(-pcA->angularVelocity * rA.y, pcA->angularVelocity * rA.x, 0.0f);
 		velA += pcA->velocity + rotVelA;
-		velFromAccA = glm::dot(glm::vec3(pcA->netAcceleration, 0), contactNormal) * delta;
 	}
 	if (pcB != nullptr) {
-		float torqueB = rB.x * contactNormal.y - rB.y * contactNormal.x;
-		deltaVelocity += pcB->inverseMass + (torqueB * torqueB) * pcB->inverseInertia;
+		float torqueBNormal = rB.x * contactNormal.y - rB.y * contactNormal.x;
+		float torqueBTangent = rB.x * contactTangent.y - rB.y * contactTangent.x;
+		deltaVelocityNormal += pcB->inverseMass + (torqueBNormal * torqueBNormal) * pcB->inverseInertia;
+		deltaVelocityTangent += pcB->inverseMass + (torqueBTangent * torqueBTangent) * pcB->inverseInertia;
 
 		glm::vec3 rotVelB = glm::vec3(-pcB->angularVelocity * rB.y, pcB->angularVelocity * rB.x, 0.0f);
 		velB += pcB->velocity + rotVelB;
-		velFromAccB = glm::dot(glm::vec3(pcB->netAcceleration, 0), contactNormal) * delta;
 	}
 
-	glm::vec3 relativeVelocity = velB - velA;;
+	glm::vec3 relativeVelocity = velB - velA;
 	glm::vec3 contactVel = WorldToContact(relativeVelocity);
 
-	float velFromAcc = velFromAccB - velFromAccA;
+	// FIX 1: Drive the solver directly using the calculated remaining delta velocity constraint
+	float targetDeltaVelocity = desiredDeltaVelocity;
+	if (targetDeltaVelocity >= 0) return;
 
-	float thisRestitution = contactRestitution;
-	if (abs(contactVel.x) < 0.01f) {
-		thisRestitution = 0.0f;
+	float frictionImpulse = -contactVel.y / deltaVelocityTangent;
+	float contactImpulse = targetDeltaVelocity / deltaVelocityNormal;
+
+	float maxStatic = staticFrictionCoefficient * abs(contactImpulse);
+
+	if (abs(frictionImpulse) > maxStatic) {
+		frictionImpulse = glm::sign(frictionImpulse) * dynamicFrictionCoefficient * abs(contactImpulse);
 	}
 
-	float targetDeltaVelocity = -(1 + thisRestitution) * (contactVel.x - velFromAcc); // target velocity change along the normal
-	if (targetDeltaVelocity >= 0) return;
-	glm::vec3 impulseContact = glm::vec3(targetDeltaVelocity / deltaVelocity, 0, 0);
+	glm::vec3 impulseContact = glm::vec3(contactImpulse, frictionImpulse, 0);
 	glm::vec3 impulse = ContactToWorld(impulseContact);
 
 	if (pcA != nullptr) {
@@ -202,11 +210,10 @@ void Contact::resolveVelocity(float delta) {
 		float impulsiveTorque = rA.x * impulse.y - rA.y * impulse.x;
 		float rotationalChangeA = pcA->inverseInertia * impulsiveTorque;
 
- 		pcA->velocity -= velocityChangeA;
+		pcA->velocity -= velocityChangeA;
 		pcA->angularVelocity -= rotationalChangeA;
 		velocityChange[0] = -velocityChangeA;
 		angularVelocityChange[0] = -rotationalChangeA;
-
 	}
 
 	if (pcB != nullptr) {
@@ -219,4 +226,7 @@ void Contact::resolveVelocity(float delta) {
 		velocityChange[1] = velocityChangeB;
 		angularVelocityChange[1] = rotationalChangeB;
 	}
+
+	// FIX 2: This contact constraint is met for this iteration step
+	desiredDeltaVelocity = 0;
 }

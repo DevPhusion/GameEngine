@@ -90,7 +90,7 @@ void PhysicsEngine::PrepareContacts(std::vector<Contact>& contacts, float delta)
 
 void PhysicsEngine::AdjustVelocities(std::vector<Contact>& contacts, float delta) {
 	unsigned int velocityIterationsUsed = 0;
-	unsigned int velocityIterations = contacts.size() * 2;
+	unsigned int velocityIterations = contacts.size() * 4;
 
 	while (velocityIterationsUsed < velocityIterations) {
 		float maxVioloation = -0.005f;
@@ -125,8 +125,9 @@ void PhysicsEngine::AdjustVelocities(std::vector<Contact>& contacts, float delta
 						wChange * contacts[i].relativeContactPosition[0].x, 0.0f);
 					glm::vec3 totalPointVelChange = vChange + deltaRotVel;
 
-					contacts[i].contactVelocity -= contacts[i].WorldToContact(totalPointVelChange);  
-					contacts[i].desiredDeltaVelocity = -contacts[i].contactVelocity.x * (1 + contacts[i].contactRestitution);
+					glm::vec3 contactVelChange = contacts[i].WorldToContact(totalPointVelChange);
+					contacts[i].contactVelocity -= contactVelChange;
+					contacts[i].desiredDeltaVelocity += contactVelChange.x;
 				}
 
 				if (contacts[i].objects[1] == sharedObj) {
@@ -134,8 +135,9 @@ void PhysicsEngine::AdjustVelocities(std::vector<Contact>& contacts, float delta
 						wChange * contacts[i].relativeContactPosition[1].x, 0.0f);
 					glm::vec3 totalPointVelChange = vChange + deltaRotVel;
 
-					contacts[i].contactVelocity += contacts[i].WorldToContact(totalPointVelChange);  
-					contacts[i].desiredDeltaVelocity = -contacts[i].contactVelocity.x * (1 + contacts[i].contactRestitution);
+					glm::vec3 contactVelChange = contacts[i].WorldToContact(totalPointVelChange);
+					contacts[i].contactVelocity += contactVelChange;
+					contacts[i].desiredDeltaVelocity -= contactVelChange.x;
 				}
 			}
 		}
@@ -146,7 +148,7 @@ void PhysicsEngine::AdjustVelocities(std::vector<Contact>& contacts, float delta
 
 void PhysicsEngine::AdjustPositions(std::vector<Contact>& contacts, float delta) {
 	unsigned int positionIterationsUsed = 0;
-	unsigned int positionIterations = contacts.size() * 2;
+	unsigned int positionIterations = contacts.size() * 4;
 	float positionEpsilon = 0.01f;
 
 	while (positionIterationsUsed < positionIterations) {
@@ -164,7 +166,7 @@ void PhysicsEngine::AdjustPositions(std::vector<Contact>& contacts, float delta)
 		if (maxIndex == -1) break;
 		Contact& resolveContact = contacts[maxIndex];
 		resolveContact.resolveInterpenetration(delta);
-		resolveContact.penetration = 0.0f;
+		resolveContact.penetration = 0;
 
 		for (size_t i = 0; i < contacts.size(); i++)
 		{
@@ -183,6 +185,7 @@ void PhysicsEngine::AdjustPositions(std::vector<Contact>& contacts, float delta)
 						rotChange * contacts[i].relativeContactPosition[0].x, 0.0f);
 					glm::vec3 totalPointDisplacement = posChange + deltaRotPos;
 					contacts[i].penetration -= glm::dot(totalPointDisplacement, contacts[i].contactNormal);
+					contacts[i].penetration = std::max(contacts[i].penetration, 0.0f);
 				}
 
 				if (contacts[i].objects[1] == sharedObj) {
@@ -190,6 +193,7 @@ void PhysicsEngine::AdjustPositions(std::vector<Contact>& contacts, float delta)
 						rotChange * contacts[i].relativeContactPosition[1].x, 0.0f);
 					glm::vec3 totalPointDisplacement = posChange + deltaRotPos;
 					contacts[i].penetration += glm::dot(totalPointDisplacement, contacts[i].contactNormal);
+					contacts[i].penetration = std::max(contacts[i].penetration, 0.0f);
 				}
 			}
 		}
@@ -207,6 +211,12 @@ std::vector<Contact> PhysicsEngine::GetContacts(PotentialContact* contacts, unsi
 		Object* objA = contacts[i].obj[0];
 		Object* objB = contacts[i].obj[1];
 
+		if (!objA->HasComponent<PhysicsComponent>()) {
+			Object* temp = objB;
+			objB = objA;
+			objA = temp;
+		}
+
 		if (objA == nullptr || objB == nullptr) continue;
 
 		CollisionData colData = SAT(objA, objB);
@@ -218,10 +228,11 @@ std::vector<Contact> PhysicsEngine::GetContacts(PotentialContact* contacts, unsi
 			}
 
 			std::vector<ContactPoint> points = GenerateContactPoints(colData);
+
 			for (int i = 0; i < points.size(); i++)
 			{
 				allContactPoints.push_back(points[i]);
-				Contact contact = Contact(std::vector<Object*> {objA, objB}, points[i].normal, points[i].point, colData.penetration, 0.6f);
+				Contact contact = Contact(std::vector<Object*> {objA, objB}, points[i].normal, points[i].point, points[i].penetration, 0.6f, 0.4f, 0.6f);
 				allContacts.push_back(contact);
 			}
 
@@ -273,7 +284,7 @@ std::vector<ContactPoint> PhysicsEngine::GenerateContactPoints(CollisionData col
 	// Point refNormal toward the incident edge
 	glm::vec3 refMid = (v1 + v2) * 0.5f;
 	glm::vec3 incMid = (incidentEdge.start + incidentEdge.end) * 0.5f;
-	if (glm::dot(refNormal, incMid - refMid) > 0.0f) {  
+	if (glm::dot(refNormal, incMid - refMid) > 0.0f) {
 		refNormal = -refNormal;
 	}
 
@@ -295,17 +306,22 @@ std::vector<ContactPoint> PhysicsEngine::GenerateContactPoints(CollisionData col
 	numPoints = ClipSegmentToLine(clipPoints2, clipPoints1, numPoints, rightNormal, rightOffset);
 	if (numPoints == 0) return ContactPoints;
 
-	float refOffset = glm::dot(refNormal, v1);
+	glm::vec3 colNormal = collisionData.normal;
+
+	float refOffset = -std::numeric_limits<float>::max();
+	for (const auto& e : collisionData.objBEdges) {
+		refOffset = std::max(refOffset, glm::dot(e.start, colNormal));
+		refOffset = std::max(refOffset, glm::dot(e.end, colNormal));
+	}
 
 	for (int i = 0; i < numPoints; i++) {
-		float separation = glm::dot(refNormal, clipPoints2[i]) - refOffset;
-
-		if (separation <= 0.0f) { 
-			ContactPoint Cpoint = ContactPoint();
-			Cpoint.point = clipPoints2[i];
-			Cpoint.penetration = -separation;  
-			Cpoint.normal = collisionData.normal;
-			ContactPoints.push_back(Cpoint);
+		float depth = refOffset - glm::dot(colNormal, clipPoints2[i]);
+		if (depth >= 0.0f) {
+			ContactPoint cp;
+			cp.point = clipPoints2[i];
+			cp.penetration = depth;
+			cp.normal = colNormal;
+			ContactPoints.push_back(cp);
 		}
 	}
 
