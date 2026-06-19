@@ -33,6 +33,7 @@ public:
 	void calculateInternals(float delta);
 	void resolveVelocity(float delta);
 	void resolveInterpenetration(float delta);
+	void matchAwakeState();
 	glm::vec3 WorldToContact(glm::vec3 worldPos);
 	glm::vec3 ContactToWorld(glm::vec3 contactPos);
 private:

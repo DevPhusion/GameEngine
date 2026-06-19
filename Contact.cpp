@@ -26,6 +26,19 @@ glm::vec3 Contact::ContactToWorld(glm::vec3 contactPos) {
 	return glm::vec3(transformed.x, transformed.y, 0);
 }
 
+void Contact::matchAwakeState() {
+	PhysicsComponent* pcA = objects[0]->GetComponent<PhysicsComponent>();
+	PhysicsComponent* pcB = objects[1]->GetComponent<PhysicsComponent>();
+	if (!pcA || !pcB) return;
+
+	if (!pcA->isAwake) {
+		pcA->SetAwake(true);
+	}
+	if (!pcB->isAwake) {
+		pcB->SetAwake(true);
+	}
+}
+
 void Contact::calculateInternals(float delta) {
 	glm::vec3 velA = glm::vec3(0.0f);
 	glm::vec3 velB = glm::vec3(0.0f);
@@ -189,7 +202,6 @@ void Contact::resolveVelocity(float delta) {
 	glm::vec3 relativeVelocity = velB - velA;
 	glm::vec3 contactVel = WorldToContact(relativeVelocity);
 
-	// FIX 1: Drive the solver directly using the calculated remaining delta velocity constraint
 	float targetDeltaVelocity = desiredDeltaVelocity;
 	if (targetDeltaVelocity >= 0) return;
 
@@ -227,6 +239,5 @@ void Contact::resolveVelocity(float delta) {
 		angularVelocityChange[1] = rotationalChangeB;
 	}
 
-	// FIX 2: This contact constraint is met for this iteration step
 	desiredDeltaVelocity = 0;
 }

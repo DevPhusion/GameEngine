@@ -4,11 +4,12 @@
 PhysicsComponent::PhysicsComponent(Object* parent) : Component(parent) {
 	Name = "Physics Component";
 	this->inverseMass = 1;
-	this->acceleration = glm::vec3(0);
+	this->acceleration = glm::vec3(0.0f, -9.8f, 0.0f);
 	this->velocity = glm::vec3(0);
 	this->netForce = glm::vec3(0);
 	CalculateInertia();
 	parent->GetComponent<TransformComponent>()->AddTransformCallback([this]() {this->CalculateInertia();});
+	SetAwake(true);
 }
 
 void PhysicsComponent::ProcessInspectorUI() {
@@ -84,7 +85,7 @@ void PhysicsComponent::OnDelete() {
 }
 
 void PhysicsComponent::ProcessPhysics(float delta) {
-	if (!Enabled) {
+	if (!Enabled || !isAwake) {
 		return;
 	}
 
@@ -96,7 +97,7 @@ void PhysicsComponent::ProcessPhysics(float delta) {
 	resultingAcc += netForce * inverseMass;
 
 	float angularAcc = Torque * inverseInertia;
-
+	
 	velocity += resultingAcc * delta;
 	angularVelocity += angularAcc * delta;
 
@@ -107,8 +108,20 @@ void PhysicsComponent::ProcessPhysics(float delta) {
 	if (std::abs(angularVelocity) < 0.001f) angularVelocity = 0.0f;
 
 	position += velocity * delta;
-	rotation += angularVelocity * delta;  // FIXED: was missing * delta
+	rotation += angularVelocity * delta;  
 	rotation = atan2(sin(rotation), cos(rotation));
+
+	float currentMotion = glm::length2(velocity) + (angularVelocity * angularVelocity);
+	float realBias = powf(bias, delta);
+	motion = realBias * motion + (1.0f - realBias) * currentMotion;
+
+	if (motion > 10 * sleepEpsilon) {
+		motion = 10 * sleepEpsilon;
+	}
+
+	if (motion <= sleepEpsilon) {
+		SetAwake(false);
+	}
 
 	transform->rotation = rotation;
 	transform->UpdateWorldPosition(position);
@@ -119,6 +132,18 @@ void PhysicsComponent::ProcessPhysics(float delta) {
 	angularAcceleration = angularAcc;
 
 	ClearAccumulators();
+}
+
+void PhysicsComponent::SetAwake(const bool awake) {
+	if (awake) {
+		isAwake = true;
+		motion = sleepEpsilon * 2.0f;
+	}
+	else {
+		isAwake = false;
+		velocity = glm::vec3(0.0f);
+		angularAcceleration = 0.0f;
+	}
 }
 
 void PhysicsComponent::ClearAccumulators() {

@@ -106,6 +106,7 @@ void PhysicsEngine::AdjustVelocities(std::vector<Contact>& contacts, float delta
 
 		if (maxIndex == -1) break;
 		Contact& resolveContact = contacts[maxIndex];
+		resolveContact.matchAwakeState();
 		resolveContact.resolveVelocity(delta);
 
 		for (size_t i = 0; i < contacts.size(); i++)
@@ -165,6 +166,7 @@ void PhysicsEngine::AdjustPositions(std::vector<Contact>& contacts, float delta)
 
 		if (maxIndex == -1) break;
 		Contact& resolveContact = contacts[maxIndex];
+		resolveContact.matchAwakeState();
 		resolveContact.resolveInterpenetration(delta);
 		resolveContact.penetration = 0;
 

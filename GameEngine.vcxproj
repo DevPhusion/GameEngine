@@ -148,13 +148,11 @@
     <ClCompile Include="Contact.cpp" />
     <ClCompile Include="DebugCircle.cpp" />
     <ClCompile Include="DebugPoint.cpp" />
-    <ClCompile Include="Drag.cpp" />
     <ClCompile Include="EditorManager.cpp" />
     <ClCompile Include="EngineManager.cpp" />
     <ClCompile Include="EngineStatus.cpp" />
     <ClCompile Include="ForceGenerator.cpp" />
     <ClCompile Include="glad.c" />
-    <ClCompile Include="Gravity.cpp" />
     <ClCompile Include="Hierarchy.cpp" />
     <ClCompile Include="imgui\imgui.cpp" />
     <ClCompile Include="imgui\ImGuiFileDialog.cpp" />
@@ -199,12 +197,10 @@
     <ClInclude Include="Contact.h" />
     <ClInclude Include="DebugCircle.h" />
     <ClInclude Include="DebugPoint.h" />
-    <ClInclude Include="Drag.h" />
     <ClInclude Include="EditorManager.h" />
     <ClInclude Include="EngineManager.h" />
     <ClInclude Include="EngineStatus.h" />
     <ClInclude Include="ForceGenerator.h" />
-    <ClInclude Include="Gravity.h" />
     <ClInclude Include="Hierarchy.h" />
     <ClInclude Include="imgui\dirent.h" />
     <ClInclude Include="imgui\imconfig.h" />

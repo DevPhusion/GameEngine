@@ -126,12 +126,6 @@
     <ClCompile Include="ForceGenerator.cpp">
       <Filter>Source Files\Core\Physics</Filter>
     </ClCompile>
-    <ClCompile Include="Gravity.cpp">
-      <Filter>Source Files\Core\Physics\Forces</Filter>
-    </ClCompile>
-    <ClCompile Include="Drag.cpp">
-      <Filter>Source Files\Core\Physics\Forces</Filter>
-    </ClCompile>
     <ClCompile Include="MouseInteractComponent.cpp">
       <Filter>Source Files\Components</Filter>
     </ClCompile>
@@ -268,12 +262,6 @@
     </ClInclude>
     <ClInclude Include="ForceGenerator.h">
       <Filter>Header Files\Core\Physics</Filter>
-    </ClInclude>
-    <ClInclude Include="Gravity.h">
-      <Filter>Header Files\Core\Physics\Forces</Filter>
-    </ClInclude>
-    <ClInclude Include="Drag.h">
-      <Filter>Header Files\Core\Physics\Forces</Filter>
     </ClInclude>
     <ClInclude Include="MouseInteractComponent.h">
       <Filter>Header Files\Components</Filter>

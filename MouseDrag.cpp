@@ -30,7 +30,7 @@ void MouseDrag::updateForce(Object* object, float delta) {
 	if (Force.y > 1) {
 		interactCenter.y += 0.01f / Force.y;
 	}
-
+	object->GetComponent<PhysicsComponent>()->SetAwake(true);
 	phys->AddForce(Force);
 	//phys->AddForceAtBodyPoint(Force, interactCenter);
 }

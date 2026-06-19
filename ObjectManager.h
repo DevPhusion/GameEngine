@@ -3,8 +3,6 @@
 #include "VertexPoint.h"
 #include "Spring.h"
 #include "InputManager.h"
-#include "Gravity.h"
-#include "Drag.h"
 #include "Cable.h"
 class ObjectManager
 {
