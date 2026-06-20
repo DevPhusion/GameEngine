@@ -39,7 +39,8 @@ public:
 
 	virtual void OnDelete();
 	virtual void ProcessInspectorUI();
-	void ProcessPhysics(float delta);
+	void IntegrateVelocities(float delta);
+	void IntegratePositions(float delta);
 	void SetAwake(const bool awake);
 	void ClearAccumulators();
 	void AddForce(glm::vec3 force);

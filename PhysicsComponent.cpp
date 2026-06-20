@@ -84,20 +84,16 @@ void PhysicsComponent::OnDelete() {
 	PhysicsEngine::getInstance().UnRegisterAllForce(parent);
 }
 
-void PhysicsComponent::ProcessPhysics(float delta) {
+void PhysicsComponent::IntegrateVelocities(float delta) {
 	if (!Enabled || !isAwake) {
 		return;
 	}
-
-	TransformComponent* transform = this->parent->GetComponent<TransformComponent>();
-	glm::vec3 position = transform->GetWorldPosition();
-	float rotation = transform->rotation;
 
 	glm::vec3 resultingAcc = acceleration;
 	resultingAcc += netForce * inverseMass;
 
 	float angularAcc = Torque * inverseInertia;
-	
+
 	velocity += resultingAcc * delta;
 	angularVelocity += angularAcc * delta;
 
@@ -106,10 +102,6 @@ void PhysicsComponent::ProcessPhysics(float delta) {
 
 	if (glm::length(velocity) < 0.001f) velocity = glm::vec3(0.0f);
 	if (std::abs(angularVelocity) < 0.001f) angularVelocity = 0.0f;
-
-	position += velocity * delta;
-	rotation += angularVelocity * delta;  
-	rotation = atan2(sin(rotation), cos(rotation));
 
 	float currentMotion = glm::length2(velocity) + (angularVelocity * angularVelocity);
 	float realBias = powf(bias, delta);
@@ -123,15 +115,29 @@ void PhysicsComponent::ProcessPhysics(float delta) {
 		SetAwake(false);
 	}
 
-	transform->rotation = rotation;
-	transform->UpdateWorldPosition(position);
-
 	netAcceleration = glm::vec2(resultingAcc.x, resultingAcc.y);
 	netForceDisplay = glm::vec2(netForce.x, netForce.y);
 	torqueDisplay = Torque;
 	angularAcceleration = angularAcc;
 
 	ClearAccumulators();
+}
+
+void PhysicsComponent::IntegratePositions(float delta) {
+	if (!Enabled || !isAwake) {
+		return;
+	}
+
+	TransformComponent* transform = this->parent->GetComponent<TransformComponent>();
+	glm::vec3 position = transform->GetWorldPosition();
+	float rotation = transform->rotation;
+
+	position += velocity * delta;
+	rotation += angularVelocity * delta;
+	rotation = atan2(sin(rotation), cos(rotation));
+
+	transform->rotation = rotation;
+	transform->UpdateWorldPosition(position);
 }
 
 void PhysicsComponent::SetAwake(const bool awake) {

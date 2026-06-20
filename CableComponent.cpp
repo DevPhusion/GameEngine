@@ -3,8 +3,14 @@
 CableComponent::CableComponent(Object* parent, float maxLength, float restitution, bool retractable = true) : ObjectLinkComponent(parent) {
 	this->Name = "Cable Component";
 	this->maxLength = maxLength;
-	this->restitution = restitution;
 	this->retractable = retractable;
+}
+
+void CableComponent::OnDelete() {
+	ObjectLinkComponent::OnDelete();
+	if (constraint != nullptr) {
+		PhysicsEngine::getInstance().UnRegisterConstraint(constraint);
+	}
 }
 
 void CableComponent::ProcessInspectorUI() {
@@ -21,31 +27,17 @@ void CableComponent::ProcessInspectorUI() {
 	ImGui::Text("Max Length ");
 	ImGui::SameLine();
 	ImGui::InputFloat("## Max Length", &maxLength, 0.0f, 0.0f, "%.3f m");
-	ImGui::Text("Restitution ");
-	ImGui::SameLine();
-	ImGui::InputFloat("## Restitution", &restitution, 0.0f, 0.0f, "%.3f");
 }
 
 void CableComponent::FillContact() {
-	/*
-	if (topObject == nullptr || bottomObject == nullptr || EngineManager::getInstance().EnginePhysicsMode == EngineManager::PhysicsMode::Pause) return;
-
-	glm::vec3 topPos = topObject->GetComponent<TransformComponent>()->GetWorldPosition();
-	glm::vec3 bottomPos = bottomObject->GetComponent<TransformComponent>()->GetWorldPosition();
-	float length = glm::length(topPos - bottomPos);
-	glm::vec3 normal = glm::normalize(bottomPos - topPos);
-	float penetration = length - maxLength;
-	
-	if (length < maxLength) {
-		if (retractable)
-			return;
-		
-		normal = normal * -1.0f;
-		penetration = maxLength - length;
+	if (constraint == nullptr) {
+		constraint = new DistanceConstraint(nullptr, nullptr, glm::vec3(0.0f), glm::vec3(0.0f), maxLength);
+		PhysicsEngine::getInstance().RegisterConstraint(constraint);
 	}
 
-	CableContact = new Contact(std::vector<Object*> {topObject, bottomObject}, normal, penetration, restitution);
-
-	PhysicsEngine::getInstance().AddContact(CableContact);
-	*/
+	constraint->objectA = topObject;
+	constraint->objectB = bottomObject;
+	constraint->attachPointA = topConnectPoint;
+	constraint->attachPointB = bottomConnectPoint;
+	constraint->distance = maxLength;
 }

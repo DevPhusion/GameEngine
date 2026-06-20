@@ -1,13 +1,17 @@
 #include "SpringComponent.h"
 
-SpringComponent::SpringComponent(Object* parent, float springConstant, float damping, float restLength, float angularSpringConstant, float angularDamping, float restAngle) : ObjectLinkComponent(parent) {
+SpringComponent::SpringComponent(Object* parent, float springConstant, float damping, float restLength) : ObjectLinkComponent(parent) {
 	Name = "Spring Component";
 	this->springConstant = springConstant;
 	this->damping = damping;
 	this->restLength = restLength;
-	this->angularSpringConstant = angularSpringConstant;
-	this->angularDamping = angularDamping;
-	this->restAngle = restAngle;
+}
+
+void SpringComponent::OnDelete() {
+	ObjectLinkComponent::OnDelete();
+	if (constraint != nullptr) {
+		PhysicsEngine::getInstance().UnRegisterConstraint(constraint);
+	}
 }
 
 void SpringComponent::ProcessInspectorUI() {
@@ -23,106 +27,54 @@ void SpringComponent::ProcessInspectorUI() {
 	ImGui::SameLine();
 	ImGui::InputFloat("## Rest Length", &restLength, 0.0f, 0.0f, "%.3f m");
 
-	ImGui::Text("Angular Spring Constant ");
-	ImGui::SameLine();
-	ImGui::InputFloat("## Angular Spring Constant", &angularSpringConstant, 0.0f, 0.0f, "%.3f Nm/rad");
-	ImGui::Text("Angular Damping ");
-	ImGui::SameLine();
-	ImGui::InputFloat("## Angular Damping", &angularDamping, 0.0f, 0.0f, "%.3f Nms/rad");
-	ImGui::Text("Rest Angle ");
-	ImGui::SameLine();
-	ImGui::SliderAngle("## Rest Angle", &restAngle);
-
-	if (springForceBot != nullptr) {
-		springForceBot->springConstant = springConstant;
-		springForceBot->damping = damping;
-		springForceBot->restLength = restLength;
-		springForceBot->angularSpringConstant = angularSpringConstant;
-		springForceBot->angularDamping = angularDamping;
-		springForceBot->restAngle = restAngle;
+	if (constraint == nullptr) {
+		constraint = new DistanceConstraint(topObject, bottomObject, topConnectPoint, bottomConnectPoint, restLength);
+		PhysicsEngine::getInstance().RegisterConstraint(constraint);
 	}
 
-	if (springForceTop != nullptr) {
-		springForceTop->springConstant = springConstant;
-		springForceTop->damping = damping;
-		springForceTop->restLength = restLength;
-		springForceTop->angularSpringConstant = angularSpringConstant;
-		springForceTop->angularDamping = angularDamping;
-		springForceTop->restAngle = restAngle;
-	}
+	constraint->distance = restLength;
+	constraint->stiffness = springConstant;
+	constraint->damping = damping;
 }
 
 void SpringComponent::AddTopObject(Object* object)  {
 	ObjectLinkComponent::AddTopObject(object);
 
-	if (springForceTop == nullptr) {
-		springForceTop = new SpringForce(topObject, bottomObject, 
-			topConnectPoint, bottomConnectPoint, 
-			springConstant, damping, restLength,
-			angularSpringConstant, angularDamping, restAngle
-		);
-	}
-	else {
-		springForceTop->thisConnectionPoint = topConnectPoint;
-		springForceTop->thisObject = topObject;
+	if (constraint == nullptr) {
+		constraint = new DistanceConstraint(topObject, bottomObject, topConnectPoint, bottomConnectPoint, restLength);
+		PhysicsEngine::getInstance().RegisterConstraint(constraint);
 	}
 
-	if (springForceBot != nullptr) {
-		springForceBot->otherObject = topObject;
-		springForceBot->otherConnectionPoint = topConnectPoint;
-	}
-
-	if (!topObject->HasComponent<PhysicsComponent>()) return;
-
-	PhysicsEngine::getInstance().RegisterForce(topObject, springForceTop);
+	constraint->objectA = topObject;
+	constraint->attachPointA = topConnectPoint;
 }
 
 void SpringComponent::AddBottomObject(Object* object) {
 	ObjectLinkComponent::AddBottomObject(object);
 
-	if (springForceBot == nullptr) {
-		springForceBot = new SpringForce(bottomObject, topObject, 
-			bottomConnectPoint, topConnectPoint, 
-			springConstant, damping, restLength,
-			angularSpringConstant, angularDamping, restAngle
-		);
-	}
-	else {
-		springForceBot->thisConnectionPoint = bottomConnectPoint;
-		springForceBot->thisObject = bottomObject;
+	if (constraint == nullptr) {
+		constraint = new DistanceConstraint(topObject, bottomObject, topConnectPoint, bottomConnectPoint, restLength);
+		PhysicsEngine::getInstance().RegisterConstraint(constraint);
 	}
 
-	if (springForceTop != nullptr) {
-		springForceTop->otherConnectionPoint = bottomConnectPoint;
-		springForceTop->otherObject = bottomObject;
-	}
-
-	if (!bottomObject->HasComponent<PhysicsComponent>()) return;
-
-	PhysicsEngine::getInstance().RegisterForce(bottomObject, springForceBot);
+	constraint->objectB = bottomObject;
+	constraint->attachPointB = bottomConnectPoint;
 }
 
 void SpringComponent::RemoveTopObject() {
-	if (topObject->HasComponent<PhysicsComponent>() && springForceTop != nullptr) {
-		PhysicsEngine::getInstance().UnRegisterForce(topObject, springForceTop);	
-		springForceTop = nullptr;
-	}
-
-	if (bottomObject != nullptr && bottomObject->HasComponent<PhysicsComponent>() && springForceBot != nullptr) {
-		springForceBot->otherObject = nullptr;
+	
+	if (constraint != nullptr) {
+		constraint->objectA = nullptr;
+		PhysicsEngine::getInstance().RegisterConstraint(constraint);
 	}
 
 	ObjectLinkComponent::RemoveTopObject();
 }
 
 void SpringComponent::RemoveBottomObject() {
-	if (bottomObject->HasComponent<PhysicsComponent>() && springForceBot != nullptr) {
-		PhysicsEngine::getInstance().UnRegisterForce(bottomObject, springForceBot);
-		springForceBot = nullptr;
-	}
-
-	if (topObject != nullptr && topObject->HasComponent<PhysicsComponent>() && springForceTop != nullptr) {
-		springForceTop->otherObject = nullptr;
+	if (constraint != nullptr) {
+		constraint->objectB = nullptr;
+		PhysicsEngine::getInstance().RegisterConstraint(constraint);
 	}
 
 	ObjectLinkComponent::RemoveBottomObject();
@@ -131,17 +83,21 @@ void SpringComponent::RemoveBottomObject() {
 void SpringComponent::OnTopDisplayUpdatePos() {
 	ObjectLinkComponent::OnTopDisplayUpdatePos();
 
-	springForceTop->thisConnectionPoint = topConnectPoint;
-	if (springForceBot != nullptr) {
-		springForceBot->otherConnectionPoint = topConnectPoint;
+	if (constraint == nullptr) {
+		constraint = new DistanceConstraint(topObject, bottomObject, topConnectPoint, bottomConnectPoint, restLength);
+		PhysicsEngine::getInstance().RegisterConstraint(constraint);
 	}
+
+	constraint->attachPointA = topConnectPoint;
 }
 
 void SpringComponent::OnBottomDisplayUpdatePos() {
 	ObjectLinkComponent::OnBottomDisplayUpdatePos();
 
-	springForceBot->thisConnectionPoint = bottomConnectPoint;
-	if (springForceTop != nullptr) {
-		springForceTop->otherConnectionPoint = bottomConnectPoint;
+	if (constraint == nullptr) {
+		constraint = new DistanceConstraint(topObject, bottomObject, topConnectPoint, bottomConnectPoint, restLength);
+		PhysicsEngine::getInstance().RegisterConstraint(constraint);
 	}
+
+	constraint->attachPointB = bottomConnectPoint;
 }

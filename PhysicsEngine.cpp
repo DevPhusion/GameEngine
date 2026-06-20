@@ -17,18 +17,26 @@ void PhysicsEngine::ProcessPhysics(float delta) {
 	for (int i = 0; i < allObjects->size(); i++)
 	{
 		if ((*allObjects)[i]->HasComponent<PhysicsComponent>()) {
-			(*allObjects)[i]->GetComponent<PhysicsComponent>()->ProcessPhysics(delta);
-		}
-		if ((*allObjects)[i]->HasComponent<CollisionComponent>()) {
-			(*allObjects)[i]->GetComponent<RenderComponent>()->color = glm::vec4(1);
+			(*allObjects)[i]->GetComponent<PhysicsComponent>()->IntegrateVelocities(delta);
 		}
 	}
+
+	ResolveConstraints(delta);
 
 	PotentialContact potentialContacts[200];
 	unsigned totalContacts = root.getPotentialContacts(potentialContacts, 200);
 	if (totalContacts > 0) {
 		std::vector<Contact> contacts = GetContacts(potentialContacts, totalContacts);
 		ResolveContacts(contacts, delta);
+	}
+	for (int i = 0; i < allObjects->size(); i++)
+	{
+		if ((*allObjects)[i]->HasComponent<PhysicsComponent>()) {
+			(*allObjects)[i]->GetComponent<PhysicsComponent>()->IntegratePositions(delta);
+		}
+		if ((*allObjects)[i]->HasComponent<CollisionComponent>()) {
+			(*allObjects)[i]->GetComponent<RenderComponent>()->color = glm::vec4(1);
+		}
 	}
 }
 
@@ -548,4 +556,63 @@ BAHNode<BoundingCircle>* PhysicsEngine::RegisterBoundingAreaNode(Object* obj, Bo
 void PhysicsEngine::UnRegisterBoundingAreaNode(Object* obj) {
 	BAHNode<BoundingCircle>* node = root.searchFor(obj);
 	node->removeLeaf();
+}
+
+void PhysicsEngine::RegisterConstraint(Constraint* constraint) {
+	registeredConstraints.push_back(constraint);
+}
+
+void PhysicsEngine::UnRegisterConstraint(Constraint* constraint) {
+	for (int i = 0; i < registeredConstraints.size(); i++)
+	{
+		if (registeredConstraints[i] == constraint) {
+			registeredConstraints.erase(registeredConstraints.begin() + i);
+		}
+	}
+}
+
+void PhysicsEngine::ResolveConstraints(float delta) {
+	std::vector<SolverRow> solverRows;
+	
+	for (auto* constraint : registeredConstraints) {
+		SolverRow r = constraint->Prepare(delta);
+		if (r.objectA != nullptr || r.objectB != nullptr) {
+			solverRows.push_back(r);
+		}
+	}
+
+	const int velocityIterations = 8;
+
+	for (int i = 0; i < velocityIterations; i++)
+	{
+		for (auto& row : solverRows) {
+			JacobianRow jacobian = row.jacobian;
+			PhysicsComponent* pcA = row.objectA->GetComponent<PhysicsComponent>();
+			PhysicsComponent* pcB = row.objectB->GetComponent<PhysicsComponent>();
+
+			float relativeVelocity = 0.0f; 
+
+			if (pcA) {
+				relativeVelocity += glm::dot(jacobian.linearA, pcA->velocity) + jacobian.angularA * pcA->angularVelocity;
+			}
+			if (pcB) {
+				relativeVelocity += glm::dot(jacobian.linearB, pcB->velocity) + jacobian.angularB * pcB->angularVelocity;
+			}
+
+			float lambdaRaw = row.effectiveMass * (row.bias - relativeVelocity - row.softnessCFM * row.lambda);
+			float lambdaOld = row.lambda;
+			float lambdaNew = std::max(row.minLambda, std::min(lambdaOld + lambdaRaw, row.maxLambda));
+			row.lambda = lambdaNew;
+			float deltaLambda = lambdaNew - lambdaOld;
+
+			if (pcA) {
+				pcA->velocity += pcA->inverseMass * jacobian.linearA * deltaLambda;
+				pcA->angularVelocity += pcA->inverseInertia * jacobian.angularA * deltaLambda;
+			}
+			if (pcB) {
+				pcB->velocity += pcB->inverseMass * jacobian.linearB * deltaLambda;
+				pcB->angularVelocity += pcB->inverseInertia * jacobian.angularB * deltaLambda;
+			}
+		}
+	}
 }

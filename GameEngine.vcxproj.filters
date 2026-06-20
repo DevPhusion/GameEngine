@@ -73,6 +73,12 @@
     <Filter Include="Source Files\Core\Physics\Collision">
       <UniqueIdentifier>{c6559538-3c53-4289-bd19-93ee607f1486}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Core\Physics\Constraint">
+      <UniqueIdentifier>{b7297caa-da43-45f2-b5ef-649fd90c44b8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Core\Physics\Constraint">
+      <UniqueIdentifier>{5bac7b16-8d8d-498c-92b3-e242da6d18ce}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glad.c">
@@ -177,9 +183,6 @@
     <ClCompile Include="ObjectManager.cpp">
       <Filter>Source Files\Core</Filter>
     </ClCompile>
-    <ClCompile Include="SpringForce.cpp">
-      <Filter>Source Files\Core\Physics\Forces</Filter>
-    </ClCompile>
     <ClCompile Include="Spring.cpp">
       <Filter>Source Files\Objects</Filter>
     </ClCompile>
@@ -215,6 +218,12 @@
     </ClCompile>
     <ClCompile Include="DebugPoint.cpp">
       <Filter>Source Files\Core\Physics\Collision</Filter>
+    </ClCompile>
+    <ClCompile Include="Constraint.cpp">
+      <Filter>Source Files\Core\Physics\Constraint</Filter>
+    </ClCompile>
+    <ClCompile Include="DistanceConstraint.cpp">
+      <Filter>Source Files\Core\Physics\Constraint</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -320,9 +329,6 @@
     <ClInclude Include="ObjectManager.h">
       <Filter>Header Files\Core</Filter>
     </ClInclude>
-    <ClInclude Include="SpringForce.h">
-      <Filter>Header Files\Core\Physics\Forces</Filter>
-    </ClInclude>
     <ClInclude Include="Spring.h">
       <Filter>Header Files\Objects</Filter>
     </ClInclude>
@@ -334,9 +340,6 @@
     </ClInclude>
     <ClInclude Include="imgui\dirent.h">
       <Filter>Header Files\ImGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="Contact.h">
-      <Filter>Header Files\Core\Physics</Filter>
     </ClInclude>
     <ClInclude Include="Cable.h">
       <Filter>Header Files\Objects</Filter>
@@ -364,6 +367,15 @@
     </ClInclude>
     <ClInclude Include="DebugPoint.h">
       <Filter>Header Files\Core\Physics\Collision</Filter>
+    </ClInclude>
+    <ClInclude Include="Contact.h">
+      <Filter>Header Files\Core\Physics\Collision</Filter>
+    </ClInclude>
+    <ClInclude Include="Constraint.h">
+      <Filter>Header Files\Core\Physics\Constraint</Filter>
+    </ClInclude>
+    <ClInclude Include="DistanceConstraint.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

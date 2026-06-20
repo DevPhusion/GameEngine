@@ -1,25 +1,21 @@
 #pragma once
-#include "SpringForce.h"
+#include "DistanceConstraint.h"
 #include "ObjectLinkComponent.h"
 #include "ObjectManager.h"
 class SpringComponent : public ObjectLinkComponent
 {
 public:
-	SpringComponent(Object* parent, float springConstant, float damping, float restLength, float angularSpringConstant, float angularDamping, float restAngle);
+	SpringComponent(Object* parent, float springConstant, float damping, float restLength);
 	SpringComponent() = default;
 
-	SpringForce* springForceTop = nullptr;
-	SpringForce* springForceBot = nullptr;
+	DistanceConstraint* constraint = nullptr;
 
 	float springConstant;
 	float damping;
 	float restLength;
 
-	float angularSpringConstant;
-	float angularDamping; 
-	float restAngle;
-
 	virtual void ProcessInspectorUI();
+	virtual void OnDelete();
 	virtual void AddTopObject(Object* obj);
 	virtual void AddBottomObject(Object* obj);
 	virtual void RemoveTopObject();

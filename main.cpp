@@ -80,8 +80,8 @@ int main() {
 		ObjectManager::getInstance().ProcessObjects(delta);
 		prev_t = glfwGetTime();
 
-		//glad_glClearColor(0.235f, 0.239f, 0.216f, 1.0f);
-		glad_glClearColor(1, 1, 1, 1);
+		glad_glClearColor(0.235f, 0.239f, 0.216f, 1.0f);
+		//glad_glClearColor(1, 1, 1, 1);
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		renderer.Draw();

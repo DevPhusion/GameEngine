@@ -2,6 +2,7 @@
 #include "ObjectLinkComponent.h"
 #include "Contact.h"
 #include "PhysicsEngine.h"
+#include "DistanceConstraint.h"
 class CableComponent : public ObjectLinkComponent
 {
 public:
@@ -9,9 +10,11 @@ public:
 	CableComponent() = default;
 	
 	float maxLength;
-	float restitution;
 	bool retractable;
 
+	DistanceConstraint* constraint = nullptr;
+	
+	virtual void OnDelete();
 	virtual void ProcessInspectorUI();
 	
 	Contact* CableContact;

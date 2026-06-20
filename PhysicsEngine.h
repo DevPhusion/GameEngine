@@ -6,6 +6,7 @@
 #include "ForceGenerator.h"
 #include "BAHNode.h"
 #include "DebugPoint.h"
+#include "Constraint.h"
 
 struct ContactPoint {
 	glm::vec3 normal;
@@ -82,6 +83,12 @@ public:
 	void PrepareContacts(std::vector<Contact>& contacts, float delta);
 	void AdjustPositions(std::vector<Contact>& contacts, float delta);
 	void AdjustVelocities(std::vector<Contact>& contacts, float delta);
+
+	//Constraint resolution
+	std::vector<Constraint*> registeredConstraints;
+	void RegisterConstraint(Constraint* constraint);
+	void UnRegisterConstraint(Constraint* constraint);
+	void ResolveConstraints(float delta);
 private:
 	PhysicsEngine() = default;
 	std::vector<std::unique_ptr<Object>>* allObjects;

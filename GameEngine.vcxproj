@@ -145,9 +145,11 @@
     <ClCompile Include="BAHNode.cpp" />
     <ClCompile Include="CollisionComponent.cpp" />
     <ClCompile Include="Component.cpp" />
+    <ClCompile Include="Constraint.cpp" />
     <ClCompile Include="Contact.cpp" />
     <ClCompile Include="DebugCircle.cpp" />
     <ClCompile Include="DebugPoint.cpp" />
+    <ClCompile Include="DistanceConstraint.cpp" />
     <ClCompile Include="EditorManager.cpp" />
     <ClCompile Include="EngineManager.cpp" />
     <ClCompile Include="EngineStatus.cpp" />
@@ -179,7 +181,6 @@
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="Spring.cpp" />
     <ClCompile Include="SpringComponent.cpp" />
-    <ClCompile Include="SpringForce.cpp" />
     <ClCompile Include="stb_image.cpp" />
     <ClCompile Include="TransformComponent.cpp" />
     <ClCompile Include="VertexComponent.cpp" />
@@ -194,9 +195,11 @@
     <ClInclude Include="BAHNode.h" />
     <ClInclude Include="CollisionComponent.h" />
     <ClInclude Include="Component.h" />
+    <ClInclude Include="Constraint.h" />
     <ClInclude Include="Contact.h" />
     <ClInclude Include="DebugCircle.h" />
     <ClInclude Include="DebugPoint.h" />
+    <ClInclude Include="DistanceConstraint.h" />
     <ClInclude Include="EditorManager.h" />
     <ClInclude Include="EngineManager.h" />
     <ClInclude Include="EngineStatus.h" />
@@ -230,7 +233,6 @@
     <ClInclude Include="Shader.h" />
     <ClInclude Include="Spring.h" />
     <ClInclude Include="SpringComponent.h" />
-    <ClInclude Include="SpringForce.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="TransformComponent.h" />
     <ClInclude Include="VertexComponent.h" />
