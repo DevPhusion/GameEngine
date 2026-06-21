@@ -9,6 +9,8 @@ void PhysicsEngine::ProcessPhysics(float delta) {
 		return;
 	}
 
+	UnRegisterNormalConstraint();
+
 	for (int i = 0; i < ForceRegistrations.size(); i++)
 	{
 		ForceRegistrations[i].fg->updateForce(ForceRegistrations[i].object, delta);
@@ -19,23 +21,23 @@ void PhysicsEngine::ProcessPhysics(float delta) {
 		if ((*allObjects)[i]->HasComponent<PhysicsComponent>()) {
 			(*allObjects)[i]->GetComponent<PhysicsComponent>()->IntegrateVelocities(delta);
 		}
+		if ((*allObjects)[i]->HasComponent<CollisionComponent>()) {
+			(*allObjects)[i]->GetComponent<RenderComponent>()->color = glm::vec4(1);
+		}
 	}
-
-	ResolveConstraints(delta);
 
 	PotentialContact potentialContacts[200];
 	unsigned totalContacts = root.getPotentialContacts(potentialContacts, 200);
 	if (totalContacts > 0) {
-		std::vector<Contact> contacts = GetContacts(potentialContacts, totalContacts);
-		ResolveContacts(contacts, delta);
+		ResolveContacts(potentialContacts, totalContacts);
 	}
+
+	ResolveConstraints(delta);
+
 	for (int i = 0; i < allObjects->size(); i++)
 	{
 		if ((*allObjects)[i]->HasComponent<PhysicsComponent>()) {
 			(*allObjects)[i]->GetComponent<PhysicsComponent>()->IntegratePositions(delta);
-		}
-		if ((*allObjects)[i]->HasComponent<CollisionComponent>()) {
-			(*allObjects)[i]->GetComponent<RenderComponent>()->color = glm::vec4(1);
 		}
 	}
 }
@@ -79,142 +81,8 @@ void PhysicsEngine::ClearRegistry() {
 	ForceRegistrations.clear();
 }
 
-void PhysicsEngine::ResolveContacts(std::vector<Contact>& contacts, float delta) {
-	if (contacts.size() == 0) return;
-	
-	PrepareContacts(contacts, delta);
-
-	AdjustPositions(contacts, delta);
-
-	AdjustVelocities(contacts, delta);
-}
-
-void PhysicsEngine::PrepareContacts(std::vector<Contact>& contacts, float delta) {
-	for (auto& c : contacts)
-	{
-		c.calculateInternals(delta);
-	}
-}
-
-void PhysicsEngine::AdjustVelocities(std::vector<Contact>& contacts, float delta) {
-	unsigned int velocityIterationsUsed = 0;
-	unsigned int velocityIterations = contacts.size() * 4;
-
-	while (velocityIterationsUsed < velocityIterations) {
-		float maxVioloation = -0.005f;
-		int maxIndex = -1;
-
-		for (size_t i = 0; i < contacts.size(); i++)
-		{
-			if (contacts[i].desiredDeltaVelocity < maxVioloation) {
-				maxVioloation = contacts[i].desiredDeltaVelocity;
-				maxIndex = i;
-			}
-		}
-
-		if (maxIndex == -1) break;
-		Contact& resolveContact = contacts[maxIndex];
-		resolveContact.matchAwakeState();
-		resolveContact.resolveVelocity(delta);
-
-		for (size_t i = 0; i < contacts.size(); i++)
-		{
-			if (i == maxIndex) continue;
-
-			for (int resolvedObjIndex = 0; resolvedObjIndex < 2; resolvedObjIndex++)
-			{
-				Object* sharedObj = resolveContact.objects[resolvedObjIndex];
-				if (!sharedObj) continue;
-
-				glm::vec3 vChange = resolveContact.velocityChange[resolvedObjIndex];
-				float wChange = resolveContact.angularVelocityChange[resolvedObjIndex];
-
-				if (contacts[i].objects[0] == sharedObj) {
-					glm::vec3 deltaRotVel = glm::vec3(-wChange * contacts[i].relativeContactPosition[0].y,
-						wChange * contacts[i].relativeContactPosition[0].x, 0.0f);
-					glm::vec3 totalPointVelChange = vChange + deltaRotVel;
-
-					glm::vec3 contactVelChange = contacts[i].WorldToContact(totalPointVelChange);
-					contacts[i].contactVelocity -= contactVelChange;
-					contacts[i].desiredDeltaVelocity += contactVelChange.x;
-				}
-
-				if (contacts[i].objects[1] == sharedObj) {
-					glm::vec3 deltaRotVel = glm::vec3(-wChange * contacts[i].relativeContactPosition[1].y,
-						wChange * contacts[i].relativeContactPosition[1].x, 0.0f);
-					glm::vec3 totalPointVelChange = vChange + deltaRotVel;
-
-					glm::vec3 contactVelChange = contacts[i].WorldToContact(totalPointVelChange);
-					contacts[i].contactVelocity += contactVelChange;
-					contacts[i].desiredDeltaVelocity -= contactVelChange.x;
-				}
-			}
-		}
-
-		velocityIterationsUsed++;
-	}
-}
-
-void PhysicsEngine::AdjustPositions(std::vector<Contact>& contacts, float delta) {
-	unsigned int positionIterationsUsed = 0;
-	unsigned int positionIterations = contacts.size() * 4;
-	float positionEpsilon = 0.01f;
-
-	while (positionIterationsUsed < positionIterations) {
-		float maxPenetration = positionEpsilon;
-		int maxIndex = -1;
-
-		for (size_t i = 0; i < contacts.size(); i++)
-		{
-			if (contacts[i].penetration > maxPenetration) {
-				maxPenetration = contacts[i].penetration;
-				maxIndex = i;
-			}
-		}
-
-		if (maxIndex == -1) break;
-		Contact& resolveContact = contacts[maxIndex];
-		resolveContact.matchAwakeState();
-		resolveContact.resolveInterpenetration(delta);
-		resolveContact.penetration = 0;
-
-		for (size_t i = 0; i < contacts.size(); i++)
-		{
-			if (i == maxIndex) continue;
-
-			for (int resolvedObjIndex = 0; resolvedObjIndex < 2; resolvedObjIndex++)
-			{
-				Object* sharedObj = resolveContact.objects[resolvedObjIndex];
-				if (!sharedObj) continue;
-
-				glm::vec3 posChange = resolveContact.positionChange[resolvedObjIndex];
-				float rotChange = resolveContact.rotationChange[resolvedObjIndex];
-
-				if (contacts[i].objects[0] == sharedObj) {
-					glm::vec3 deltaRotPos = glm::vec3(-rotChange * contacts[i].relativeContactPosition[0].y,
-						rotChange * contacts[i].relativeContactPosition[0].x, 0.0f);
-					glm::vec3 totalPointDisplacement = posChange + deltaRotPos;
-					contacts[i].penetration -= glm::dot(totalPointDisplacement, contacts[i].contactNormal);
-					contacts[i].penetration = std::max(contacts[i].penetration, 0.0f);
-				}
-
-				if (contacts[i].objects[1] == sharedObj) {
-					glm::vec3 deltaRotPos = glm::vec3(-rotChange * contacts[i].relativeContactPosition[1].y,
-						rotChange * contacts[i].relativeContactPosition[1].x, 0.0f);
-					glm::vec3 totalPointDisplacement = posChange + deltaRotPos;
-					contacts[i].penetration += glm::dot(totalPointDisplacement, contacts[i].contactNormal);
-					contacts[i].penetration = std::max(contacts[i].penetration, 0.0f);
-				}
-			}
-		}
-
-		positionIterationsUsed++;
-	}
-}
-
-std::vector<Contact> PhysicsEngine::GetContacts(PotentialContact* contacts, unsigned numContacts) {
+void PhysicsEngine::ResolveContacts(PotentialContact* contacts, unsigned numContacts) {
 	allContactPoints = {};
-	std::vector<Contact> allContacts = {};
 
 	for (int i = 0; i < numContacts; i++)
 	{
@@ -242,8 +110,8 @@ std::vector<Contact> PhysicsEngine::GetContacts(PotentialContact* contacts, unsi
 			for (int i = 0; i < points.size(); i++)
 			{
 				allContactPoints.push_back(points[i]);
-				Contact contact = Contact(std::vector<Object*> {objA, objB}, points[i].normal, points[i].point, points[i].penetration, 0.6f, 0.4f, 0.6f);
-				allContacts.push_back(contact);
+				ContactConstraint* constraint = new ContactConstraint(objA, objB, points[i].point, points[i].point, points[i].normal, points[i].penetration, 0.2f, 0.4f, 0.6f);
+				RegisterConstraint(constraint);
 			}
 
 		}
@@ -252,8 +120,6 @@ std::vector<Contact> PhysicsEngine::GetContacts(PotentialContact* contacts, unsi
 			objB->GetComponent<RenderComponent>()->color = glm::vec4(1, 0, 0, 1);
 		}
 	}
-
-	return allContacts;
 }
 
 std::vector<ContactPoint> PhysicsEngine::GenerateContactPoints(CollisionData collisionData) {
@@ -562,6 +428,15 @@ void PhysicsEngine::RegisterConstraint(Constraint* constraint) {
 	registeredConstraints.push_back(constraint);
 }
 
+void PhysicsEngine::UnRegisterNormalConstraint() {
+	for (int i = static_cast<int>(registeredConstraints.size()) - 1; i >= 0; i--) {
+		if (dynamic_cast<ContactConstraint*>(registeredConstraints[i]) != nullptr) {
+			delete registeredConstraints[i]; // Free memory!
+			registeredConstraints.erase(registeredConstraints.begin() + i);
+		}
+	}
+}
+
 void PhysicsEngine::UnRegisterConstraint(Constraint* constraint) {
 	for (int i = 0; i < registeredConstraints.size(); i++)
 	{
@@ -573,45 +448,42 @@ void PhysicsEngine::UnRegisterConstraint(Constraint* constraint) {
 
 void PhysicsEngine::ResolveConstraints(float delta) {
 	std::vector<SolverRow> solverRows;
-	
+	solverRows.reserve(registeredConstraints.size() * 2); 
+
 	for (auto* constraint : registeredConstraints) {
-		SolverRow r = constraint->Prepare(delta);
-		if (r.objectA != nullptr || r.objectB != nullptr) {
-			solverRows.push_back(r);
+		if (constraint->objectA != nullptr || constraint->objectB != nullptr) {
+			constraint->Prepare(solverRows, delta);
 		}
 	}
 
 	const int velocityIterations = 8;
-
-	for (int i = 0; i < velocityIterations; i++)
-	{
-		for (auto& row : solverRows) {
-			JacobianRow jacobian = row.jacobian;
+	for (int i = 0; i < velocityIterations; i++) {
+		for (size_t j = 0; j < solverRows.size(); j++) {
+			auto& row = solverRows[j];
 			PhysicsComponent* pcA = row.objectA->GetComponent<PhysicsComponent>();
 			PhysicsComponent* pcB = row.objectB->GetComponent<PhysicsComponent>();
 
-			float relativeVelocity = 0.0f; 
-
-			if (pcA) {
-				relativeVelocity += glm::dot(jacobian.linearA, pcA->velocity) + jacobian.angularA * pcA->angularVelocity;
-			}
-			if (pcB) {
-				relativeVelocity += glm::dot(jacobian.linearB, pcB->velocity) + jacobian.angularB * pcB->angularVelocity;
-			}
+			float relativeVelocity = 0.0f;
+			if (pcA) relativeVelocity += glm::dot(row.jacobian.linearA, pcA->velocity) + row.jacobian.angularA * pcA->angularVelocity;
+			if (pcB) relativeVelocity += glm::dot(row.jacobian.linearB, pcB->velocity) + row.jacobian.angularB * pcB->angularVelocity;
 
 			float lambdaRaw = row.effectiveMass * (row.bias - relativeVelocity - row.softnessCFM * row.lambda);
 			float lambdaOld = row.lambda;
-			float lambdaNew = std::max(row.minLambda, std::min(lambdaOld + lambdaRaw, row.maxLambda));
-			row.lambda = lambdaNew;
-			float deltaLambda = lambdaNew - lambdaOld;
+			row.lambda += lambdaRaw;
+
+			if (row.parentConstraint) {
+				row.parentConstraint->PostIterationClamp(solverRows, static_cast<int>(j), i);
+			}
+
+			float deltaLambda = row.lambda - lambdaOld;
 
 			if (pcA) {
-				pcA->velocity += pcA->inverseMass * jacobian.linearA * deltaLambda;
-				pcA->angularVelocity += pcA->inverseInertia * jacobian.angularA * deltaLambda;
+				pcA->velocity += pcA->inverseMass * row.jacobian.linearA * deltaLambda;
+				pcA->angularVelocity += pcA->inverseInertia * row.jacobian.angularA * deltaLambda;
 			}
 			if (pcB) {
-				pcB->velocity += pcB->inverseMass * jacobian.linearB * deltaLambda;
-				pcB->angularVelocity += pcB->inverseInertia * jacobian.angularB * deltaLambda;
+				pcB->velocity += pcB->inverseMass * row.jacobian.linearB * deltaLambda;
+				pcB->angularVelocity += pcB->inverseInertia * row.jacobian.angularB * deltaLambda;
 			}
 		}
 	}

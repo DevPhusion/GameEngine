@@ -58,6 +58,7 @@ int main() {
 	PhysicsEngine::getInstance().Setup(&ObjectManager::getInstance().allObjects);
 
 	Camera::getInstance().Setup();
+	renderer.SetupGrid();
 
 	float prev_t = 0;
 	float physicsAccumulator = 0.0f;

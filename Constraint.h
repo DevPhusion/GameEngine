@@ -23,6 +23,8 @@ struct SolverRow {
 
 	Object* objectA;
 	Object* objectB;
+
+	class Constraint* parentConstraint = nullptr; 
 };
 
 class Constraint
@@ -38,6 +40,9 @@ public:
 
 	float beta = 0.2f; //Baumgarte bias tuning
 
-	virtual SolverRow Prepare(float delta) = 0;
+	virtual void Prepare(std::vector<SolverRow>& rows, float delta) = 0;
+	virtual void PostIterationClamp(std::vector<SolverRow>& allRows, int myRowIndex, int velocityIteration) {
+		allRows[myRowIndex].lambda = glm::clamp(allRows[myRowIndex].lambda, allRows[myRowIndex].minLambda, allRows[myRowIndex].maxLambda);
+	}
 };
 

@@ -4,6 +4,7 @@
 #include "RenderComponent.h"
 #include "TransformComponent.h"
 #include "PhysicsEngine.h"
+#include "InfiniteGrid.h"
 #include<glad/glad.h>
 #include<GLFW/glfw3.h>
 #include <vector>
@@ -12,6 +13,8 @@ class Renderer
 {
 public:
 	Renderer(std::vector<std::unique_ptr<Object>>* objects);
+	InfiniteGrid backgroundGrid = InfiniteGrid();
+	void SetupGrid() { backgroundGrid.Setup(); }
 	void Draw();
 private:
 	std::vector<std::unique_ptr<Object>>* allObjects;

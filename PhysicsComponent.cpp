@@ -85,7 +85,7 @@ void PhysicsComponent::OnDelete() {
 }
 
 void PhysicsComponent::IntegrateVelocities(float delta) {
-	if (!Enabled || !isAwake) {
+	if (!Enabled) {
 		return;
 	}
 
@@ -124,7 +124,7 @@ void PhysicsComponent::IntegrateVelocities(float delta) {
 }
 
 void PhysicsComponent::IntegratePositions(float delta) {
-	if (!Enabled || !isAwake) {
+	if (!Enabled) {
 		return;
 	}
 
@@ -179,7 +179,9 @@ float calcTriangleArea(glm::vec3 a, glm::vec3 b, glm::vec3 c) {
 float calculateTriangleInertia(glm::vec3 a, glm::vec3 b, glm::vec3 c, glm::vec3 centerOfMass, float massTriangle) {
 	float inertia = (massTriangle / 36) * (glm::length2(a - b) + glm::length2(b - c) + glm::length2(c - a));
 	glm::vec3 centroid = (a + b + c) / 3.0f;
-	return inertia + (massTriangle * glm::distance(centroid, centerOfMass));
+
+	float distSquared = glm::length2(centroid - centerOfMass);
+	return inertia + (massTriangle * distSquared);
 }
 
 void PhysicsComponent::CalculateInertia() {

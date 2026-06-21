@@ -189,9 +189,6 @@
     <ClCompile Include="imgui\ImGuiFileDialog.cpp">
       <Filter>Source Files\ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="Contact.cpp">
-      <Filter>Source Files\Core\Physics</Filter>
-    </ClCompile>
     <ClCompile Include="Cable.cpp">
       <Filter>Source Files\Objects</Filter>
     </ClCompile>
@@ -224,6 +221,12 @@
     </ClCompile>
     <ClCompile Include="DistanceConstraint.cpp">
       <Filter>Source Files\Core\Physics\Constraint</Filter>
+    </ClCompile>
+    <ClCompile Include="ContactConstraint.cpp">
+      <Filter>Source Files\Core\Physics\Constraint</Filter>
+    </ClCompile>
+    <ClCompile Include="InfiniteGrid.cpp">
+      <Filter>Source Files\Core\Editor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -368,14 +371,17 @@
     <ClInclude Include="DebugPoint.h">
       <Filter>Header Files\Core\Physics\Collision</Filter>
     </ClInclude>
-    <ClInclude Include="Contact.h">
-      <Filter>Header Files\Core\Physics\Collision</Filter>
-    </ClInclude>
     <ClInclude Include="Constraint.h">
       <Filter>Header Files\Core\Physics\Constraint</Filter>
     </ClInclude>
+    <ClInclude Include="ContactConstraint.h">
+      <Filter>Header Files\Core\Physics\Constraint</Filter>
+    </ClInclude>
     <ClInclude Include="DistanceConstraint.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Core\Physics\Constraint</Filter>
+    </ClInclude>
+    <ClInclude Include="InfiniteGrid.h">
+      <Filter>Header Files\Core\Editor</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -383,6 +389,12 @@
       <Filter>Resource Files</Filter>
     </Text>
     <Text Include="vertex.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="grid_vertex.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="grid_fragment.txt">
       <Filter>Resource Files</Filter>
     </Text>
   </ItemGroup>

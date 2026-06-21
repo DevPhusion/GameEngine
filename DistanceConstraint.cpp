@@ -1,18 +1,19 @@
 #include "DistanceConstraint.h"
 
-DistanceConstraint::DistanceConstraint(Object* objectA, Object* objectB, glm::vec3 attachPointA, glm::vec3 attachPointB, float distance, float stiffness, float damping) : 
+DistanceConstraint::DistanceConstraint(Object* objectA, Object* objectB, glm::vec3 attachPointA, glm::vec3 attachPointB, 
+	float distance, float stiffness, float damping, 
+	bool extendable, bool retractable) : 
 	Constraint(objectA, objectB, attachPointA, attachPointB) {
 	this->distance = distance;
 	this->stiffness = stiffness;
 	this->damping = damping;
+	this->extendable = extendable;
+	this->retractable = retractable;
 }
 
-SolverRow DistanceConstraint::Prepare(float delta) {
+void DistanceConstraint::Prepare(std::vector<SolverRow>& rows, float delta) {
 	if (objectA == nullptr || objectB == nullptr) {
-		SolverRow row = SolverRow();
-		row.objectA = nullptr;
-		row.objectB = nullptr;
-		return row;
+		return;
 	}
 
 	JacobianRow jacobian = JacobianRow();
@@ -77,7 +78,15 @@ SolverRow DistanceConstraint::Prepare(float delta) {
 
 	row.maxLambda = INFINITY;
 	row.minLambda = -INFINITY;
+
+	if (retractable) {
+		row.minLambda = 0;
+	}
+	if (extendable) {
+		row.maxLambda = 0;
+	}
+
 	row.lambda = 0.0f;
 
-	return row;
+	rows.push_back(row);
 }

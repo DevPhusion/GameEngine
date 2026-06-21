@@ -1,6 +1,5 @@
 #pragma once
 #include "ObjectLinkComponent.h"
-#include "Contact.h"
 #include "PhysicsEngine.h"
 #include "DistanceConstraint.h"
 class CableComponent : public ObjectLinkComponent
@@ -17,7 +16,6 @@ public:
 	virtual void OnDelete();
 	virtual void ProcessInspectorUI();
 	
-	Contact* CableContact;
 	void FillContact();
 };
 

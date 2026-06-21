@@ -5,6 +5,13 @@ Renderer::Renderer(std::vector<std::unique_ptr<Object>>* objects) {
 }
 
 void Renderer::Draw() {
+    glm::vec2 camPos = glm::vec2(Camera::getInstance().cameraPos.x, Camera::getInstance().cameraPos.y);
+    
+    glm::vec2 screenSize = glm::vec2(EngineManager::getInstance().windowWidth, EngineManager::getInstance().windowHeight); // Match your window sizes
+    float zoom = Camera::getInstance().cameraZoom;
+
+    backgroundGrid.Draw(camPos, screenSize, zoom);
+
     std::vector<Object*> renderQueue;
     for (size_t i = 0; i < this->allObjects->size(); i++) {
         if ((*allObjects)[i]->HasComponent<RenderComponent>()) {

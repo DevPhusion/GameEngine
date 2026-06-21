@@ -40,4 +40,5 @@ void CableComponent::FillContact() {
 	constraint->attachPointA = topConnectPoint;
 	constraint->attachPointB = bottomConnectPoint;
 	constraint->distance = maxLength;
+	constraint->retractable = retractable;
 }

@@ -1,12 +1,12 @@
 #pragma once
 #include "Object.h"
-#include "Contact.h"
 #include "PhysicsComponent.h"
 #include "CollisionComponent.h"
 #include "ForceGenerator.h"
 #include "BAHNode.h"
 #include "DebugPoint.h"
 #include "Constraint.h"
+#include "ContactConstraint.h"
 
 struct ContactPoint {
 	glm::vec3 normal;
@@ -69,7 +69,7 @@ public:
 	BAHNode<BoundingCircle> root;
 	BAHNode<BoundingCircle>* RegisterBoundingAreaNode(Object* obj, BoundingCircle boundingCircle);
 	void UnRegisterBoundingAreaNode(Object* obj);
-	std::vector<Contact> GetContacts(PotentialContact* contacts, unsigned numContacts);
+	void ResolveContacts(PotentialContact* contacts, unsigned numContacts);
 	CollisionData SAT(Object* objA, Object* objB);
 	Projection ProjectOntoAxis(std::vector<glm::vec3>& vertices, SeparatingAxis axis);
 	std::vector<ContactPoint> GenerateContactPoints(CollisionData collisionData);
@@ -78,14 +78,9 @@ public:
 	Edge FindMostAntiParallelEdge(const std::vector<Edge>& edges, const glm::vec3& normal);
 	int ClipSegmentToLine(glm::vec3 vOut[2], const glm::vec3 vIn[2], int numInPoints, const glm::vec3& normal, float offset);
 
-	//Contact resolution
-	void ResolveContacts(std::vector<Contact>& contacts, float delta);
-	void PrepareContacts(std::vector<Contact>& contacts, float delta);
-	void AdjustPositions(std::vector<Contact>& contacts, float delta);
-	void AdjustVelocities(std::vector<Contact>& contacts, float delta);
-
 	//Constraint resolution
 	std::vector<Constraint*> registeredConstraints;
+	void UnRegisterNormalConstraint();
 	void RegisterConstraint(Constraint* constraint);
 	void UnRegisterConstraint(Constraint* constraint);
 	void ResolveConstraints(float delta);

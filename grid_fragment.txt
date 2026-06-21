@@ -1,0 +1,25 @@
+#version 330 core
+in vec2 ScreenPos;
+out vec4 FragColor;
+
+uniform vec2 u_cameraPos;
+uniform vec2 u_screenSize;
+uniform float u_zoom;
+
+void main() {
+    float aspect = u_screenSize.x / u_screenSize.y;
+    vec2 worldPos = (ScreenPos * vec2(aspect, 1.0) + u_cameraPos) * u_zoom;
+
+    float gridSize = 3.0; 
+    
+    vec2 derivative = fwidth(worldPos);
+    vec2 gridLines = abs(fract(worldPos / gridSize - 0.5) - 0.5) / derivative;
+    float lineFactor = min(gridLines.x, gridLines.y);
+
+    float alpha = 1.0 - smoothstep(0.0, 1.2, lineFactor);
+
+    vec4 bgColor = vec4(0.235, 0.239, 0.216, 1.0);
+    vec4 gridColor = vec4(0.300, 0.305, 0.280, 1.0); 
+
+    FragColor = mix(bgColor, gridColor, alpha);
+}

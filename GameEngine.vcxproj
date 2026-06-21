@@ -146,7 +146,6 @@
     <ClCompile Include="CollisionComponent.cpp" />
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="Constraint.cpp" />
-    <ClCompile Include="Contact.cpp" />
     <ClCompile Include="DebugCircle.cpp" />
     <ClCompile Include="DebugPoint.cpp" />
     <ClCompile Include="DistanceConstraint.cpp" />
@@ -164,12 +163,14 @@
     <ClCompile Include="imgui\imgui_impl_opengl3.cpp" />
     <ClCompile Include="imgui\imgui_tables.cpp" />
     <ClCompile Include="imgui\imgui_widgets.cpp" />
+    <ClCompile Include="InfiniteGrid.cpp" />
     <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="Inspector.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="EditorWindow.cpp" />
     <ClCompile Include="MouseDrag.cpp" />
     <ClCompile Include="MouseInteractComponent.cpp" />
+    <ClCompile Include="ContactConstraint.cpp" />
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="ObjectLinkComponent.cpp" />
     <ClCompile Include="ObjectManager.cpp" />
@@ -196,7 +197,6 @@
     <ClInclude Include="CollisionComponent.h" />
     <ClInclude Include="Component.h" />
     <ClInclude Include="Constraint.h" />
-    <ClInclude Include="Contact.h" />
     <ClInclude Include="DebugCircle.h" />
     <ClInclude Include="DebugPoint.h" />
     <ClInclude Include="DistanceConstraint.h" />
@@ -217,11 +217,13 @@
     <ClInclude Include="imgui\imstb_rectpack.h" />
     <ClInclude Include="imgui\imstb_textedit.h" />
     <ClInclude Include="imgui\imstb_truetype.h" />
+    <ClInclude Include="InfiniteGrid.h" />
     <ClInclude Include="InputManager.h" />
     <ClInclude Include="Inspector.h" />
     <ClInclude Include="EditorWindow.h" />
     <ClInclude Include="MouseDrag.h" />
     <ClInclude Include="MouseInteractComponent.h" />
+    <ClInclude Include="ContactConstraint.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="ObjectLinkComponent.h" />
     <ClInclude Include="ObjectManager.h" />
@@ -240,6 +242,8 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="fragment.txt" />
+    <Text Include="grid_fragment.txt" />
+    <Text Include="grid_vertex.txt" />
     <Text Include="vertex.txt" />
   </ItemGroup>
   <ItemGroup>
