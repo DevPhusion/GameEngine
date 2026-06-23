@@ -14,6 +14,7 @@ public:
 	BoundingCircle boundingCircle;
 	BAHNode<BoundingCircle>* BAHnode;
 
+	virtual void SetEnabled(bool enabled);
 	virtual void OnDelete();
 	virtual void ProcessInspectorUI();
 	void calculateBoundingCircle();

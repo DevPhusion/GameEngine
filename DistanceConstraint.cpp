@@ -86,7 +86,8 @@ void DistanceConstraint::Prepare(std::vector<SolverRow>& rows, float delta) {
 		row.maxLambda = 0;
 	}
 
-	row.lambda = 0.0f;
+	row.lambda = cacheLambda;
+	row.parentConstraint = this;
 
 	rows.push_back(row);
 }

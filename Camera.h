@@ -18,7 +18,7 @@ public:
 	glm::vec3 cameraPos = glm::vec3(0);
 	float cameraSpeed = 2.0f;
 	float cameraRotation = 0.0f;
-	float cameraZoom = 15;
+	float cameraZoom = 5;
 	float delta = 0;
 
 	void Setup();

@@ -9,7 +9,7 @@ void PhysicsEngine::ProcessPhysics(float delta) {
 		return;
 	}
 
-	UnRegisterNormalConstraint();
+	UnRegisterTemporaryConstraint();
 
 	for (int i = 0; i < ForceRegistrations.size(); i++)
 	{
@@ -33,6 +33,8 @@ void PhysicsEngine::ProcessPhysics(float delta) {
 	}
 
 	ResolveConstraints(delta);
+
+	UpdateContactCache();
 
 	for (int i = 0; i < allObjects->size(); i++)
 	{
@@ -89,13 +91,11 @@ void PhysicsEngine::ResolveContacts(PotentialContact* contacts, unsigned numCont
 		Object* objA = contacts[i].obj[0];
 		Object* objB = contacts[i].obj[1];
 
-		if (!objA->HasComponent<PhysicsComponent>()) {
-			Object* temp = objB;
-			objB = objA;
-			objA = temp;
-		}
-
 		if (objA == nullptr || objB == nullptr) continue;
+
+		if (!objA->HasComponent<PhysicsComponent>() || (objB->HasComponent<PhysicsComponent>() && objA > objB)) {
+			std::swap(objA, objB);
+		}
 
 		CollisionData colData = SAT(objA, objB);
 
@@ -107,10 +107,25 @@ void PhysicsEngine::ResolveContacts(PotentialContact* contacts, unsigned numCont
 
 			std::vector<ContactPoint> points = GenerateContactPoints(colData);
 
-			for (int i = 0; i < points.size(); i++)
+			for (int j = 0; j < points.size(); j++)
 			{
-				allContactPoints.push_back(points[i]);
-				ContactConstraint* constraint = new ContactConstraint(objA, objB, points[i].point, points[i].point, points[i].normal, points[i].penetration, 0.2f, 0.4f, 0.6f);
+				allContactPoints.push_back(points[j]);
+
+				float cachedLambda = 0.0f;
+				for (const auto& cached : contactsCache) {
+					if (cached.objectA == objA && cached.objectB == objB &&
+						cached.id.referenceEdgeA == points[j].id.referenceEdgeA &&
+						cached.id.incidentEdgeB == points[j].id.incidentEdgeB &&
+						cached.id.vertexTypeA == points[j].id.vertexTypeA &&
+						cached.id.vertexTypeB == points[j].id.vertexTypeB)
+					{
+						cachedLambda = cached.lambda;
+						break;
+					}
+				}
+
+				ContactConstraint* constraint = new ContactConstraint(objA, objB, points[j].point, points[j].point, points[j].id, points[j].normal, points[j].penetration, 0.2f, 0.4f, 0.6f);
+				constraint->SetInitialImpulse(cachedLambda);
 				RegisterConstraint(constraint);
 			}
 
@@ -130,73 +145,68 @@ std::vector<ContactPoint> PhysicsEngine::GenerateContactPoints(CollisionData col
 	Edge incidentEdgeA = FindMostAntiParallelEdge(collisionData.objAEdges, -collisionData.normal);
 	Edge incidentEdgeB = FindMostAntiParallelEdge(collisionData.objBEdges, collisionData.normal);
 
-	float scoreA = glm::dot(
-		glm::vec3(glm::normalize(referenceEdgeA.end - referenceEdgeA.start).y, -glm::normalize(referenceEdgeA.end - referenceEdgeA.start).x, 0),
-		collisionData.normal
-	);
-	float scoreB = glm::dot(
-		glm::vec3(glm::normalize(referenceEdgeB.end - referenceEdgeB.start).y, -glm::normalize(referenceEdgeB.end - referenceEdgeB.start).x, 0),
-		-collisionData.normal
-	);
+	float scoreA = glm::dot(glm::vec3(glm::normalize(referenceEdgeA.end - referenceEdgeA.start).y, -glm::normalize(referenceEdgeA.end - referenceEdgeA.start).x, 0), collisionData.normal);
+	float scoreB = glm::dot(glm::vec3(glm::normalize(referenceEdgeB.end - referenceEdgeB.start).y, -glm::normalize(referenceEdgeB.end - referenceEdgeB.start).x, 0), -collisionData.normal);
 
-	Edge referenceEdge;
-	Edge incidentEdge;
+	Edge referenceEdge, incidentEdge;
+	bool isA_Reference = true;
+	int refEdgeIdx = 0;
+	int incEdgeIdx = 0;
 
 	if (scoreA > scoreB) {
 		referenceEdge = referenceEdgeA;
 		incidentEdge = incidentEdgeB;
+		isA_Reference = true;
+		for (size_t i = 0; i < collisionData.objAEdges.size(); ++i) if (collisionData.objAEdges[i].start == referenceEdge.start) refEdgeIdx = i;
+		for (size_t i = 0; i < collisionData.objBEdges.size(); ++i) if (collisionData.objBEdges[i].start == incidentEdge.start) incEdgeIdx = i;
 	}
 	else {
 		referenceEdge = referenceEdgeB;
 		incidentEdge = incidentEdgeA;
+		isA_Reference = false;
+		for (size_t i = 0; i < collisionData.objBEdges.size(); ++i) if (collisionData.objBEdges[i].start == referenceEdge.start) refEdgeIdx = i;
+		for (size_t i = 0; i < collisionData.objAEdges.size(); ++i) if (collisionData.objAEdges[i].start == incidentEdge.start) incEdgeIdx = i;
 	}
 
 	glm::vec3 v1 = referenceEdge.start;
 	glm::vec3 v2 = referenceEdge.end;
-
 	glm::vec3 tangent = glm::normalize(v2 - v1);
-	glm::vec3 refNormal = glm::normalize(glm::vec3(tangent.y, -tangent.x, 0));
 
-	// Point refNormal toward the incident edge
-	glm::vec3 refMid = (v1 + v2) * 0.5f;
-	glm::vec3 incMid = (incidentEdge.start + incidentEdge.end) * 0.5f;
-	if (glm::dot(refNormal, incMid - refMid) > 0.0f) {
-		refNormal = -refNormal;
-	}
+	ClipVertex incidentVertices[2];
+	incidentVertices[0].position = incidentEdge.start;
+	incidentVertices[1].position = incidentEdge.end;
 
-	glm::vec3 incidentVertices[2] = { incidentEdge.start, incidentEdge.end };
+	incidentVertices[0].id = { refEdgeIdx, incEdgeIdx, 0, 0 };
+	incidentVertices[1].id = { refEdgeIdx, incEdgeIdx, 1, 0 };
 
-	// Clip left side
-	glm::vec3 clipPoints1[2];
+	ClipVertex clipPoints1[2];
 	glm::vec3 leftNormal = -tangent;
 	float leftOffset = glm::dot(leftNormal, v1);
-
-	int numPoints = ClipSegmentToLine(clipPoints1, incidentVertices, 2, leftNormal, leftOffset);
+	int numPoints = ClipSegmentToLine(clipPoints1, incidentVertices, 2, leftNormal, leftOffset, refEdgeIdx, isA_Reference, 1);
 	if (numPoints < 2) return ContactPoints;
 
-	// Clip right side
-	glm::vec3 clipPoints2[2];
+	ClipVertex clipPoints2[2];
 	glm::vec3 rightNormal = tangent;
 	float rightOffset = glm::dot(rightNormal, v2);
-
-	numPoints = ClipSegmentToLine(clipPoints2, clipPoints1, numPoints, rightNormal, rightOffset);
+	numPoints = ClipSegmentToLine(clipPoints2, clipPoints1, numPoints, rightNormal, rightOffset, refEdgeIdx, isA_Reference, 2);
 	if (numPoints == 0) return ContactPoints;
 
-	glm::vec3 colNormal = collisionData.normal;
-
-	float refOffset = -std::numeric_limits<float>::max();
-	for (const auto& e : collisionData.objBEdges) {
-		refOffset = std::max(refOffset, glm::dot(e.start, colNormal));
-		refOffset = std::max(refOffset, glm::dot(e.end, colNormal));
-	}
-
 	for (int i = 0; i < numPoints; i++) {
-		float depth = refOffset - glm::dot(colNormal, clipPoints2[i]);
+		float depth = 0.0f;
+
+		if (isA_Reference) {
+			depth = glm::dot(collisionData.normal, clipPoints2[i].position - referenceEdge.start);
+		}
+		else {
+			depth = glm::dot(collisionData.normal, referenceEdge.start - clipPoints2[i].position);
+		}
+
 		if (depth >= 0.0f) {
 			ContactPoint cp;
-			cp.point = clipPoints2[i];
+			cp.point = clipPoints2[i].position;
 			cp.penetration = depth;
-			cp.normal = colNormal;
+			cp.normal = collisionData.normal;
+			cp.id = clipPoints2[i].id;
 			ContactPoints.push_back(cp);
 		}
 	}
@@ -259,7 +269,7 @@ CollisionData PhysicsEngine::SAT(Object* objA, Object* objB) {
 		axis.normal = glm::normalize(glm::vec3(tangent.y, -tangent.x, 0));
 		Axes.push_back(axis);
 	}
-	
+
 	CollisionData data = CollisionData();
 	float minOverlap = std::numeric_limits<float>::max();
 	glm::vec3 minAxisNormal = glm::vec3(0);
@@ -356,17 +366,27 @@ Edge PhysicsEngine::FindMostAntiParallelEdge(const std::vector<Edge>& edges, con
 	return best;
 }
 
-int PhysicsEngine::ClipSegmentToLine(glm::vec3 vOut[2], const glm::vec3 vIn[2], int numInPoints, const glm::vec3& normal, float offset) {
+int PhysicsEngine::ClipSegmentToLine(ClipVertex vOut[2], const ClipVertex vIn[2], int numInPoints,
+	const glm::vec3& normal, float offset, int referenceEdgeIndex, bool isA_Reference, int clipPlaneId) {
 	int numOutPoints = 0;
-	float d0 = glm::dot(normal, vIn[0]) - offset;
-	float d1 = glm::dot(normal, vIn[1]) - offset;
+	float d0 = glm::dot(normal, vIn[0].position) - offset;
+	float d1 = glm::dot(normal, vIn[1].position) - offset;
 
 	if (d0 <= 0.0f) vOut[numOutPoints++] = vIn[0];
 	if (d1 <= 0.0f) vOut[numOutPoints++] = vIn[1];
 
 	if ((d0 < 0.0f) != (d1 < 0.0f)) {
 		float t = d0 / (d0 - d1);
-		vOut[numOutPoints < 2 ? numOutPoints++ : 1] = vIn[0] + t * (vIn[1] - vIn[0]);
+		ClipVertex intersectionPoint;
+		intersectionPoint.position = vIn[0].position + t * (vIn[1].position - vIn[0].position);
+
+		intersectionPoint.id.referenceEdgeA = referenceEdgeIndex;
+		intersectionPoint.id.incidentEdgeB = vIn[0].id.incidentEdgeB;
+		intersectionPoint.id.vertexTypeA = vIn[0].id.vertexTypeA; 
+
+		intersectionPoint.id.vertexTypeB = clipPlaneId;
+
+		vOut[numOutPoints < 2 ? numOutPoints++ : 1] = intersectionPoint;
 	}
 
 	return numOutPoints;
@@ -428,11 +448,32 @@ void PhysicsEngine::RegisterConstraint(Constraint* constraint) {
 	registeredConstraints.push_back(constraint);
 }
 
-void PhysicsEngine::UnRegisterNormalConstraint() {
-	for (int i = static_cast<int>(registeredConstraints.size()) - 1; i >= 0; i--) {
-		if (dynamic_cast<ContactConstraint*>(registeredConstraints[i]) != nullptr) {
-			delete registeredConstraints[i]; // Free memory!
-			registeredConstraints.erase(registeredConstraints.begin() + i);
+void PhysicsEngine::UpdateContactCache() {
+	contactsCache.clear();
+
+	for (auto* constraint : registeredConstraints) {
+		if (constraint->isTemporary) {
+			auto* contact = static_cast<ContactConstraint*>(constraint);
+
+			ContactCache entry;
+			entry.objectA = contact->objectA; 
+			entry.objectB = contact->objectB;
+			entry.id = contact->contactId;
+			entry.lambda = contact->cacheLambda;
+
+			contactsCache.push_back(entry);
+		}
+	}
+}
+
+void PhysicsEngine::UnRegisterTemporaryConstraint() {
+	for (auto it = registeredConstraints.begin(); it != registeredConstraints.end(); ) {
+		if ((*it)->isTemporary) {
+			delete* it;
+			it = registeredConstraints.erase(it);
+		}
+		else {
+			++it;
 		}
 	}
 }
@@ -448,7 +489,7 @@ void PhysicsEngine::UnRegisterConstraint(Constraint* constraint) {
 
 void PhysicsEngine::ResolveConstraints(float delta) {
 	std::vector<SolverRow> solverRows;
-	solverRows.reserve(registeredConstraints.size() * 2); 
+	solverRows.reserve(registeredConstraints.size() * 3);
 
 	for (auto* constraint : registeredConstraints) {
 		if (constraint->objectA != nullptr || constraint->objectB != nullptr) {
@@ -456,27 +497,49 @@ void PhysicsEngine::ResolveConstraints(float delta) {
 		}
 	}
 
-	const int velocityIterations = 8;
+	std::vector<int> sortedIndices(solverRows.size());
+	std::iota(sortedIndices.begin(), sortedIndices.end(), 0);
+	std::stable_sort(sortedIndices.begin(), sortedIndices.end(), [&](int a, int b) {
+		return solverRows[a].bias > solverRows[b].bias;
+		});
+
+	for (int idx : sortedIndices) {
+		auto& row = solverRows[idx];
+		if (!row.warmStart || row.lambda == 0.0f) continue;
+		PhysicsComponent* pcA = row.objectA->GetComponent<PhysicsComponent>();
+		PhysicsComponent* pcB = row.objectB->GetComponent<PhysicsComponent>();
+		if (pcA) {
+			pcA->velocity += pcA->inverseMass * row.jacobian.linearA * row.lambda;
+			pcA->angularVelocity += pcA->inverseInertia * row.jacobian.angularA * row.lambda;
+		}
+		if (pcB) {
+			pcB->velocity += pcB->inverseMass * row.jacobian.linearB * row.lambda;
+			pcB->angularVelocity += pcB->inverseInertia * row.jacobian.angularB * row.lambda;
+		}
+	}
+
+	const int velocityIterations = 30;
 	for (int i = 0; i < velocityIterations; i++) {
-		for (size_t j = 0; j < solverRows.size(); j++) {
-			auto& row = solverRows[j];
+		for (int idx : sortedIndices) {
+			auto& row = solverRows[idx];
 			PhysicsComponent* pcA = row.objectA->GetComponent<PhysicsComponent>();
 			PhysicsComponent* pcB = row.objectB->GetComponent<PhysicsComponent>();
 
-			float relativeVelocity = 0.0f;
-			if (pcA) relativeVelocity += glm::dot(row.jacobian.linearA, pcA->velocity) + row.jacobian.angularA * pcA->angularVelocity;
-			if (pcB) relativeVelocity += glm::dot(row.jacobian.linearB, pcB->velocity) + row.jacobian.angularB * pcB->angularVelocity;
+			float relVel = 0.0f;
+			if (pcA) relVel += glm::dot(row.jacobian.linearA, pcA->velocity)
+				+ row.jacobian.angularA * pcA->angularVelocity;
+			if (pcB) relVel += glm::dot(row.jacobian.linearB, pcB->velocity)
+				+ row.jacobian.angularB * pcB->angularVelocity;
 
-			float lambdaRaw = row.effectiveMass * (row.bias - relativeVelocity - row.softnessCFM * row.lambda);
+			float lambdaRaw = row.effectiveMass * (row.bias - relVel - row.softnessCFM * row.lambda);
 			float lambdaOld = row.lambda;
 			row.lambda += lambdaRaw;
 
 			if (row.parentConstraint) {
-				row.parentConstraint->PostIterationClamp(solverRows, static_cast<int>(j), i);
+				row.parentConstraint->PostIterationClamp(solverRows, idx, i);
 			}
 
 			float deltaLambda = row.lambda - lambdaOld;
-
 			if (pcA) {
 				pcA->velocity += pcA->inverseMass * row.jacobian.linearA * deltaLambda;
 				pcA->angularVelocity += pcA->inverseInertia * row.jacobian.angularA * deltaLambda;
@@ -485,6 +548,12 @@ void PhysicsEngine::ResolveConstraints(float delta) {
 				pcB->velocity += pcB->inverseMass * row.jacobian.linearB * deltaLambda;
 				pcB->angularVelocity += pcB->inverseInertia * row.jacobian.angularB * deltaLambda;
 			}
+		}
+	}
+
+	for (auto* constraint : registeredConstraints) {
+		if (constraint->objectA != nullptr || constraint->objectB != nullptr) {
+			constraint->PostSolve(solverRows);
 		}
 	}
 }

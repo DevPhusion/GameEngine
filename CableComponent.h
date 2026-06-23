@@ -2,6 +2,8 @@
 #include "ObjectLinkComponent.h"
 #include "PhysicsEngine.h"
 #include "DistanceConstraint.h"
+#include "RevoluteConstraint.h"
+#include "WeldConstraint.h"
 class CableComponent : public ObjectLinkComponent
 {
 public:
@@ -11,8 +13,10 @@ public:
 	float maxLength;
 	bool retractable;
 
-	DistanceConstraint* constraint = nullptr;
-	
+	//DistanceConstraint* constraint = nullptr;
+	//RevoluteConstraint* constraint = nullptr;
+	WeldConstraint* constraint = nullptr;
+
 	virtual void OnDelete();
 	virtual void ProcessInspectorUI();
 	

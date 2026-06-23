@@ -31,7 +31,9 @@ void CableComponent::ProcessInspectorUI() {
 
 void CableComponent::FillContact() {
 	if (constraint == nullptr) {
-		constraint = new DistanceConstraint(nullptr, nullptr, glm::vec3(0.0f), glm::vec3(0.0f), maxLength);
+		constraint = new WeldConstraint(nullptr, nullptr, glm::vec3(0.0f), glm::vec3(0.0f), 0.0f);
+		//constraint = new RevoluteConstraint(nullptr, nullptr, glm::vec3(0.0f), glm::vec3(0.0f));
+		//constraint = new DistanceConstraint(nullptr, nullptr, glm::vec3(0.0f), glm::vec3(0.0f), maxLength);
 		PhysicsEngine::getInstance().RegisterConstraint(constraint);
 	}
 
@@ -39,6 +41,4 @@ void CableComponent::FillContact() {
 	constraint->objectB = bottomObject;
 	constraint->attachPointA = topConnectPoint;
 	constraint->attachPointB = bottomConnectPoint;
-	constraint->distance = maxLength;
-	constraint->retractable = retractable;
 }

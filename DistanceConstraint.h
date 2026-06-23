@@ -14,7 +14,6 @@ public:
 	bool extendable;
 	bool retractable;
 
-
 	virtual void Prepare(std::vector<SolverRow>& rows, float delta);
 };
 

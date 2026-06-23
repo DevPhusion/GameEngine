@@ -228,6 +228,12 @@
     <ClCompile Include="InfiniteGrid.cpp">
       <Filter>Source Files\Core\Editor</Filter>
     </ClCompile>
+    <ClCompile Include="RevoluteConstraint.cpp">
+      <Filter>Source Files\Core\Physics\Constraint</Filter>
+    </ClCompile>
+    <ClCompile Include="WeldConstraint.cpp">
+      <Filter>Source Files\Core\Physics\Constraint</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stb_image.h">
@@ -382,6 +388,15 @@
     </ClInclude>
     <ClInclude Include="InfiniteGrid.h">
       <Filter>Header Files\Core\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="ContactID.h">
+      <Filter>Header Files\Core\Physics\Collision</Filter>
+    </ClInclude>
+    <ClInclude Include="RevoluteConstraint.h">
+      <Filter>Header Files\Core\Physics\Constraint</Filter>
+    </ClInclude>
+    <ClInclude Include="WeldConstraint.h">
+      <Filter>Header Files\Core\Physics\Constraint</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

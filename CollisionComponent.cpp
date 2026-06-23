@@ -12,6 +12,18 @@ void CollisionComponent::ProcessInspectorUI() {
 
 }
 
+void CollisionComponent::SetEnabled(bool enabled) {
+    if (enabled) {
+        if (!BAHnode) {
+            BAHnode = PhysicsEngine::getInstance().RegisterBoundingAreaNode(parent, boundingCircle);
+        }
+    }
+    else {
+        PhysicsEngine::getInstance().UnRegisterBoundingAreaNode(parent);
+        BAHnode = nullptr;
+    }
+}
+
 void CollisionComponent::OnDelete() {
 	PhysicsEngine::getInstance().UnRegisterBoundingAreaNode(parent);
 }
