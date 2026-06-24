@@ -3,6 +3,7 @@
 WeldConstraint::WeldConstraint(Object* objectA, Object* objectB, glm::vec3 attachPointA, glm::vec3 attachPointB, float angularOffset) :
 	Constraint(objectA, objectB, attachPointA, attachPointB) {
 	this->angularOffset = angularOffset;
+	this->Name = "Weld Constraint";
 }
 
 void WeldConstraint::Prepare(std::vector<SolverRow>& rows, float delta) {
@@ -108,4 +109,12 @@ void WeldConstraint::PostSolve(std::vector<SolverRow>& allRows) {
 	cacheLambda[0] = allRows[xRowOffset].lambda;
 	cacheLambda[1] = allRows[yRowOffset].lambda;
 	cacheLambda[2] = allRows[thetaRowOffset].lambda;
+}
+
+void WeldConstraint::ProcessInspectorUI(Object* parent) {
+	Constraint::ProcessInspectorUI(parent);
+
+	ImGui::Text("Angle offset ");
+	ImGui::SameLine();
+	ImGui::SliderAngle("##AngleOffset", &angularOffset, -180.0f, 180.0f);
 }

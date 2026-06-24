@@ -482,6 +482,7 @@ void PhysicsEngine::UnRegisterConstraint(Constraint* constraint) {
 	for (int i = 0; i < registeredConstraints.size(); i++)
 	{
 		if (registeredConstraints[i] == constraint) {
+			registeredConstraints[i]->Unregister();
 			registeredConstraints.erase(registeredConstraints.begin() + i);
 		}
 	}

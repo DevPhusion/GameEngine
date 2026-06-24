@@ -53,6 +53,7 @@ void Inspector::ProcessWindow() {
 
 		}
 	}
+	ImGui::Dummy(ImVec2(0.0f, 50.0f));
 	
 	ImGui::End();
 	

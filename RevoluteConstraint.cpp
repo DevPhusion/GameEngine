@@ -2,7 +2,7 @@
 
 RevoluteConstraint::RevoluteConstraint(Object* objectA, Object* objectB, glm::vec3 attachPointA, glm::vec3 attachPointB) :
 	Constraint(objectA, objectB, attachPointA, attachPointB) {
-
+	this->Name = "Revolute Constraint";
 }
 
 void RevoluteConstraint::Prepare(std::vector<SolverRow>& rows, float delta) {

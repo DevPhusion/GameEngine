@@ -2,54 +2,106 @@
 #include "Object.h"
 #include "TransformComponent.h"
 #include "PhysicsComponent.h"
+#include <string>
+#include <vector>
 
 struct JacobianRow {
-	glm::vec3 linearA;
-	float angularA;
-	glm::vec3 linearB;
-	float angularB;
+    glm::vec3 linearA;
+    float     angularA;
+    glm::vec3 linearB;
+    float     angularB;
 };
 
 struct SolverRow {
-	JacobianRow jacobian;
-	
-	float effectiveMass = 0.0f;
-	float bias = 0.0f;
-	float lambda = 0.0f;
-	float softnessCFM = 0.0f;
+    JacobianRow jacobian;
 
-	float minLambda = -INFINITY;
-	float maxLambda = INFINITY;
+    float effectiveMass = 0.0f;
+    float bias = 0.0f;
+    float lambda = 0.0f;
+    float softnessCFM = 0.0f;
 
-	Object* objectA = nullptr;
-	Object* objectB = nullptr;
+    float minLambda = -INFINITY;
+    float maxLambda = INFINITY;
 
-	bool warmStart = true;
-	class Constraint* parentConstraint = nullptr; 
+    Object* objectA = nullptr;
+    Object* objectB = nullptr;
+
+    bool warmStart = true;
+    class Constraint* parentConstraint = nullptr;
 };
 
 class Constraint
 {
 public:
-	Constraint(Object* objectA, Object* objectB, glm::vec3 attachPointA, glm::vec3 attachPointB);
-	Constraint() = default;
+    Constraint(Object* objectA, Object* objectB,
+        glm::vec3 attachPointA, glm::vec3 attachPointB);
+    Constraint() = default;
 
-	Object* objectA;
-	Object* objectB;
-	glm::vec3 attachPointA;
-	glm::vec3 attachPointB;
+    Object* objectA = nullptr;
+    Object* objectB = nullptr;
+    glm::vec3 attachPointA = glm::vec3(0.0f);
+    glm::vec3 attachPointB = glm::vec3(0.0f);
 
-	bool isTemporary = false;
-	float cacheLambda = 0.0f;
-	float beta = 0.2f; //Baumgarte bias tuning
+    std::string Name;
+    bool  isTemporary = false;
+    float cacheLambda = 0.0f;
+    float beta = 0.2f; // Baumgarte bias tuning
 
-	void SetInitialImpulse(float lambda) { cacheLambda = lambda; }
-	virtual void Prepare(std::vector<SolverRow>& rows, float delta) = 0;
-	virtual void PostIterationClamp(std::vector<SolverRow>& allRows, int myRowIndex, int velocityIteration) {
-		allRows[myRowIndex].lambda = glm::clamp(allRows[myRowIndex].lambda, allRows[myRowIndex].minLambda, allRows[myRowIndex].maxLambda);
-	}
-	virtual void PostSolve(std::vector<SolverRow>& allRows) {
-		return;
-	}
+    bool canDrawConstraint = true;
+
+    void SetInitialImpulse(float lambda) { cacheLambda = lambda; }
+
+    void Unregister();
+
+    virtual void Prepare(std::vector<SolverRow>& rows, float delta) = 0;
+
+    virtual void PostIterationClamp(std::vector<SolverRow>& allRows,
+        int myRowIndex, int velocityIteration)
+    {
+        allRows[myRowIndex].lambda = glm::clamp(
+            allRows[myRowIndex].lambda,
+            allRows[myRowIndex].minLambda,
+            allRows[myRowIndex].maxLambda);
+    }
+
+    virtual void PostSolve(std::vector<SolverRow>& allRows) {}
+    virtual void ProcessConstraintDisplay();
+    virtual void ProcessMirroredUI();
+    virtual void ProcessInspectorUI(Object* parent);
+
+protected:
+    Object* attachDisplayA = nullptr;
+    Object* attachDisplayB = nullptr;
+    Object* constraintDisplay = nullptr;
+
+    void SetObjectA(Object* obj);
+    void SetObjectB(Object* obj);
+
+    void OnPhysicsModeChanged();
+
+    void DestroyDisplayA();
+    void DestroyDisplayB();
+    void RemoveMirrorFromObjectB();
+
+    void EnsureDisplayA();
+    void EnsureDisplayB();
+
+    void OnObjectATransformChanged();
+    void OnObjectBTransformChanged();
+    void OnDisplayAMoved();
+    void OnDisplayBMoved();
+
+private:
+    Object* CreateConstraintDisplay();
+
+    bool useCenterA = true;
+    bool useCenterB = true;
+    bool posSetA = false;
+    bool posSetB = false;
+
+    int onPhysicsModeChangedCallbackID = -1;
+    int onDeleteCallbackIdA = -1;
+    int onDeleteCallbackIdB = -1;
+    int onTransformCallbackIdA = -1;
+    int onTransformCallbackIdB = -1;
 };
-

@@ -9,6 +9,7 @@ DistanceConstraint::DistanceConstraint(Object* objectA, Object* objectB, glm::ve
 	this->damping = damping;
 	this->extendable = extendable;
 	this->retractable = retractable;
+	this->Name = "Distance Constraint";
 }
 
 void DistanceConstraint::Prepare(std::vector<SolverRow>& rows, float delta) {
@@ -90,4 +91,79 @@ void DistanceConstraint::Prepare(std::vector<SolverRow>& rows, float delta) {
 	row.parentConstraint = this;
 
 	rows.push_back(row);
+}
+
+void DistanceConstraint::ProcessInspectorUI(Object* parent) {
+	Constraint::ProcessInspectorUI(parent);
+
+	ImGui::Text("Distance ");
+	ImGui::SameLine();
+	ImGui::InputFloat("##Distance", &distance, 0.0f, 0.0f, "%.3f m");
+
+	ImGui::Text("Retractable ");
+	ImGui::SameLine();
+	ImGui::Checkbox("##Retractable ", &retractable);
+
+	ImGui::Text("Extendable ");
+	ImGui::SameLine();
+	ImGui::Checkbox("##Extendable ", &extendable);
+}
+
+void DistanceConstraint::ProcessConstraintDisplay() {
+	RenderComponent* rc = constraintDisplay->GetComponent<RenderComponent>();
+	TransformComponent* tc = constraintDisplay->GetComponent<TransformComponent>();
+	if (objectA == nullptr || objectB == nullptr || !canDrawConstraint) {
+		rc->SetEnabled(false);
+		return;
+	}
+
+	glm::vec2 topVert = glm::vec2(0);
+	glm::vec2 botVert = glm::vec2(0);
+
+	glm::vec3 top = objectA->GetComponent<TransformComponent>()->GetTransformedPoint(attachPointA);
+	topVert = tc->GetTransformedPoint(top, true);
+	//Project world -> screen
+	glm::vec3 bot = objectB->GetComponent<TransformComponent>()->GetTransformedPoint(attachPointB);
+	botVert = tc->GetTransformedPoint(bot, true);
+	std::vector<float> vertices = {};
+
+	std::vector<unsigned int> indices = {};
+
+	float thickness = 0.01f;
+
+	glm::vec2 dir = botVert - topVert;
+
+	float length = glm::length(dir);
+	if (length < 0.0001f) return;
+
+	float nx = -dir.y / length;
+	float ny = dir.x / length;
+
+	float halfThickness = thickness * 0.5f;
+	float offsetX = nx * halfThickness;
+	float offsetY = ny * halfThickness;
+
+	unsigned int vertexOffset = vertices.size() / 5;
+
+	vertices.insert(vertices.end(), { topVert.x + offsetX, topVert.y + offsetY, 0.0f, 0.0f, 0.0f });
+	vertices.insert(vertices.end(), { botVert.x + offsetX, botVert.y + offsetY,   0.0f, 1.0f, 0.0f });
+	vertices.insert(vertices.end(), { topVert.x - offsetX, topVert.y - offsetY, 0.0f, 0.0f, 1.0f });
+	vertices.insert(vertices.end(), { botVert.x - offsetX, botVert.y - offsetY,   0.0f, 1.0f, 1.0f });
+
+	indices.push_back(vertexOffset + 0);
+	indices.push_back(vertexOffset + 2);
+	indices.push_back(vertexOffset + 1);
+
+	indices.push_back(vertexOffset + 1);
+	indices.push_back(vertexOffset + 2);
+	indices.push_back(vertexOffset + 3);
+
+	rc->UpdateShape(vertices, indices);
+
+	if (objectA != nullptr && objectB != nullptr) {
+		rc->SetEnabled(true);
+	}
+	else {
+		rc->SetEnabled(false);
+	}
 }

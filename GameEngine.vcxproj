@@ -146,6 +146,7 @@
     <ClCompile Include="CollisionComponent.cpp" />
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="Constraint.cpp" />
+    <ClCompile Include="ConstraintComponent.cpp" />
     <ClCompile Include="DebugCircle.cpp" />
     <ClCompile Include="DebugPoint.cpp" />
     <ClCompile Include="DistanceConstraint.cpp" />
@@ -199,6 +200,7 @@
     <ClInclude Include="CollisionComponent.h" />
     <ClInclude Include="Component.h" />
     <ClInclude Include="Constraint.h" />
+    <ClInclude Include="ConstraintComponent.h" />
     <ClInclude Include="ContactID.h" />
     <ClInclude Include="DebugCircle.h" />
     <ClInclude Include="DebugPoint.h" />

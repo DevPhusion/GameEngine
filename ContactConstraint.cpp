@@ -2,8 +2,12 @@
 #include "PhysicsEngine.h"
 
 ContactConstraint::ContactConstraint(Object* objectA, Object* objectB, glm::vec3 attachPointA, glm::vec3 attachPointB, ContactID id,
-    glm::vec3 normal, float penetration, float restitution, float staticFriction, float dynamicFriction) :
-    Constraint(objectA, objectB, attachPointA, attachPointB) {
+    glm::vec3 normal, float penetration, float restitution, float staticFriction, float dynamicFriction)
+ {
+    this->objectA = objectA;
+    this->objectB = objectB;
+    this->attachPointA = attachPointA;
+    this->attachPointB = attachPointB;
     this->contactId = id;
     this->normal = normal;
     this->penetration = penetration;
