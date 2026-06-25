@@ -3,6 +3,7 @@
 #include "RenderComponent.h"
 #include "TransformComponent.h"
 #include "BoundingCircle.h"
+#include "CollisionLayerMask.h"
 #include "BAHNode.h"
 
 class CollisionComponent : public Component
@@ -14,9 +15,13 @@ public:
 	BoundingCircle boundingCircle;
 	BAHNode<BoundingCircle>* BAHnode;
 
+	uint16_t collisionLayer = static_cast<uint16_t>(CollisionLayer::LAYER_1);
+	uint16_t collisionMask = static_cast<uint16_t>(CollisionMask::LAYER_1);
+
 	virtual void SetEnabled(bool enabled);
 	virtual void OnDelete();
 	virtual void ProcessInspectorUI();
+	void DrawLayerMaskUI(const char* label, uint16_t* layer);
 	void calculateBoundingCircle();
 };
 

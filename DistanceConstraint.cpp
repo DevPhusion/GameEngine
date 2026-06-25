@@ -1,12 +1,9 @@
 #include "DistanceConstraint.h"
 
 DistanceConstraint::DistanceConstraint(Object* objectA, Object* objectB, glm::vec3 attachPointA, glm::vec3 attachPointB, 
-	float distance, float stiffness, float damping, 
-	bool extendable, bool retractable) : 
+	float distance, bool extendable, bool retractable) : 
 	Constraint(objectA, objectB, attachPointA, attachPointB) {
 	this->distance = distance;
-	this->stiffness = stiffness;
-	this->damping = damping;
 	this->extendable = extendable;
 	this->retractable = retractable;
 	this->Name = "Distance Constraint";
@@ -50,29 +47,12 @@ void DistanceConstraint::Prepare(std::vector<SolverRow>& rows, float delta) {
 		k += pcB->inverseMass * glm::length2(jacobian.linearB) + pcB->inverseInertia * (jacobian.angularB * jacobian.angularB);
 	}
 
-	float softnessCFM = 0.0f;
-	float finalBeta = beta;
-
-	if (stiffness > 0.0f && k > 0.0f) {
-		softnessCFM = 1.0f / (delta * (stiffness + delta * damping));
-		finalBeta = delta * stiffness * softnessCFM;
-
-		k += softnessCFM;
-	}
-
 	row.effectiveMass = (k > 0.0f) ? 1.0f / k : 0.0f;
-	row.softnessCFM = softnessCFM;
 
 	float error = currentDistance - distance;
-	float rawBias = (finalBeta / delta) * error;
+	float rawBias = (beta / delta) * error;
 
-	float maxRecoveryVelocity = 5.0f;
-	if (stiffness > 0.0f) {
-		row.bias = rawBias;
-	}
-	else {
-		row.bias = glm::clamp(rawBias, -maxRecoveryVelocity, maxRecoveryVelocity);
-	}
+	row.bias = rawBias;
 
 	row.objectA = objectA;
 	row.objectB = objectB;

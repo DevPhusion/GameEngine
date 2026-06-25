@@ -13,6 +13,9 @@ public:
 	int yRowOffset = 0;
 	int thetaRowOffset = 0;
 
+	virtual void SetObjectA(Object* obj);
+	virtual void SetObjectB(Object* obj);
+
 	virtual void Prepare(std::vector<SolverRow>& rows, float delta);
 	virtual void PostSolve(std::vector<SolverRow>& allRows);
 	virtual void ProcessInspectorUI(Object* parent);

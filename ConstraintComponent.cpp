@@ -4,6 +4,7 @@
 #include "RevoluteConstraint.h"
 #include "DistanceConstraint.h"
 #include "WeldConstraint.h"
+#include "SpringConstraint.h"
 
 ConstraintComponent::ConstraintComponent(Object* parent)
     : Component(parent)
@@ -65,6 +66,12 @@ void ConstraintComponent::ProcessInspectorUI()
         {
             AddConstraint(std::make_shared<DistanceConstraint>(parent, nullptr,
                 parent->GetComponent<RenderComponent>()->GetCenter(), glm::vec3(0.0f), 5.0f));
+            ImGui::CloseCurrentPopup();
+        }
+        if (ImGui::MenuItem("Spring Constraint"))
+        {
+            AddConstraint(std::make_shared<SpringConstraint>(parent, nullptr,
+                parent->GetComponent<RenderComponent>()->GetCenter(), glm::vec3(0.0f), 5.0f, 15.0f, 7.0f));
             ImGui::CloseCurrentPopup();
         }
         if (ImGui::MenuItem("Revolute Constraint"))

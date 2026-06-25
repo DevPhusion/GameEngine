@@ -16,6 +16,7 @@ Constraint::Constraint(Object* objectA, Object* objectB, glm::vec3 attachPointA,
 
     this->constraintDisplay = CreateConstraintDisplay();
     onPhysicsModeChangedCallbackID = EngineManager::getInstance().AddPhysicsModeChangedEvent([this] {OnPhysicsModeChanged();});
+    ProcessConstraintDisplay();
 }
 
 Object* CreateAttachPointDisplay(const std::string& ownerName, const std::string& suffix,
@@ -145,6 +146,8 @@ void Constraint::OnDisplayAMoved()
     if (objectA == nullptr || attachDisplayA == nullptr) return;
     glm::vec3 world = attachDisplayA->GetComponent<TransformComponent>()->GetWorldPosition();
     attachPointA = objectA->GetComponent<TransformComponent>()->ProjectToWorld(world, true);
+
+    ProcessConstraintDisplay();
 }
 
 void Constraint::OnDisplayBMoved()
@@ -152,6 +155,8 @@ void Constraint::OnDisplayBMoved()
     if (objectB == nullptr || attachDisplayB == nullptr) return;
     glm::vec3 world = attachDisplayB->GetComponent<TransformComponent>()->GetWorldPosition();
     attachPointB = objectB->GetComponent<TransformComponent>()->ProjectToWorld(world, true);
+
+    ProcessConstraintDisplay();
 }
 
 void Constraint::OnPhysicsModeChanged() {

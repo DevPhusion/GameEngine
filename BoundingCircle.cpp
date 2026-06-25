@@ -1,8 +1,10 @@
 #include "BoundingCircle.h"
 
-BoundingCircle::BoundingCircle(const glm::vec3 center, float radius) {
+BoundingCircle::BoundingCircle(const glm::vec3 center, float radius, uint16_t collisionLayer, uint16_t collisionMask) {
 	this->center = center;
 	this->radius = radius;
+    this->collisionLayer = collisionLayer;
+    this->collisionMask = collisionMask;
 }
 
 BoundingCircle::BoundingCircle(const BoundingCircle& one, const BoundingCircle& two) {
@@ -27,6 +29,9 @@ BoundingCircle::BoundingCircle(const BoundingCircle& one, const BoundingCircle& 
     else {
         center = one.center;
     }
+
+    collisionLayer = 0xFFFF;
+    collisionMask = 0xFFFF;
 }
 
 float BoundingCircle::getGrowth(const BoundingCircle& other) const {
@@ -36,6 +41,10 @@ float BoundingCircle::getGrowth(const BoundingCircle& other) const {
 }
 
 bool BoundingCircle::overlaps(const BoundingCircle* other) const {
+    if (!layerOverlap(collisionLayer, collisionMask, other->collisionLayer, other->collisionMask)) {
+        return false;
+    }
+
 	float distanceSquared = distance2(center, other->center);
 	return distanceSquared <= (radius + other->radius) * (radius + other->radius);
 }

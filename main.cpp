@@ -39,14 +39,30 @@ int main() {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	GLFWwindow* window = glfwCreateWindow(1920, 1080, "Game engine", NULL, NULL);
-	if (window == NULL) {
-		std::cout << "Failed to create GLFW window" << std::endl;
-		glfwTerminate();
-		return 0;
-	}
+	/*
+	GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+	const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+
+	glfwWindowHint(GLFW_RED_BITS, mode->redBits);
+	glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
+	glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
+	glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
+
+	GLFWwindow* window = glfwCreateWindow(
+		mode->width, mode->height, "Fusion physics", monitor, NULL
+	);
+	*/
+	GLFWwindow* window = glfwCreateWindow(1920, 1080, "Fusion physics", NULL, NULL);
 	glfwMakeContextCurrent(window);
 	gladLoadGL();
+
+	GLFWimage images[1];
+	images[0].pixels = stbi_load("engineIcon.png", &images[0].width, &images[0].height, 0, 4); // Forces RGBA channels
+
+	if (images[0].pixels) {
+		glfwSetWindowIcon(window, 1, images);
+		stbi_image_free(images[0].pixels); // Clean up memory safely after setting
+	}
 
 	EditorManager::getInstance().Setup(window);
 

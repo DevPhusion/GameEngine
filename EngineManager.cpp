@@ -2,7 +2,7 @@
 
 void EngineManager::Setup(GLFWwindow* window) {
 	int windowWidth, windowHeight;
-	glfwGetWindowSize(window, &windowWidth, &windowHeight);
+	glfwGetFramebufferSize(window, &windowWidth, &windowHeight);
 	this->windowWidth = (float)windowWidth;
 	this->windowHeight = (float)windowHeight;
 	this->aspectRatio = this->windowWidth / this->windowHeight;

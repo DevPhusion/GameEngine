@@ -64,6 +64,9 @@ public:
             allRows[myRowIndex].maxLambda);
     }
 
+    virtual void SetObjectA(Object* obj);
+    virtual void SetObjectB(Object* obj);
+
     virtual void PostSolve(std::vector<SolverRow>& allRows) {}
     virtual void ProcessConstraintDisplay();
     virtual void ProcessMirroredUI();
@@ -73,9 +76,6 @@ protected:
     Object* attachDisplayA = nullptr;
     Object* attachDisplayB = nullptr;
     Object* constraintDisplay = nullptr;
-
-    void SetObjectA(Object* obj);
-    void SetObjectB(Object* obj);
 
     void OnPhysicsModeChanged();
 

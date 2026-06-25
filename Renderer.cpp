@@ -44,7 +44,7 @@ void Renderer::Draw() {
         BAHNode<BoundingCircle>* bvhRoot = &PhysicsEngine::getInstance().root;
 
         glLineWidth(2.0f);
-        //bvhRoot->DrawBoundingArea();
+        bvhRoot->DrawBoundingArea();
 
         for (int i = 0; i < PhysicsEngine::getInstance().allContactPoints.size(); i++)
         {

@@ -71,11 +71,11 @@ void InputManager::OnCursorPosition(GLFWwindow* window, double xpos, double ypos
 
 	double mouseX, mouseY;
 	glfwGetCursorPos(window, &mouseX, &mouseY);
-	int windowWidth, windowHeight;
-	glfwGetWindowSize(window, &windowWidth, &windowHeight);
-	glX = (2.0f * static_cast<float>(mouseX) / windowWidth) - 1.0f;
-	glY = 1.0f - (2.0f * static_cast<float>(mouseY) / windowHeight);
 
+	int windowWidth, windowHeight;
+	glfwGetFramebufferSize(window, &windowWidth, &windowHeight); // ← change this
+	glX = (2.0f * static_cast<float>(xpos) / windowWidth) - 1.0f;
+	glY = 1.0f - (2.0f * static_cast<float>(ypos) / windowHeight);
 	glX = glX * EngineManager::getInstance().aspectRatio;
 
 	std::vector<std::pair<std::vector<int>, std::function<void(double, double)>>> sortedCalls;

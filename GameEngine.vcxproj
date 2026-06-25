@@ -139,8 +139,6 @@
   <ItemGroup>
     <ClCompile Include="AddObjectWindow.cpp" />
     <ClCompile Include="BoundingCircle.cpp" />
-    <ClCompile Include="Cable.cpp" />
-    <ClCompile Include="CableComponent.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="BAHNode.cpp" />
     <ClCompile Include="CollisionComponent.cpp" />
@@ -173,7 +171,6 @@
     <ClCompile Include="MouseInteractComponent.cpp" />
     <ClCompile Include="ContactConstraint.cpp" />
     <ClCompile Include="Object.cpp" />
-    <ClCompile Include="ObjectLinkComponent.cpp" />
     <ClCompile Include="ObjectManager.cpp" />
     <ClCompile Include="PhysicsComponent.cpp" />
     <ClCompile Include="PhysicsEngine.cpp" />
@@ -182,8 +179,7 @@
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RevoluteConstraint.cpp" />
     <ClCompile Include="Shader.cpp" />
-    <ClCompile Include="Spring.cpp" />
-    <ClCompile Include="SpringComponent.cpp" />
+    <ClCompile Include="SpringConstraint.cpp" />
     <ClCompile Include="stb_image.cpp" />
     <ClCompile Include="TransformComponent.cpp" />
     <ClCompile Include="VertexComponent.cpp" />
@@ -193,11 +189,10 @@
   <ItemGroup>
     <ClInclude Include="AddObjectWindow.h" />
     <ClInclude Include="BoundingCircle.h" />
-    <ClInclude Include="Cable.h" />
-    <ClInclude Include="CableComponent.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="BAHNode.h" />
     <ClInclude Include="CollisionComponent.h" />
+    <ClInclude Include="CollisionLayerMask.h" />
     <ClInclude Include="Component.h" />
     <ClInclude Include="Constraint.h" />
     <ClInclude Include="ConstraintComponent.h" />
@@ -230,17 +225,16 @@
     <ClInclude Include="MouseInteractComponent.h" />
     <ClInclude Include="ContactConstraint.h" />
     <ClInclude Include="Object.h" />
-    <ClInclude Include="ObjectLinkComponent.h" />
     <ClInclude Include="ObjectManager.h" />
     <ClInclude Include="PhysicsComponent.h" />
     <ClInclude Include="PhysicsEngine.h" />
     <ClInclude Include="Polygon.h" />
     <ClInclude Include="RenderComponent.h" />
     <ClInclude Include="Renderer.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="RevoluteConstraint.h" />
     <ClInclude Include="Shader.h" />
-    <ClInclude Include="Spring.h" />
-    <ClInclude Include="SpringComponent.h" />
+    <ClInclude Include="SpringConstraint.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="TransformComponent.h" />
     <ClInclude Include="VertexComponent.h" />
@@ -254,11 +248,16 @@
     <Text Include="vertex.txt" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="engineIcon.ico" />
+    <Image Include="engineIcon.png" />
     <Image Include="face.jpg" />
     <Image Include="floor.png" />
     <Image Include="floorTiled.png" />
     <Image Include="red.jpg" />
     <Image Include="wall.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="GameEngine.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
