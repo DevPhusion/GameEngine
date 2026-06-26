@@ -10,18 +10,13 @@ void ObjectManager::ProcessObjects(float delta) {
 void ObjectManager::AddObject() {
 	std::unique_ptr<Object> obj = std::make_unique<Object>(Shader("vertex.txt", "fragment.txt"));
 
-	float sizeY = 0.01f;
-	float sizeX = 0.01f;
-
-	std::vector<float> vertices = {
-		- sizeX, - sizeY, 0.0f, 0.0f, 0.0f,
-		+ sizeX, - sizeY, 0.0f, 1.0f, 0.0f,
-		+ sizeX, + sizeY, 0.0f, 1.0f, 1.0f,
-		- sizeX, + sizeY, 0.0f, 0.0f, 1.0f
-	};
-
-	obj->AddComponent(std::make_unique<RenderComponent>(obj.get(), vertices, obj.get()->shader, "floorTiled.png"));
+	obj->AddComponent(std::make_unique<RenderComponent>(obj.get(), std::vector<float> {}, obj.get()->shader, "floorTiled.png"));
+	RectangleShape shape = RectangleShape();
 	obj->AddComponent(std::make_unique<TransformComponent>(obj.get(), obj.get()->shader, obj.get()->GetComponent<RenderComponent>()->GetCenter()));
+	shape.center = obj->GetComponent<TransformComponent>()->GetWorldPosition();
+	shape.width = 0.1f;
+	shape.height = 0.1f;
+	obj->GetComponent<RenderComponent>()->SetShape(shape);
 	obj->AddComponent(std::make_unique<MouseInteractComponent>(obj.get(), false));
 	obj->AddComponent(std::make_unique<CollisionComponent>(obj.get()));
 
@@ -31,6 +26,12 @@ void ObjectManager::AddObject() {
 void ObjectManager::AddPolygon() {
 	if (vertexPoints.size() < 3) {
 		std::cout << "Invalid polygon" << std::endl;
+		for (int i = 0; i < vertexPoints.size(); i++)
+		{
+			RemoveObject(vertexPoints[i]);
+		}
+		vertexPoints.clear();
+		vertices.clear();
 		return;
 	}
 
@@ -42,7 +43,15 @@ void ObjectManager::AddPolygon() {
 
 	pc->inverseMass = 1;
 
-	vc->SetVertexPoints(vertexPoints);
+	if (vc) {
+		vc->SetVertexPoints(vertexPoints);
+	}
+	else {
+		for (int i = 0; i < vertexPoints.size(); i++)
+		{
+			vertexPoints[i]->GetComponent<RenderComponent>()->SetEnabled(false);
+		}
+	}
 	tc->SetOriginTransform(Camera::getInstance().viewMatrixInverse);
 	allObjects.push_back(std::move(poly));
 	vertices.clear();

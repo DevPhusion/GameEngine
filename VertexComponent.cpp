@@ -1,9 +1,11 @@
 #include "VertexComponent.h"
+#include "ObjectManager.h"
 
 bool VertexComponent::vertexSelected = false;
 
 VertexComponent::VertexComponent(Object* parent) : Component(parent) {
 	Name = "Vertex Component";
+	Hidden = true;
 }
 
 void VertexComponent::SetEnabled(bool enabled) {
@@ -19,6 +21,15 @@ void VertexComponent::SetEnabled(bool enabled) {
 	}
 }
 
+void VertexComponent::RemoveAllVertex() {
+	for (int i = 0; i < vertexPoints.size(); i++)
+	{
+		ObjectManager::getInstance().RemoveObject(vertexPoints[i]);
+	}
+
+	vertexPoints.clear();
+}
+
 void VertexComponent::ProcessInspectorUI() {
 	if (!this->parent->GetComponent<TransformComponent>()->Enabled) {
 		SetEnabled(false);
@@ -31,7 +42,6 @@ void VertexComponent::OnDelete() {
 }
 
 int VertexComponent::GetSelectedVertex() {
-
 	for (int i = 0; i < vertexPoints.size(); i++)
 	{
 		glm::vec3 center = vertexPoints[i]->GetComponent<TransformComponent>()->GetTransformedPoint(glm::vec3(vertexPoints[i]->x, vertexPoints[i]->y, 0));
@@ -83,11 +93,17 @@ void VertexComponent::DragPoint(double xpos, double ypos) {
 			newVertices[selectedIndex * 5 + 1] = pos.y;
 			
 			RenderComponent* render = parent->GetComponent<RenderComponent>();
-			render->UpdateShape(newVertices, render->Triangulate(newVertices));
+			PolygonShape poly = PolygonShape();
+			poly.vertices = newVertices;
+			render->SetShape(poly);
 			parent->GetComponent<TransformComponent>()->SetRotationCenter(render->GetCenter());
 
 			vertexPoints[selectedIndex]->UpdatePosition(pos.x, pos.y);
 			this->parent->GetComponent<TransformComponent>()->UpdateWorldPosition(this->parent->GetComponent<TransformComponent>()->GetWorldPosition());
+			PhysicsComponent* pc = this->parent->GetComponent<PhysicsComponent>();
+			if (pc) {
+				pc->CalculateInertia();
+			}
 		}
 	}
 	else {

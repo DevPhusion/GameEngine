@@ -14,6 +14,7 @@ public:
 
 	Object* parent;
 	bool Enabled = true;
+	bool Hidden = false;
 	std::string Name;
 	virtual void SetEnabled(bool enabled);
 	virtual void ProcessInspectorUI() = 0;

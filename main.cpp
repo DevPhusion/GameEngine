@@ -52,6 +52,7 @@ int main() {
 		mode->width, mode->height, "Fusion physics", monitor, NULL
 	);
 	*/
+
 	GLFWwindow* window = glfwCreateWindow(1920, 1080, "Fusion physics", NULL, NULL);
 	glfwMakeContextCurrent(window);
 	gladLoadGL();
@@ -76,7 +77,7 @@ int main() {
 	Camera::getInstance().Setup();
 	renderer.SetupGrid();
 
-	float prev_t = 0;
+	float prev_t = glfwGetTime(); 
 	float physicsAccumulator = 0.0f;
 	const float PHYSICS_STEP = 1.0f / 60.0f;
 
@@ -85,24 +86,25 @@ int main() {
 
 		float now = glfwGetTime();
 		float delta = now - prev_t;
-		prev_t = now;
+		prev_t = now; 
+
 		if (delta > 0.1f) delta = 0.1f;
 		physicsAccumulator += delta;
+
 		Camera::getInstance().ProcessCamera(delta);
+
 		while (physicsAccumulator >= PHYSICS_STEP) {
 			PhysicsEngine::getInstance().ProcessPhysics(PHYSICS_STEP);
 			physicsAccumulator -= PHYSICS_STEP;
 		}
+
 		EngineManager::getInstance().ProcessEngine(delta);
 		ObjectManager::getInstance().ProcessObjects(delta);
-		prev_t = glfwGetTime();
 
 		glad_glClearColor(0.235f, 0.239f, 0.216f, 1.0f);
-		//glad_glClearColor(1, 1, 1, 1);
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		renderer.Draw();
-
 		EditorManager::getInstance().ProcessEditor();
 
 		glfwSwapBuffers(window);

@@ -1,8 +1,13 @@
 #include "RenderComponent.h"
+#include "VertexComponent.h"
+#include "ObjectManager.h"
 
 RenderComponent::RenderComponent(Object* parent, std::vector<float> vertices, Shader shader, std::string texture_path) : Component(parent) {
 	Name = "Render Component";
 
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	
 	Vertices = vertices;
 	Indices = Triangulate(vertices);
 	this->shader = shader;
@@ -58,6 +63,36 @@ RenderComponent::RenderComponent(Object* parent, std::vector<float> vertices, Sh
 	SetTexture(texture_path);
 }
 
+void RenderComponent::SetShape(Shape shape) {
+	currentShape = shape;
+	auto verts = VerticesFromShape(shape);
+
+	if (std::holds_alternative<CircleShape>(shape)) {
+		auto& circle = std::get<CircleShape>(shape);
+
+		UpdateShape(verts, TriangulateCircle(circle.segments)); 
+
+		edges.clear();
+		TransformComponent* tc = parent->HasComponent<TransformComponent>()
+			? parent->GetComponent<TransformComponent>() : nullptr;
+
+		int ps = circle.physicsSegments;
+		for (int i = 0; i < ps; i++) {
+			float theta1 = 2.0f * glm::pi<float>() * float(i) / float(ps);
+			float theta2 = 2.0f * glm::pi<float>() * float(i + 1) / float(ps);
+			glm::vec3 wp1 = circle.center + glm::vec3(circle.radius * std::cos(theta1), circle.radius * std::sin(theta1), 0.0f);
+			glm::vec3 wp2 = circle.center + glm::vec3(circle.radius * std::cos(theta2), circle.radius * std::sin(theta2), 0.0f);
+			Edge e;
+			e.start = tc ? tc->ProjectToWorld(wp1, true) : wp1;
+			e.end = tc ? tc->ProjectToWorld(wp2, true) : wp2;
+			edges.push_back(e);
+		}
+	}
+	else {
+		UpdateShape(verts, Triangulate(verts));
+	}
+}
+
 void RenderComponent::SetTexture(std::string texture_path) {
 	this->texture_path = texture_path;
 	int width, height, nrChannels;
@@ -89,6 +124,7 @@ void RenderComponent::SetTexture(std::string texture_path) {
 
 
 void RenderComponent::Draw() {
+	
 	this->shader.use();
 	if (!Enabled)
 		return;
@@ -110,7 +146,21 @@ float calcTriangleArea(std::vector<float> a, std::vector<float> b, std::vector<f
 	return 0.5f * std::abs((a[0] * (b[1] - c[1]) + b[0] * (c[1] - a[1]) + c[0] * (a[1] - b[1])));
 }
 
+std::vector<unsigned int> RenderComponent::TriangulateCircle(int segments) {
+	std::vector<unsigned int> indices;
+	for (int i = 0; i < segments; i++) {
+		indices.push_back(i);
+		indices.push_back((i + 1) % segments);
+		indices.push_back(segments); 
+	}
+	return indices;
+}
+
 std::vector<unsigned int> RenderComponent::Triangulate(std::vector<float> vertices) {
+	if (vertices.size() == 0) {
+		return {};
+	}
+
 	points.clear();
 	for (int i = 0; i < vertices.size(); i += 2)
 	{
@@ -189,6 +239,66 @@ std::vector<unsigned int> RenderComponent::Triangulate(std::vector<float> vertic
 	return indices;
 }
 
+std::vector<float> RenderComponent::VerticesFromShape(Shape& shape) {
+	return std::visit([this](auto&& s) -> std::vector<float> {
+		using T = std::decay_t<decltype(s)>;
+
+		if constexpr (std::is_same_v<T, PolygonShape>) {
+			return s.vertices;
+		}
+		else if constexpr (std::is_same_v<T, RectangleShape>) {
+			float hw = s.width * 0.5f;
+			float hh = s.height * 0.5f;
+
+			std::array<glm::vec3, 4> worldCorners = {
+				s.center + glm::vec3(-hw, -hh, 0.0f),
+				s.center + glm::vec3(hw, -hh, 0.0f),
+				s.center + glm::vec3(hw,  hh, 0.0f),
+				s.center + glm::vec3(-hw,  hh, 0.0f),
+			};
+
+			std::array<glm::vec2, 4> uvs = {
+				glm::vec2(0,0), glm::vec2(1,0), glm::vec2(1,1), glm::vec2(0,1)
+			};
+
+			TransformComponent* tc = parent->HasComponent<TransformComponent>()
+				? parent->GetComponent<TransformComponent>() : nullptr;
+
+			std::vector<float> verts;
+			for (int i = 0; i < 4; i++) {
+				glm::vec3 p = tc ? tc->ProjectToWorld(worldCorners[i], true) : worldCorners[i];
+				verts.insert(verts.end(), { p.x, p.y, 0.0f, uvs[i].x, uvs[i].y });
+			}
+			return verts;
+		}
+		else if constexpr (std::is_same_v<T, CircleShape>) {
+			TransformComponent* tc = parent->HasComponent<TransformComponent>()
+				? parent->GetComponent<TransformComponent>() : nullptr;
+
+			std::vector<float> verts;
+			for (int i = 0; i < s.segments; ++i) {
+				float theta = 2.0f * glm::pi<float>() * float(i) / float(s.segments);
+
+				glm::vec3 worldPoint = s.center + glm::vec3(
+					s.radius * std::cos(theta),
+					s.radius * std::sin(theta),
+					0.0f
+				);
+
+				glm::vec3 p = tc ? tc->ProjectToWorld(worldPoint, true) : worldPoint;
+
+				float u = (std::cos(theta) + 1.0f) * 0.5f;
+				float v = (std::sin(theta) + 1.0f) * 0.5f;
+				verts.insert(verts.end(), { p.x, p.y, 0.0f, u, v });
+			}
+			glm::vec3 centerLocal = tc ? tc->ProjectToWorld(s.center, true) : s.center;
+			verts.insert(verts.end(), { centerLocal.x, centerLocal.y, 0.0f, 0.5f, 0.5f });
+
+			return verts;
+		}
+		}, shape);
+}
+
 float RenderComponent::GetArea() {
 	float totalArea = 0;
 	for (int i = 0; i < Indices.size(); i+=3)
@@ -216,7 +326,6 @@ glm::vec3 RenderComponent::GetCenter() {
 
 	A = A / 2.0;
 	if (A == 0) {
-		std::cout << "Error calculating polygon center";
 		return glm::vec3(0, 0, 0);
 	}
 
@@ -231,25 +340,18 @@ void RenderComponent::UpdateShape(std::vector<float> vertices, std::vector<unsig
 	Indices = indices;
 
 	points.clear();
-	edges.clear();
-	for (int i = 0; i < vertices.size(); i += 2)
-	{
-		points.push_back(std::vector<float> {
-			vertices[i],
-				vertices[i + 1],
-				float(int(i / 5))
-		});
-		i += 3;
+	for (int i = 0; i < vertices.size(); i += 5) {
+		points.push_back({ vertices[i], vertices[i + 1], float(i / 5) });
 	}
 
-	for (int i = 0; i < points.size(); i++)
-	{
-		glm::vec3 p1 = glm::vec3(points[i][0], points[i][1], 0);
-		glm::vec3 p2 = glm::vec3(points[(i + 1) % points.size()][0], points[(i + 1) % points.size()][1], 0);
-		Edge edge = Edge();
-		edge.start = p1;
-		edge.end = p2;
-		edges.push_back(edge);
+	if (!std::holds_alternative<CircleShape>(currentShape)) {
+		edges.clear();
+		for (int i = 0; i < points.size(); i++) {
+			Edge edge;
+			edge.start = glm::vec3(points[i][0], points[i][1], 0);
+			edge.end = glm::vec3(points[(i + 1) % points.size()][0], points[(i + 1) % points.size()][1], 0);
+			edges.push_back(edge);
+		}
 	}
 
 	glBindVertexArray(this->VAO);
@@ -279,59 +381,260 @@ bool RenderComponent::IsInsideShape(glm::vec3 point) {
 }
 
 void RenderComponent::ProcessInspectorUI() {
-	ImGui::Text("Texture ");
-	char selected_texture_path[128] = "None (Click to choose...)";
-
-	if (texture_path != "") {
+	ImGui::Text("Texture");
+	ImGui::SameLine();
+	char selected_texture_path[128] = "None (click to choose...)";
+	if (!texture_path.empty()) {
 #if defined(_MSC_VER)
 		strcpy_s(selected_texture_path, texture_path.c_str());
 #else
-		strncpy(selected_texture_path, texture_path.c_str(), sizeof(selected_item_name_top) - 1);
+		strncpy(selected_texture_path, texture_path.c_str(), sizeof(selected_texture_path) - 1);
 #endif
 	}
-
-	ImGui::SameLine();
-	ImGui::InputText("##Texture path select field", selected_texture_path, IM_ARRAYSIZE(selected_texture_path), ImGuiInputTextFlags_ReadOnly);
-
-	if (ImGui::IsItemHovered()) {
-		ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
-	}
-
-
+	ImGui::InputText("##Texture path", selected_texture_path, IM_ARRAYSIZE(selected_texture_path), ImGuiInputTextFlags_ReadOnly);
+	if (ImGui::IsItemHovered()) ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
 	if (ImGui::IsItemClicked()) {
 		IGFD::FileDialogConfig config;
 		config.path = ".";
 		config.countSelectionMax = 1;
-		ImGuiFileDialog::Instance()->OpenDialog("Choose Texture Window", "Choose Texture", ".png,.jpeg", config);
+		ImGuiFileDialog::Instance()->OpenDialog("ChooseTexture", "Choose Texture", ".png,.jpeg", config);
 	}
-
 	if (!initialized) {
-		auto places_ptr = ImGuiFileDialog::Instance()->GetPlacesGroupPtr("Devices");
-		if (places_ptr != nullptr) {
-			places_ptr->AddPlace("D: ", "D:\\", true);
-			initialized = true;
-		}
+		auto* places = ImGuiFileDialog::Instance()->GetPlacesGroupPtr("Devices");
+		if (places) { places->AddPlace("D: ", "D:\\", true); initialized = true; }
 	}
-
-	if (ImGuiFileDialog::Instance()->Display("Choose Texture Window", 32, ImVec2(100, 200))) {
-		if (ImGuiFileDialog::Instance()->IsOk()) {
-			std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-			std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
-			SetTexture(filePathName);
-		}
-
+	if (ImGuiFileDialog::Instance()->Display("ChooseTexture", 32, ImVec2(100, 200))) {
+		if (ImGuiFileDialog::Instance()->IsOk())
+			SetTexture(ImGuiFileDialog::Instance()->GetFilePathName());
 		ImGuiFileDialog::Instance()->Close();
 	}
 
-	ImGui::Text("Color ");
+	ImGui::Separator();
+
+	ImGui::Text("Color");
+	ImGui::SameLine();
 	float displayColor[4] = { color.x, color.y, color.z, color.a };
-	if (ImGui::ColorPicker4("##Color ", displayColor)) {
+	if (ImGui::ColorEdit4("##Color", displayColor))
 		this->color = glm::vec4(displayColor[0], displayColor[1], displayColor[2], displayColor[3]);
+
+	ImGui::Separator();
+
+	ImGui::Text("Shape");
+	ImGui::SameLine();
+
+	const char* shapeLabel = std::visit([](auto&& s) -> const char* {
+		using T = std::decay_t<decltype(s)>;
+		if constexpr (std::is_same_v<T, RectangleShape>) return "Rectangle";
+		else if constexpr (std::is_same_v<T, CircleShape>)  return "Circle";
+		else                                                  return "Polygon";
+		}, currentShape);
+
+	if (ImGui::BeginCombo("##ShapeSelect", shapeLabel)) {
+		if (ImGui::Selectable("Rectangle", std::holds_alternative<RectangleShape>(currentShape))) {
+			RectangleShape rect;
+			rect.width = rect.height = 1.0f;
+			TransformComponent* tc = parent->GetComponent<TransformComponent>();
+			rect.center = tc ? tc->GetWorldPosition() : GetCenter();
+
+			VertexComponent* vc = parent->GetComponent<VertexComponent>();
+			if (vc) {
+				vc->SetEnabled(false);
+				vc->RemoveAllVertex();
+			}
+
+			SetShape(rect);
+		}
+		if (ImGui::Selectable("Circle", std::holds_alternative<CircleShape>(currentShape))) {
+			CircleShape cir;
+			cir.radius = 1.0f;
+			TransformComponent* tc = parent->GetComponent<TransformComponent>();
+			cir.center = tc ? tc->GetWorldPosition() : GetCenter();
+
+			VertexComponent* vc = parent->GetComponent<VertexComponent>();
+			if (vc) {
+				vc->SetEnabled(false);
+				vc->RemoveAllVertex();
+			}
+
+			SetShape(cir);
+		}
+		if (ImGui::Selectable("Polygon", std::holds_alternative<PolygonShape>(currentShape))) {
+			PolygonShape poly;
+			poly.vertices = {};
+
+			VertexComponent* vc = parent->GetComponent<VertexComponent>();
+			if (vc) {
+				vc->SetEnabled(true);
+				vc->RemoveAllVertex();
+			}
+			else {
+				parent->AddComponent(std::make_unique<VertexComponent>(parent));
+				vc = parent->GetComponent<VertexComponent>();
+				vc->RemoveAllVertex();
+			}
+
+			SetShape(poly);
+
+			EngineManager::getInstance().SwitchInteractMode(EngineManager::InteractMode::AddVertex);
+			isAddVertex = true;
+		}
+		ImGui::EndCombo();
 	}
 
-	ImGui::Text("Z index ");
+	std::visit([this](auto&& s) {
+		using T = std::decay_t<decltype(s)>;
+
+		if constexpr (std::is_same_v<T, RectangleShape>) {
+			float dims[2] = { s.width, s.height };
+			ImGui::Text("  Size");
+			ImGui::SameLine();
+			if (ImGui::InputFloat2("##RectSize", dims, "%.3f m")) {
+				s.width = std::max(0.01f, dims[0]);
+				s.height = std::max(0.01f, dims[1]);
+				TransformComponent* tc = parent->GetComponent<TransformComponent>();
+				s.center = tc ? tc->GetWorldPosition() : GetCenter();
+				SetShape(s);
+			}
+		}
+		else if constexpr (std::is_same_v<T, CircleShape>) {
+			auto updateCenter = [&]() {
+				TransformComponent* tc = parent->GetComponent<TransformComponent>();
+				s.center = tc ? tc->GetWorldPosition() : GetCenter();
+				};
+
+			float r = s.radius;
+			ImGui::Text("  Radius");
+			ImGui::SameLine();
+			if (ImGui::InputFloat("##CircleRadius", &r, 0.0f, 0.0f, "%.3f m"))
+			{
+				s.radius = std::max(0.01f, r); updateCenter(); SetShape(s);
+			}
+
+			int seg = s.segments;
+			ImGui::Text("  Segments");
+			ImGui::SameLine();
+			if (ImGui::InputInt("##CircleSeg", &seg))
+			{
+				s.segments = std::max(3, seg); updateCenter(); SetShape(s);
+			}
+
+			int pseg = s.physicsSegments;
+			ImGui::Text("  Sim Seg");
+			ImGui::SameLine();
+			if (ImGui::InputInt("##CirclePhysSeg", &pseg))
+			{
+				s.physicsSegments = std::max(3, pseg); updateCenter(); SetShape(s);
+			}
+		}
+		else if constexpr (std::is_same_v<T, PolygonShape>) {
+			if (!isAddVertex) {
+				if (ImGui::Button("Reset vertices##PolyReset"))
+				{
+					s.vertices = {};
+					VertexComponent* vc = parent->GetComponent<VertexComponent>();
+					if (vc) {
+						vc->RemoveAllVertex();
+					}
+					SetShape(s);
+					EngineManager::getInstance().SwitchInteractMode(EngineManager::InteractMode::AddVertex);
+					isAddVertex = true;
+				}
+			}
+			else {
+				ImGui::Text("Click on the screen to add vertices");
+				if (ImGui::Button("Confirm")) {
+					if (ObjectManager::getInstance().vertexPoints.size() < 3) return;
+
+					parent->GetComponent<VertexComponent>()->SetVertexPoints(ObjectManager::getInstance().vertexPoints);
+					EngineManager::getInstance().SwitchInteractMode(EngineManager::InteractMode::EditorSelect);
+
+					s.vertices = ObjectManager::getInstance().vertices;
+					SetShape(s);
+					TransformComponent* tc = parent->GetComponent<TransformComponent>();
+					tc->SetRotationCenter(GetCenter());
+					tc->SetOriginTransform(Camera::getInstance().viewMatrixInverse);
+
+					ObjectManager::getInstance().vertexPoints.clear();
+					ObjectManager::getInstance().vertices.clear();
+					isAddVertex = false;
+				}
+			}
+		}
+		}, currentShape);
+
+	// Mini preview
+	ImGui::Spacing();
+	ImGui::Text("Preview");
+
+	const ImVec2 previewSize(100.0f, 100.0f);
+	ImVec2 pos = ImGui::GetCursorScreenPos();
+	ImDrawList* draw = ImGui::GetWindowDrawList();
+	ImU32 fillCol = ImGui::ColorConvertFloat4ToU32(ImVec4(color.x, color.y, color.z, color.a));
+	ImU32 outlineCol = IM_COL32(160, 160, 160, 200);
+
+	draw->AddRectFilled(pos, ImVec2(pos.x + previewSize.x, pos.y + previewSize.y), IM_COL32(40, 40, 40, 255), 4.0f);
+
+	std::visit([&](auto&& s) {
+		using T = std::decay_t<decltype(s)>;
+		const float cx = pos.x + previewSize.x * 0.5f;
+		const float cy = pos.y + previewSize.y * 0.5f;
+
+		if constexpr (std::is_same_v<T, RectangleShape>) {
+			float aspect = (s.height > 0.f) ? s.width / s.height : 1.f;
+			float hw, hh;
+			const float maxHalf = previewSize.x * 0.4f;
+			if (aspect >= 1.f) { hw = maxHalf; hh = maxHalf / aspect; }
+			else { hh = maxHalf; hw = maxHalf * aspect; }
+			draw->AddRectFilled({ cx - hw, cy - hh }, { cx + hw, cy + hh }, fillCol);
+			draw->AddRect({ cx - hw, cy - hh }, { cx + hw, cy + hh }, outlineCol, 0.0f, 0, 1.5f);
+		}
+		else if constexpr (std::is_same_v<T, CircleShape>) {
+			const float r = previewSize.x * 0.38f;
+			draw->AddCircleFilled({ cx, cy }, r, fillCol, s.segments);
+			draw->AddCircle({ cx, cy }, r, outlineCol, s.segments, 1.5f);
+			draw->AddCircle({ cx, cy }, r, IM_COL32(80, 140, 255, 140), s.physicsSegments, 1.0f);
+		}
+		else if constexpr (std::is_same_v<T, PolygonShape>) {
+			std::vector<std::pair<float, float>> displayVerts;
+
+			for (int i = 0; i + 4 < (int)s.vertices.size(); i += 5)
+				displayVerts.push_back({ s.vertices[i], s.vertices[i + 1] });
+
+			if (displayVerts.size() >= 3) {
+				float minX = displayVerts[0].first, maxX = minX;
+				float minY = displayVerts[0].second, maxY = minY;
+				for (auto& [x, y] : displayVerts) {
+					minX = std::min(minX, x); maxX = std::max(maxX, x);
+					minY = std::min(minY, y); maxY = std::max(maxY, y);
+				}
+
+				float scx = (minX + maxX) * 0.5f;
+				float scy = (minY + maxY) * 0.5f;
+				float range = std::max(maxX - minX, maxY - minY);
+				float scale = (range > 0.f) ? (previewSize.x * 0.76f / range) : 1.f;
+
+				ImVector<ImVec2> pts;
+				for (auto& [x, y] : displayVerts)
+					pts.push_back({ cx + (x - scx) * scale, cy - (y - scy) * scale });
+
+				draw->AddConvexPolyFilled(pts.Data, pts.Size, fillCol);
+				draw->AddPolyline(pts.Data, pts.Size, outlineCol, ImDrawFlags_Closed, 1.5f);
+			}
+
+			int vertCount = (int)s.vertices.size() / 5;
+			char badge[32];
+			snprintf(badge, sizeof(badge), "%d verts", vertCount);
+			draw->AddText({ pos.x + 4, pos.y + 4 }, IM_COL32(200, 200, 200, 180), badge);
+		}
+		}, currentShape);
+
+	ImGui::Dummy(previewSize);
+
+	ImGui::Separator();
+
+	ImGui::Text("Z index");
 	ImGui::SameLine();
-	ImGui::InputInt("## Z index", &z_index);
+	ImGui::InputInt("##ZIndex", &z_index);
 }
 
 void RenderComponent::OnDelete() {

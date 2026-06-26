@@ -1,4 +1,5 @@
 #include "TransformComponent.h"
+#include "PhysicsComponent.h"
 
 TransformComponent::TransformComponent(Object* parent, Shader shader, glm::vec3 rotation_center) : Component(parent) {
 	Name = "Transform Component";
@@ -133,6 +134,10 @@ void TransformComponent::Scale(glm::vec3 scale) {
 	worldMatrixDirty = true;
 	for (const auto& [id, func] : transformCallback) {
 		func();
+	}
+	PhysicsComponent* pc = parent->GetComponent<PhysicsComponent>();
+	if (pc) {
+		pc->CalculateInertia();
 	}
 }
 

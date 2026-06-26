@@ -3,6 +3,7 @@
 #include "VertexPoint.h"
 #include "RenderComponent.h"
 #include "TransformComponent.h"
+#include "PhysicsEngine.h"
 #include "InputManager.h"
 #include "EngineManager.h"
 #include <memory>
@@ -24,6 +25,7 @@ public:
 	virtual void OnDelete();
 	virtual void ProcessInspectorUI();
 	int GetSelectedVertex();
+	void RemoveAllVertex();
 	void SetEnabled(bool enabled) override;
 	void SetVertexPoints(std::vector<VertexPoint*> vertexPoints);
 	void FindSelectedPoint(int button, int action, int mods);

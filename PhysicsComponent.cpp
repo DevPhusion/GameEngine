@@ -8,7 +8,6 @@ PhysicsComponent::PhysicsComponent(Object* parent) : Component(parent) {
 	this->velocity = glm::vec3(0);
 	this->netForce = glm::vec3(0);
 	CalculateInertia();
-	parent->GetComponent<TransformComponent>()->AddTransformCallback([this]() {this->CalculateInertia();});
 	SetAwake(true);
 }
 

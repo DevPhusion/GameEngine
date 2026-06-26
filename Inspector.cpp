@@ -38,7 +38,8 @@ void Inspector::ProcessWindow() {
 				ImGuiTreeNodeFlags_OpenOnDoubleClick |
 				ImGuiTreeNodeFlags_SpanAvailWidth |
 				ImGuiTreeNodeFlags_DefaultOpen;
-
+			
+			if (selected->components[i]->Hidden) continue;
 			if (ImGui::TreeNodeEx(selected->components[i]->Name.c_str(), root_flags)) {
 				ImGui::Text("Enable ");
 				ImGui::SameLine();

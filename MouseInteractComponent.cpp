@@ -9,6 +9,7 @@ MouseInteractComponent::MouseInteractComponent(Object* parent, bool physicsInter
 	mouseButtonCallbackID = InputManager::getInstance().SetMouseButtonCallback([this](int button, int action, int mods) {this->FindSelectedPolygon(button, action, mods);}, priority);
 	cursorPosCallbackID = InputManager::getInstance().SetCursorPositionCallback([this](double xpos, double ypos) {this->DragPolygon(xpos, ypos);}, priority);
 	physicsModeChangedCallbackID = EngineManager::getInstance().AddPhysicsModeChangedEvent([this]() {this->OnPhysicsModeChanged();});
+	Hidden = true;
 }
 
 void MouseInteractComponent::ProcessInspectorUI() {
@@ -93,7 +94,7 @@ void MouseInteractComponent::FindSelectedPolygon(int button, int action, int mod
 		else {
 			SetSelectedPolygon(parent, false);
 		}
-
+		
 	}
 
 	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {

@@ -73,6 +73,12 @@
     <Filter Include="Source Files\Core\Physics\Constraint">
       <UniqueIdentifier>{5bac7b16-8d8d-498c-92b3-e242da6d18ce}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Core\Rendering">
+      <UniqueIdentifier>{f7858f0a-49b0-4428-b3df-f1d6da857534}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Core\Rendering">
+      <UniqueIdentifier>{f5fd0333-9038-41c6-aa29-d23c8a99fd1b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glad.c">
@@ -109,12 +115,6 @@
       <Filter>Source Files\Components</Filter>
     </ClCompile>
     <ClCompile Include="InputManager.cpp">
-      <Filter>Source Files\Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Renderer.cpp">
-      <Filter>Source Files\Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Shader.cpp">
       <Filter>Source Files\Core</Filter>
     </ClCompile>
     <ClCompile Include="Camera.cpp">
@@ -219,6 +219,12 @@
     <ClCompile Include="ConstraintComponent.cpp">
       <Filter>Source Files\Components</Filter>
     </ClCompile>
+    <ClCompile Include="Renderer.cpp">
+      <Filter>Source Files\Core\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Shader.cpp">
+      <Filter>Source Files\Core\Rendering</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stb_image.h">
@@ -251,13 +257,7 @@
     <ClInclude Include="PhysicsComponent.h">
       <Filter>Header Files\Components</Filter>
     </ClInclude>
-    <ClInclude Include="Renderer.h">
-      <Filter>Header Files\Core</Filter>
-    </ClInclude>
     <ClInclude Include="Camera.h">
-      <Filter>Header Files\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Shader.h">
       <Filter>Header Files\Core</Filter>
     </ClInclude>
     <ClInclude Include="PhysicsEngine.h">
@@ -379,6 +379,12 @@
     </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer.h">
+      <Filter>Header Files\Core\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Shader.h">
+      <Filter>Header Files\Core\Rendering</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
