@@ -1,5 +1,4 @@
 #include "Polygon.h"
-#include "ConstraintComponent.h"
 
 Polygon::Polygon(std::vector<float> vertices, Shader shader, std::string texture_path) : Object(shader) {
 	AddComponent(std::make_unique<RenderComponent>(this, vertices, shader, texture_path));

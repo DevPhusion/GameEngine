@@ -30,6 +30,27 @@ void VertexComponent::RemoveAllVertex() {
 	vertexPoints.clear();
 }
 
+void VertexComponent::CopyTo(Object* other) {
+	VertexComponent* target = other->GetComponent<VertexComponent>();
+	if (!target) {
+		other->AddComponent(std::make_unique<VertexComponent>(other));
+		target = other->GetComponent<VertexComponent>();
+	}
+
+	std::vector<VertexPoint*> vPoints;
+
+	for (int i = 0; i < vertexPoints.size(); i++)
+	{
+		VertexPoint* v = ObjectManager::getInstance().CopyVertex(vertexPoints[i]);
+		if (v) {
+			vPoints.push_back(v);
+		}
+	}
+
+	target->SetVertexPoints(vPoints);
+	target->UpdateTransform();
+}
+
 void VertexComponent::ProcessInspectorUI() {
 	if (!this->parent->GetComponent<TransformComponent>()->Enabled) {
 		SetEnabled(false);

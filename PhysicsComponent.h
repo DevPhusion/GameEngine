@@ -22,12 +22,6 @@ public:
 	glm::vec3 acceleration = glm::vec3(0);
 	glm::vec3 netForce = glm::vec3(0);
 
-	//For sleeping optimization
-	float motion;
-	bool isAwake = true;
-	float sleepEpsilon = 0.4f;
-	float bias = 0.98f;
-
 	float angularDamping = 0.995f;
 	float linearDamping = 0.995f;
 	float angularVelocity;
@@ -39,9 +33,10 @@ public:
 
 	virtual void OnDelete();
 	virtual void ProcessInspectorUI();
+	virtual void CopyTo(Object* other);
+
 	void IntegrateVelocities(float delta);
 	void IntegratePositions(float delta);
-	void SetAwake(const bool awake);
 	void ClearAccumulators();
 	void AddForce(glm::vec3 force);
 	void AddForceAtBodyPoint(glm::vec3 force, glm::vec3 point); // point is in model space

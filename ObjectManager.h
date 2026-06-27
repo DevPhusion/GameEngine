@@ -1,5 +1,7 @@
 #pragma once
 #include "Polygon.h"
+#include "Box.h"
+#include "Circle.h"
 #include "VertexPoint.h"
 #include "InputManager.h"
 class ObjectManager
@@ -19,7 +21,11 @@ public:
 
 	void AddObject();
 	void AddPolygon();
+	void AddBox();
+	void AddCircle();
 	void AddPolygonVertex();
+	VertexPoint* CopyVertex(VertexPoint* vert); // For copying polygon
+	Object* CopyObject(Object* obj);
 	void RemoveObject(Object* obj);
 
 	void ProcessObjects(float delta);

@@ -4,6 +4,8 @@ VertexPoint::VertexPoint(float x, float y, Shader shader) : Object(shader) {
 	this->x = x;
 	this->y = y;
 
+	this->hidden = true;
+
 	float sizeY = 0.01f;
 	float sizeX = 0.01f;
 

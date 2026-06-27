@@ -10,6 +10,7 @@ public:
 
 	virtual void ProcessInspectorUI();
 	virtual void OnDelete();
+	virtual void CopyTo(Object* other);
 
 	std::vector<Constraint*> mirroredConstraints; // Constraint that other objects applied to this
 	std::vector<std::shared_ptr<Constraint>> appliedConstraints;

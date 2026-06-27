@@ -24,6 +24,8 @@ public:
 
 	virtual void OnDelete();
 	virtual void ProcessInspectorUI();
+	virtual void CopyTo(Object* other);
+
 	int GetSelectedVertex();
 	void RemoveAllVertex();
 	void SetEnabled(bool enabled) override;

@@ -9,6 +9,31 @@ TransformComponent::TransformComponent(Object* parent, Shader shader, glm::vec3 
 	SetOriginTransform(Camera::getInstance().viewMatrixInverse);
 }
 
+void TransformComponent::CopyTo(Object* other) {
+	TransformComponent* target = other->GetComponent<TransformComponent>();
+	if (!target) {
+		other->AddComponent(std::make_unique<TransformComponent>(other, other->shader, rotation_center));
+		target = other->GetComponent<TransformComponent>();
+	}
+
+	target->rotation = this->rotation;
+	target->size = this->size;
+	target->SetRotationCenter(rotation_center);
+	target->SetOriginTransform(this->OriginTransform);
+
+	Shape shapeCopy = parent->GetComponent<RenderComponent>()->currentShape;
+
+	std::visit([&](auto&& s) {
+		using T = std::decay_t<decltype(s)>;
+		if constexpr (std::is_same_v<T, RectangleShape> || std::is_same_v<T, CircleShape>) {
+			s.center = target->GetWorldPosition(); 
+		}
+		}, shapeCopy);
+
+	other->GetComponent<RenderComponent>()->SetShape(shapeCopy);
+	target->SetRotationCenter(other->GetComponent<RenderComponent>()->GetCenter());
+}
+
 void TransformComponent::ProcessInspectorUI() {
 	ImGui::Text("Position ");
 	ImGui::SameLine();

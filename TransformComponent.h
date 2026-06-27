@@ -25,6 +25,8 @@ public:
 
 	virtual void OnDelete();
 	virtual void ProcessInspectorUI();
+	virtual void CopyTo(Object* other);
+
 	// model space -> screen space (inverse: screen space -> model space) 
 	glm::vec3 GetTransformedPoint(glm::vec3 point, bool inverseTransform = false); 
 	glm::vec3 GetWorldPosition();

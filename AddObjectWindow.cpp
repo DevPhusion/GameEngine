@@ -61,6 +61,14 @@ void AddObjectWindow::ProcessWindow() {
 				ObjectManager::getInstance().AddObject();
 				Hide();
 			}
+			else if (SelectedType == "Box") {
+				ObjectManager::getInstance().AddBox();
+				Hide();
+			}
+			else if (SelectedType == "Circle") {
+				ObjectManager::getInstance().AddCircle();
+				Hide();
+			}
 			else if (SelectedType == "Polygon") {
 				EngineManager::getInstance().SwitchInteractMode(EngineManager::InteractMode::AddVertex);
 			}

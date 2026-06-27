@@ -41,6 +41,14 @@ void ConstraintComponent::RemoveConstraint(std::size_t index)
     appliedConstraints.erase(appliedConstraints.begin() + static_cast<std::ptrdiff_t>(index));
 }
 
+void ConstraintComponent::CopyTo(Object* other) {
+    ConstraintComponent* target = other->GetComponent<ConstraintComponent>();
+    if (!target) {
+        other->AddComponent(std::make_unique<ConstraintComponent>(other));
+        target = other->GetComponent<ConstraintComponent>();
+    }
+}
+
 void ConstraintComponent::OnDelete()
 {
     for (auto& c : appliedConstraints)

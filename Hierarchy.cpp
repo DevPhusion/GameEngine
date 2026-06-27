@@ -132,4 +132,10 @@ void Hierarchy::OnKeyPressed(int key, int scancode, int action, int mods) {
 			ObjectManager::getInstance().RemoveObject(obj);
 		}
 	}
+	if (InputManager::getInstance().keys[GLFW_KEY_LEFT_CONTROL] && InputManager::getInstance().keys[GLFW_KEY_D]) {
+		if (EditorManager::getInstance().selectedObject != nullptr) {
+			Object* obj = EditorManager::getInstance().selectedObject;
+			ObjectManager::getInstance().CopyObject(obj);
+		}
+	}
 }

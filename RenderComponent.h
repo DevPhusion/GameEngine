@@ -55,6 +55,8 @@ public:
 
 	virtual void OnDelete();
 	virtual void ProcessInspectorUI();
+	virtual void CopyTo(Object* other);
+
 	std::vector<float> VerticesFromShape(Shape& shape);
 	std::vector<unsigned int> TriangulateCircle(int segments);
 	std::vector<unsigned int> Triangulate(std::vector<float> vertices);

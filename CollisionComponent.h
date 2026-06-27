@@ -21,6 +21,8 @@ public:
 	virtual void SetEnabled(bool enabled);
 	virtual void OnDelete();
 	virtual void ProcessInspectorUI();
+	virtual void CopyTo(Object* other);
+
 	void DrawLayerMaskUI(const char* label, uint16_t* layer);
 	void calculateBoundingCircle();
 };

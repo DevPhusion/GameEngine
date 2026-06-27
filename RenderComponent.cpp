@@ -380,6 +380,18 @@ bool RenderComponent::IsInsideShape(glm::vec3 point) {
 	return cnt % 2 == 1;
 }
 
+void RenderComponent::CopyTo(Object* other) {
+	RenderComponent* target = other->GetComponent<RenderComponent>();
+	if (!target) {
+		other->AddComponent(std::make_unique<RenderComponent>(other, std::vector<float> {}, other->shader, texture_path));
+		target = other->GetComponent<RenderComponent>();
+	}
+
+	target->z_index = z_index;
+	target->SetTexture(texture_path);
+	target->color = color;
+}
+
 void RenderComponent::ProcessInspectorUI() {
 	ImGui::Text("Texture");
 	ImGui::SameLine();

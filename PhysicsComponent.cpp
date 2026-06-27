@@ -8,7 +8,27 @@ PhysicsComponent::PhysicsComponent(Object* parent) : Component(parent) {
 	this->velocity = glm::vec3(0);
 	this->netForce = glm::vec3(0);
 	CalculateInertia();
-	SetAwake(true);
+}
+
+void PhysicsComponent::CopyTo(Object* other) {
+	PhysicsComponent* target = other->GetComponent<PhysicsComponent>();
+	if (!target) {
+		other->AddComponent(std::make_unique<PhysicsComponent>(other));
+		target = other->GetComponent<PhysicsComponent>();
+	}
+
+	target->netForceDisplay = netForceDisplay;
+	target->netAcceleration = netAcceleration;
+	target->torqueDisplay = torqueDisplay;
+	target->angularAcceleration = angularAcceleration;
+	target->velocity = velocity;
+	target->acceleration = acceleration;
+	target->netForce = netForce;
+	target->angularVelocity = angularVelocity;
+	target->Torque = Torque;
+	target->Inertia = Inertia;
+	target->inverseInertia = inverseInertia;
+	target->inverseMass = inverseMass;
 }
 
 void PhysicsComponent::ProcessInspectorUI() {
@@ -102,18 +122,6 @@ void PhysicsComponent::IntegrateVelocities(float delta) {
 	if (glm::length(velocity) < 0.001f) velocity = glm::vec3(0.0f);
 	if (std::abs(angularVelocity) < 0.001f) angularVelocity = 0.0f;
 
-	float currentMotion = glm::length2(velocity) + (angularVelocity * angularVelocity);
-	float realBias = powf(bias, delta);
-	motion = realBias * motion + (1.0f - realBias) * currentMotion;
-
-	if (motion > 10 * sleepEpsilon) {
-		motion = 10 * sleepEpsilon;
-	}
-
-	if (motion <= sleepEpsilon) {
-		SetAwake(false);
-	}
-
 	netAcceleration = glm::vec2(resultingAcc.x, resultingAcc.y);
 	netForceDisplay = glm::vec2(netForce.x, netForce.y);
 	torqueDisplay = Torque;
@@ -137,18 +145,6 @@ void PhysicsComponent::IntegratePositions(float delta) {
 
 	transform->rotation = rotation;
 	transform->UpdateWorldPosition(position);
-}
-
-void PhysicsComponent::SetAwake(const bool awake) {
-	if (awake) {
-		isAwake = true;
-		motion = sleepEpsilon * 2.0f;
-	}
-	else {
-		isAwake = false;
-		velocity = glm::vec3(0.0f);
-		angularAcceleration = 0.0f;
-	}
 }
 
 void PhysicsComponent::ClearAccumulators() {

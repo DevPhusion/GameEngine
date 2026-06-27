@@ -17,6 +17,7 @@ public:
 	bool Hidden = false;
 	std::string Name;
 	virtual void SetEnabled(bool enabled);
+	virtual void CopyTo(Object* other) = 0;
 	virtual void ProcessInspectorUI() = 0;
 	virtual void OnDelete() = 0;
 };

@@ -139,8 +139,10 @@
   <ItemGroup>
     <ClCompile Include="AddObjectWindow.cpp" />
     <ClCompile Include="BoundingCircle.cpp" />
+    <ClCompile Include="Box.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="BAHNode.cpp" />
+    <ClCompile Include="Circle.cpp" />
     <ClCompile Include="CollisionComponent.cpp" />
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="Constraint.cpp" />
@@ -189,8 +191,10 @@
   <ItemGroup>
     <ClInclude Include="AddObjectWindow.h" />
     <ClInclude Include="BoundingCircle.h" />
+    <ClInclude Include="Box.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="BAHNode.h" />
+    <ClInclude Include="Circle.h" />
     <ClInclude Include="CollisionComponent.h" />
     <ClInclude Include="CollisionLayerMask.h" />
     <ClInclude Include="Component.h" />

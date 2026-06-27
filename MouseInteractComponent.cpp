@@ -12,6 +12,16 @@ MouseInteractComponent::MouseInteractComponent(Object* parent, bool physicsInter
 	Hidden = true;
 }
 
+void MouseInteractComponent::CopyTo(Object* other) {
+	MouseInteractComponent* target = other->GetComponent<MouseInteractComponent>();
+	if (!target) {
+		other->AddComponent(std::make_unique<MouseInteractComponent>(other, physicsInteract));
+		target = other->GetComponent<MouseInteractComponent>();
+	}
+
+	target->physicsInteract = physicsInteract;
+}
+
 void MouseInteractComponent::ProcessInspectorUI() {
 	if (!this->parent->GetComponent<TransformComponent>()->Enabled) {
 		SetEnabled(false);

@@ -23,6 +23,16 @@ void ObjectManager::AddObject() {
 	allObjects.push_back(std::move(obj));
 }
 
+void ObjectManager::AddBox() {
+	std::unique_ptr<Box> box = std::make_unique<Box>(Shader("vertex.txt", "fragment.txt"), "floorTiled.png");
+	allObjects.push_back(std::move(box));
+}
+
+void ObjectManager::AddCircle() {
+	std::unique_ptr<Circle> circle = std::make_unique<Circle>(Shader("vertex.txt", "fragment.txt"), "floorTiled.png");
+	allObjects.push_back(std::move(circle));
+}
+
 void ObjectManager::AddPolygon() {
 	if (vertexPoints.size() < 3) {
 		std::cout << "Invalid polygon" << std::endl;
@@ -71,6 +81,26 @@ void ObjectManager::AddPolygonVertex() {
 		vertexPoints.push_back(pointIndicator.get());
 		allObjects.push_back(std::move(pointIndicator));
 	}
+}
+
+VertexPoint* ObjectManager::CopyVertex(VertexPoint* vert) {
+	std::unique_ptr<VertexPoint> newVert = std::make_unique<VertexPoint>(vert->x, vert->y, Shader("vertex.txt", "fragment.txt"));
+	VertexPoint* returnObj = newVert.get();
+	newVert->UpdatePosition(vert->x, vert->y);
+	allObjects.push_back(std::move(newVert));
+	return returnObj;
+}
+
+Object* ObjectManager::CopyObject(Object* obj) {
+	std::unique_ptr<Object> newObj = std::make_unique<Object>(Shader("vertex.txt", "fragment.txt"));
+	
+	for (int i = 0; i < obj->components.size(); i++)
+	{
+		obj->components[i].get()->CopyTo(newObj.get());
+	}
+	Object* returnObj = newObj.get();
+	allObjects.push_back(std::move(newObj));
+	return returnObj;
 }
 
 void ObjectManager::RemoveObject(Object* obj) {

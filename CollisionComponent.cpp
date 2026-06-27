@@ -67,6 +67,19 @@ void CollisionComponent::DrawLayerMaskUI(const char* label, uint16_t* layer) {
 
 }
 
+void CollisionComponent::CopyTo(Object* other) {
+    CollisionComponent* target = other->GetComponent<CollisionComponent>();
+    if (!target) {
+        other->AddComponent(std::make_unique<CollisionComponent>(other));
+        target = other->GetComponent<CollisionComponent>();
+    }
+
+    target->boundingCircle = boundingCircle;
+    target->collisionLayer = collisionLayer;
+    target->collisionMask = collisionMask;
+    target->calculateBoundingCircle();
+}
+
 void CollisionComponent::ProcessInspectorUI() {
     DrawLayerMaskUI("Layer", &collisionLayer);
     ImGui::Spacing();
