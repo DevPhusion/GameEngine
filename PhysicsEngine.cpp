@@ -83,6 +83,8 @@ void PhysicsEngine::ClearRegistry() {
 	ForceRegistrations.clear();
 }
 
+// Collision
+
 void PhysicsEngine::ResolveContacts(PotentialContact* contacts, unsigned numContacts) {
 	allContactPoints = {};
 
@@ -97,42 +99,202 @@ void PhysicsEngine::ResolveContacts(PotentialContact* contacts, unsigned numCont
 			std::swap(objA, objB);
 		}
 
-		CollisionData colData = SAT(objA, objB);
+		RenderComponent* rcA = objA->GetComponent<RenderComponent>();
+		RenderComponent* rcB = objB->GetComponent<RenderComponent>();
+		TransformComponent* tcA = objA->GetComponent<TransformComponent>();
+		TransformComponent* tcB = objB->GetComponent<TransformComponent>();
 
-		if (colData.isColliding) {
-			if (EngineManager::getInstance().debugMode) {
-				objA->GetComponent<RenderComponent>()->color = glm::vec4(0, 1, 0, 1);
-				objB->GetComponent<RenderComponent>()->color = glm::vec4(0, 1, 0, 1);
+		float rA = -1;
+		float rB = -1;
+
+		std::visit([&](auto&& s) {
+			using T = std::decay_t<decltype(s)>;
+			if constexpr (std::is_same_v<T, CircleShape>) {
+				rA = s.radius;
+			}
+		}, rcA->currentShape);
+
+		std::visit([&](auto&& s) {
+			using T = std::decay_t<decltype(s)>;
+			if constexpr (std::is_same_v<T, CircleShape>) {
+				rB = s.radius;
+			}
+		}, rcB->currentShape);
+
+		if (rA > 0.0f && rB > 0.0f && tcA->size.x == tcA->size.y && tcB->size.x == tcB->size.y) {
+			glm::vec3 d = tcA->GetWorldPosition() - tcB->GetWorldPosition();
+			float dist = glm::length(d);
+			if (dist < rA * tcA->size.x + rB * tcB->size.x) {
+
+				if (EngineManager::getInstance().debugMode) {
+					objA->GetComponent<RenderComponent>()->color = glm::vec4(0, 1, 0, 1);
+					objB->GetComponent<RenderComponent>()->color = glm::vec4(0, 1, 0, 1);
+				}
+
+				glm::vec3 normal = glm::normalize(d);
+				float penetration = rA * tcA->size.x + rB * tcB->size.x - dist;
+				glm::vec3 cPoint = tcA->GetWorldPosition() - normal * (rA * tcA->size.x - penetration / 2.0f);
+
+				ContactPoint cp;
+				cp.point = cPoint;
+				cp.normal = normal;
+				cp.penetration = penetration;
+				cp.id = ContactID();
+				allContactPoints.push_back(cp);
+
+				ContactConstraint* constraint = new ContactConstraint(
+					objA, objB, cPoint, cPoint, ContactID(), normal, penetration, 0.2f, 0.4f, 0.6f);
+				RegisterConstraint(constraint);
+			}
+		}
+		else if ((rA > 0.0f && tcA->size.x == tcA->size.y) || (rB > 0.0f && tcB->size.x == tcB->size.y)) {
+			Object* circleObj = (rA > 0.0f) ? objA : objB;
+			Object* polyObj = (rA > 0.0f) ? objB : objA;
+
+			TransformComponent* tcCircle = circleObj->GetComponent<TransformComponent>();
+			TransformComponent* tcPoly = polyObj->GetComponent<TransformComponent>();
+			RenderComponent* rcCircle = circleObj->GetComponent<RenderComponent>();
+			RenderComponent* rcPoly = polyObj->GetComponent<RenderComponent>();
+
+			float radius = std::get<CircleShape>(rcCircle->currentShape).radius * tcCircle->size.x;
+			glm::vec3 center = tcCircle->GetWorldPosition();
+
+			std::vector<Edge> worldEdges;
+			for (const auto& e : rcPoly->edges) {
+				Edge we;
+				we.start = tcPoly->ProjectToWorld(e.start);
+				we.end = tcPoly->ProjectToWorld(e.end);
+				worldEdges.push_back(we);
 			}
 
-			std::vector<ContactPoint> points = GenerateContactPoints(colData);
+			float    bestDist = INFINITY;
+			glm::vec3 bestPoint = glm::vec3(0.0f);
+			glm::vec3 bestNormal = glm::vec3(0.0f);
+			bool     centerInside = true;
 
-			for (int j = 0; j < points.size(); j++)
-			{
-				allContactPoints.push_back(points[j]);
+			for (const auto& edge : worldEdges) {
+				glm::vec3 ab = edge.end - edge.start;
+				glm::vec3 ac = center - edge.start;
+				float     len = glm::length(ab);
+
+				glm::vec3 abNorm = ab / len;
+				float     t = glm::clamp(glm::dot(ac, abNorm), 0.0f, len);
+				glm::vec3 closest = edge.start + abNorm * t;
+
+				glm::vec3 edgeNormal = glm::normalize(glm::vec3(ab.y, -ab.x, 0.0f));
+
+				if (glm::dot(edgeNormal, ac) > 0.0f) {
+					centerInside = false;
+				}
+
+				float dist = glm::length(center - closest);
+				if (dist < bestDist) {
+					bestDist = dist;
+					bestPoint = closest;
+					bestNormal = edgeNormal;
+				}
+			}
+
+			bool isColliding = false;
+			glm::vec3 contactNormal;
+			float     penetration;
+			glm::vec3 contactPoint;
+
+			if (centerInside) {
+				contactNormal = bestNormal;
+				if (glm::dot(contactNormal, center - tcPoly->GetWorldPosition()) < 0.0f)
+					contactNormal = -contactNormal;
+				penetration = radius + bestDist;
+				contactPoint = bestPoint;
+				isColliding = true;
+			}
+			else if (bestDist < radius) {
+				glm::vec3 dir = center - bestPoint;
+				contactNormal = (glm::length(dir) > 1e-6f)
+					? glm::normalize(dir)
+					: bestNormal;
+				penetration = radius - bestDist;
+				contactPoint = bestPoint;
+				isColliding = true;
+			}
+
+			if (isColliding) {
+				if (EngineManager::getInstance().debugMode) {
+					circleObj->GetComponent<RenderComponent>()->color = glm::vec4(0, 1, 0, 1);
+					polyObj->GetComponent<RenderComponent>()->color = glm::vec4(0, 1, 0, 1);
+				}
+
+				if (circleObj != objA) {
+					contactNormal = -contactNormal;
+				}
+
+				ContactPoint cp;
+				cp.point = contactPoint;
+				cp.normal = contactNormal;
+				cp.penetration = penetration;
+				cp.id = ContactID();
+				allContactPoints.push_back(cp);
 
 				float cachedLambda = 0.0f;
 				for (const auto& cached : contactsCache) {
-					if (cached.objectA == objA && cached.objectB == objB &&
-						cached.id.referenceEdgeA == points[j].id.referenceEdgeA &&
-						cached.id.incidentEdgeB == points[j].id.incidentEdgeB &&
-						cached.id.vertexTypeA == points[j].id.vertexTypeA &&
-						cached.id.vertexTypeB == points[j].id.vertexTypeB)
-					{
+					if (cached.objectA == objA && cached.objectB == objB) {
 						cachedLambda = cached.lambda;
 						break;
 					}
 				}
 
-				ContactConstraint* constraint = new ContactConstraint(objA, objB, points[j].point, points[j].point, points[j].id, points[j].normal, points[j].penetration, 0.2f, 0.4f, 0.6f);
+				ContactConstraint* constraint = new ContactConstraint(
+					objA, objB,
+					contactPoint, contactPoint,   // same point, stable like polygon-polygon
+					ContactID(), contactNormal, penetration,
+					0.2f, 0.4f, 0.6f);
 				constraint->SetInitialImpulse(cachedLambda);
 				RegisterConstraint(constraint);
 			}
-
+			else if (EngineManager::getInstance().debugMode) {
+				rcA->color = glm::vec4(1, 0, 0, 1);
+				rcB->color = glm::vec4(1, 0, 0, 1);
+			}
 		}
-		else if (EngineManager::getInstance().debugMode) {
-			objA->GetComponent<RenderComponent>()->color = glm::vec4(1, 0, 0, 1);
-			objB->GetComponent<RenderComponent>()->color = glm::vec4(1, 0, 0, 1);
+		else {
+
+			CollisionData colData = SAT(objA, objB);
+
+			if (colData.isColliding) {
+				if (EngineManager::getInstance().debugMode) {
+					objA->GetComponent<RenderComponent>()->color = glm::vec4(0, 1, 0, 1);
+					objB->GetComponent<RenderComponent>()->color = glm::vec4(0, 1, 0, 1);
+				}
+
+				std::vector<ContactPoint> points = GenerateContactPoints(colData);
+
+				for (int j = 0; j < points.size(); j++)
+				{
+					allContactPoints.push_back(points[j]);
+
+					float cachedLambda = 0.0f;
+					for (const auto& cached : contactsCache) {
+						if (cached.objectA == objA && cached.objectB == objB &&
+							cached.id.referenceEdgeA == points[j].id.referenceEdgeA &&
+							cached.id.incidentEdgeB == points[j].id.incidentEdgeB &&
+							cached.id.vertexTypeA == points[j].id.vertexTypeA &&
+							cached.id.vertexTypeB == points[j].id.vertexTypeB)
+						{
+							cachedLambda = cached.lambda;
+							break;
+						}
+					}
+
+					ContactConstraint* constraint = new ContactConstraint(objA, objB, points[j].point, points[j].point, points[j].id, points[j].normal, points[j].penetration, 0.2f, 0.4f, 0.6f);
+					constraint->SetInitialImpulse(cachedLambda);
+					RegisterConstraint(constraint);
+				}
+
+			}
+			else if (EngineManager::getInstance().debugMode) {
+				objA->GetComponent<RenderComponent>()->color = glm::vec4(1, 0, 0, 1);
+				objB->GetComponent<RenderComponent>()->color = glm::vec4(1, 0, 0, 1);
+			}
 		}
 	}
 }
@@ -443,6 +605,8 @@ void PhysicsEngine::UnRegisterBoundingAreaNode(Object* obj) {
 	BAHNode<BoundingCircle>* node = root.searchFor(obj);
 	node->removeLeaf();
 }
+
+// Constraints
 
 void PhysicsEngine::RegisterConstraint(Constraint* constraint) {
 	registeredConstraints.push_back(constraint);

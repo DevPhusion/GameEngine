@@ -10,6 +10,8 @@
 #include "ContactID.h"
 #include <numeric>
 
+// Sutherland Hodgman
+
 struct ClipVertex {
 	ContactID id;
 	glm::vec3 position;
@@ -30,6 +32,8 @@ struct CollisionData {
 	std::vector<Edge> objBEdges;
 };
 
+// SAT
+
 struct SeparatingAxis {
 	glm::vec3 normal;
 	glm::vec3 start;
@@ -43,6 +47,37 @@ struct Projection {
 	bool Overlaps(const Projection& other) const {
 		return !(this->max < other.min || other.max < this->min);
 	}
+};
+
+//GJK
+
+struct Simplex {
+	std::array<glm::vec3, 3> points;
+	int size = 0;
+
+	void Add(const glm::vec3& p) {
+		for (int i = std::min(size, 2); i > 0; i--)
+			points[i] = points[i - 1];
+		points[0] = p;
+		size = std::min(size + 1, 3);
+	}
+
+	void Set(glm::vec3 a) { points[0] = a; size = 1; }
+	void Set(glm::vec3 a, glm::vec3 b) { points[0] = a; points[1] = b; size = 2; }
+	void Set(glm::vec3 a, glm::vec3 b, glm::vec3 c) { points[0] = a; points[1] = b; points[2] = c; size = 3; }
+};
+
+struct GJKResult {
+	bool isColliding;
+	Simplex simplex;
+};
+
+struct EPAResult {
+	glm::vec3 normal = glm::vec3(0);
+	float penetration = 0.0f;
+	glm::vec3 contactPoint = glm::vec3(0);
+	glm::vec3 witnessA = glm::vec3(0); 
+	glm::vec3 witnessB = glm::vec3(0);
 };
 
 class PhysicsEngine
@@ -79,8 +114,9 @@ public:
 	void UnRegisterBoundingAreaNode(Object* obj);
 	void ResolveContacts(PotentialContact* contacts, unsigned numContacts);
 	CollisionData SAT(Object* objA, Object* objB);
-	Projection ProjectOntoAxis(std::vector<glm::vec3>& vertices, SeparatingAxis axis);
 	std::vector<ContactPoint> GenerateContactPoints(CollisionData collisionData);
+
+	Projection ProjectOntoAxis(std::vector<glm::vec3>& vertices, SeparatingAxis axis);
 	float ComputeSignedArea(const std::vector<glm::vec3>& vertices);
 	Edge FindMostParallelEdge(const std::vector<Edge>& edges, const glm::vec3& normal);
 	Edge FindMostAntiParallelEdge(const std::vector<Edge>& edges, const glm::vec3& normal);

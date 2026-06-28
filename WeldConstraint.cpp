@@ -55,20 +55,9 @@ void WeldConstraint::Prepare(std::vector<SolverRow>& rows, float delta) {
 
     float kTheta = invInertiaA + invInertiaB;
 
-    float weldStiffness = 10000.0f;
-    float weldDamping = 500.0f;
-
+ 
     float softnessCFM = 0.0f;
     float finalBeta = beta;
-
-    if (weldStiffness > 0.0f && kX > 0.0f) { // Assuming uniform stiffness across X, Y, Theta for simplicity
-        softnessCFM = 1.0f / (delta * (weldStiffness + delta * weldDamping));
-        finalBeta = delta * weldStiffness * softnessCFM;
-
-        kX += softnessCFM;
-        kY += softnessCFM;
-        kTheta += softnessCFM;
-    }
 
     glm::vec3 positionError = globalPointB - globalPointA;
     float angleError = thetaB - thetaA - angularOffset;
