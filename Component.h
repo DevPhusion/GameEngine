@@ -14,7 +14,11 @@ public:
 
 	Object* parent;
 	bool Enabled = true;
+
+	bool CanDisable = true;
+	bool CanRemove = true;
 	bool Hidden = false;
+
 	std::string Name;
 	virtual void SetEnabled(bool enabled);
 	virtual void CopyTo(Object* other) = 0;

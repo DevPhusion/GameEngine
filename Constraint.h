@@ -1,7 +1,7 @@
 #pragma once
 #include "Object.h"
 #include "TransformComponent.h"
-#include "PhysicsComponent.h"
+#include "RigidBodyComponent.h"
 #include <string>
 #include <vector>
 

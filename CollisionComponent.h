@@ -25,5 +25,7 @@ public:
 
 	void DrawLayerMaskUI(const char* label, uint16_t* layer);
 	void calculateBoundingCircle();
+private:
+	int onTransformCallbackID = -1;
 };
 

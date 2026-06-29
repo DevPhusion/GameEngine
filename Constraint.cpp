@@ -257,7 +257,9 @@ void Constraint::Unregister()
 }
 
 void Constraint::ProcessConstraintDisplay() {
-    constraintDisplay->GetComponent<RenderComponent>()->SetEnabled(false);
+    if (!constraintDisplay) return;
+    RenderComponent* rc = constraintDisplay->GetComponent<RenderComponent>();
+    if (rc) rc->SetEnabled(false);
 }
 
 void Constraint::ProcessMirroredUI()

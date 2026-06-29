@@ -13,8 +13,8 @@ void WeldConstraint::Prepare(std::vector<SolverRow>& rows, float delta) {
 
     TransformComponent* tcA = objectA->GetComponent<TransformComponent>();
     TransformComponent* tcB = objectB->GetComponent<TransformComponent>();
-    PhysicsComponent* pcA = objectA->GetComponent<PhysicsComponent>();
-    PhysicsComponent* pcB = objectB->GetComponent<PhysicsComponent>();
+    RigidBodyComponent* pcA = objectA->GetComponent<RigidBodyComponent>();
+    RigidBodyComponent* pcB = objectB->GetComponent<RigidBodyComponent>();
 
     glm::vec3 globalPointA = tcA->ProjectToWorld(attachPointA);
     glm::vec3 globalPointB = tcB->ProjectToWorld(attachPointB);
@@ -135,14 +135,15 @@ void WeldConstraint::SetObjectB(Object* obj) {
 void WeldConstraint::ProcessInspectorUI(Object* parent) {
 	Constraint::ProcessInspectorUI(parent);
 
-	ImGui::Text("Locked angle ");
-	ImGui::BeginDisabled();
-	ImGui::SliderAngle("##Locked angle", &angularOffset);
-	ImGui::EndDisabled();
-
-	if (ImGui::Button("Re-lock angle")) {
-		float thetaA = objectA->GetComponent<TransformComponent>()->rotation;
-		float thetaB = objectB->GetComponent<TransformComponent>()->rotation;
-		angularOffset = thetaB - thetaA;
+	if (objectA && objectB) {
+	    ImGui::Text("Locked angle ");
+	    ImGui::BeginDisabled();
+	    ImGui::SliderAngle("##Locked angle", &angularOffset);
+	    ImGui::EndDisabled();
+        if (ImGui::Button("Re-lock angle")) {
+		    float thetaA = objectA->GetComponent<TransformComponent>()->rotation;
+		    float thetaB = objectB->GetComponent<TransformComponent>()->rotation;
+            angularOffset = thetaB - thetaA;
+        }
 	}
 }

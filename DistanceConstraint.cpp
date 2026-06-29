@@ -19,8 +19,8 @@ void DistanceConstraint::Prepare(std::vector<SolverRow>& rows, float delta) {
 
 	TransformComponent* tcA = objectA->GetComponent<TransformComponent>();
 	TransformComponent* tcB = objectB->GetComponent<TransformComponent>();
-	PhysicsComponent* pcA = objectA->GetComponent<PhysicsComponent>();
-	PhysicsComponent* pcB = objectB->GetComponent<PhysicsComponent>();
+	RigidBodyComponent* pcA = objectA->GetComponent<RigidBodyComponent>();
+	RigidBodyComponent* pcB = objectB->GetComponent<RigidBodyComponent>();
 
 	glm::vec3 globalPointA = tcA->ProjectToWorld(attachPointA);
 	glm::vec3 globalPointB = tcB->ProjectToWorld(attachPointB);

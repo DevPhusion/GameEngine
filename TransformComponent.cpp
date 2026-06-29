@@ -1,11 +1,13 @@
 #include "TransformComponent.h"
-#include "PhysicsComponent.h"
+#include "RigidBodyComponent.h"
 
 TransformComponent::TransformComponent(Object* parent, Shader shader, glm::vec3 rotation_center) : Component(parent) {
 	Name = "Transform Component";
 
 	this->shader = shader;
 	this->rotation_center = rotation_center;
+	CanRemove = false;
+	CanDisable = false;
 	SetOriginTransform(Camera::getInstance().viewMatrixInverse);
 }
 
@@ -160,7 +162,7 @@ void TransformComponent::Scale(glm::vec3 scale) {
 	for (const auto& [id, func] : transformCallback) {
 		func();
 	}
-	PhysicsComponent* pc = parent->GetComponent<PhysicsComponent>();
+	RigidBodyComponent* pc = parent->GetComponent<RigidBodyComponent>();
 	if (pc) {
 		pc->CalculateInertia();
 	}
@@ -177,10 +179,6 @@ void TransformComponent::RemoveTransformCallback(int ID) {
 }
 
 void TransformComponent::ProcessTransform() {
-	if (!Enabled) {
-		return;
-	}
-
 	this->transform = OriginTransform;
 	this->transform = glm::translate(this->transform, rotation_center); // Translate to 0,0
 

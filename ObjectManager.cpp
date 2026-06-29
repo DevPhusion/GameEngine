@@ -49,7 +49,7 @@ void ObjectManager::AddPolygon() {
 
 	auto* vc = poly->GetComponent<VertexComponent>();
 	auto* tc = poly->GetComponent<TransformComponent>();
-	auto* pc = poly->GetComponent<PhysicsComponent>();
+	auto* pc = poly->GetComponent<RigidBodyComponent>();
 
 	pc->inverseMass = 1;
 

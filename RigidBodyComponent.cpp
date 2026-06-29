@@ -1,20 +1,24 @@
-#include "PhysicsComponent.h"
+#include "RigidBodyComponent.h"
 #include "PhysicsEngine.h"
+#include "MouseInteractComponent.h"
 
-PhysicsComponent::PhysicsComponent(Object* parent) : Component(parent) {
-	Name = "Physics Component";
+RigidBodyComponent::RigidBodyComponent(Object* parent) : Component(parent) {
+	Name = "Rigid Body Component";
 	this->inverseMass = 1;
 	this->acceleration = glm::vec3(0.0f, -9.8f, 0.0f);
 	this->velocity = glm::vec3(0);
 	this->netForce = glm::vec3(0);
 	CalculateInertia();
+
+	MouseInteractComponent* mc = parent->GetComponent<MouseInteractComponent>();
+	if (mc) mc->physicsInteract = true;
 }
 
-void PhysicsComponent::CopyTo(Object* other) {
-	PhysicsComponent* target = other->GetComponent<PhysicsComponent>();
+void RigidBodyComponent::CopyTo(Object* other) {
+	RigidBodyComponent* target = other->GetComponent<RigidBodyComponent>();
 	if (!target) {
-		other->AddComponent(std::make_unique<PhysicsComponent>(other));
-		target = other->GetComponent<PhysicsComponent>();
+		other->AddComponent(std::make_unique<RigidBodyComponent>(other));
+		target = other->GetComponent<RigidBodyComponent>();
 	}
 
 	target->netForceDisplay = netForceDisplay;
@@ -31,7 +35,7 @@ void PhysicsComponent::CopyTo(Object* other) {
 	target->inverseMass = inverseMass;
 }
 
-void PhysicsComponent::ProcessInspectorUI() {
+void RigidBodyComponent::ProcessInspectorUI() {
 	if (!this->parent->GetComponent<TransformComponent>()->Enabled) {
 		SetEnabled(false);
 	}
@@ -99,11 +103,14 @@ void PhysicsComponent::ProcessInspectorUI() {
 	}
 }
 
-void PhysicsComponent::OnDelete() {
+void RigidBodyComponent::OnDelete() {
 	PhysicsEngine::getInstance().UnRegisterAllForce(parent);
+	forceDisplayFunc.clear();
+	MouseInteractComponent* mc = parent->GetComponent<MouseInteractComponent>();
+	if (mc) mc->physicsInteract = false;
 }
 
-void PhysicsComponent::IntegrateVelocities(float delta) {
+void RigidBodyComponent::IntegrateVelocities(float delta) {
 	if (!Enabled) {
 		return;
 	}
@@ -130,7 +137,7 @@ void PhysicsComponent::IntegrateVelocities(float delta) {
 	ClearAccumulators();
 }
 
-void PhysicsComponent::IntegratePositions(float delta) {
+void RigidBodyComponent::IntegratePositions(float delta) {
 	if (!Enabled) {
 		return;
 	}
@@ -147,21 +154,21 @@ void PhysicsComponent::IntegratePositions(float delta) {
 	transform->UpdateWorldPosition(position);
 }
 
-void PhysicsComponent::ClearAccumulators() {
+void RigidBodyComponent::ClearAccumulators() {
 	netForce = glm::vec3(0);
 	Torque = 0.0f;
 }
 
-void PhysicsComponent::AddForce(glm::vec3 force) {
+void RigidBodyComponent::AddForce(glm::vec3 force) {
 	netForce += force;
 }
 
-void PhysicsComponent::AddForceAtBodyPoint(glm::vec3 force, glm::vec3 point) {
+void RigidBodyComponent::AddForceAtBodyPoint(glm::vec3 force, glm::vec3 point) {
 	glm::vec3 worldPoint = this->parent->GetComponent<TransformComponent>()->ProjectToWorld(point);
 	AddForceAtPoint(force, worldPoint);
 }
 
-void PhysicsComponent::AddForceAtPoint(glm::vec3 force, glm::vec3 point) {
+void RigidBodyComponent::AddForceAtPoint(glm::vec3 force, glm::vec3 point) {
 	glm::vec3 relativePoint = point - parent->GetComponent<TransformComponent>()->GetWorldPosition();
 	Torque += relativePoint.x * force.y - relativePoint.y * force.x;
 	netForce += force;
@@ -179,7 +186,7 @@ float calculateTriangleInertia(glm::vec3 a, glm::vec3 b, glm::vec3 c, glm::vec3 
 	return inertia + (massTriangle * distSquared);
 }
 
-void PhysicsComponent::CalculateInertia() {
+void RigidBodyComponent::CalculateInertia() {
 	TransformComponent* tc = parent->GetComponent<TransformComponent>();
 	RenderComponent* rc = parent->GetComponent<RenderComponent>();
 	std::vector<std::vector<float>> points = rc->points;
@@ -204,11 +211,11 @@ void PhysicsComponent::CalculateInertia() {
 	}
 }
 
-void PhysicsComponent::AddDisplayFunc(std::shared_ptr<std::function<void(int)>> func) {
+void RigidBodyComponent::AddDisplayFunc(std::shared_ptr<std::function<void(int)>> func) {
 	forceDisplayFunc.push_back(func);
 }
 
-void PhysicsComponent::RemoveDisplayFunc(std::shared_ptr<std::function<void(int)>> func) {
+void RigidBodyComponent::RemoveDisplayFunc(std::shared_ptr<std::function<void(int)>> func) {
 	for (int i = 0; i < forceDisplayFunc.size(); i++)
 	{
 		if (forceDisplayFunc[i] == func) {

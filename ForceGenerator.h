@@ -1,6 +1,6 @@
 #pragma once
 #include "Object.h"
-#include "PhysicsComponent.h"
+#include "RigidBodyComponent.h"
 class ForceGenerator
 {
 public:

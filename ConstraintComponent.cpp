@@ -5,6 +5,7 @@
 #include "DistanceConstraint.h"
 #include "WeldConstraint.h"
 #include "SpringConstraint.h"
+#include "PrismaticConstraint.h"
 
 ConstraintComponent::ConstraintComponent(Object* parent)
     : Component(parent)
@@ -92,6 +93,11 @@ void ConstraintComponent::ProcessInspectorUI()
         {
             AddConstraint(std::make_shared<WeldConstraint>(parent, nullptr,
                 parent->GetComponent<RenderComponent>()->GetCenter(), glm::vec3(0.0f), 0.0f));
+            ImGui::CloseCurrentPopup();
+        }
+        if (ImGui::MenuItem("Prismatic Constraint")) {
+            AddConstraint(std::make_shared<PrismaticConstraint>(parent, nullptr,
+                parent->GetComponent<RenderComponent>()->GetCenter(), glm::vec3(0.0f), glm::vec3(0.0f)));
             ImGui::CloseCurrentPopup();
         }
 

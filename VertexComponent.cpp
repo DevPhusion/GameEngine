@@ -121,7 +121,7 @@ void VertexComponent::DragPoint(double xpos, double ypos) {
 
 			vertexPoints[selectedIndex]->UpdatePosition(pos.x, pos.y);
 			this->parent->GetComponent<TransformComponent>()->UpdateWorldPosition(this->parent->GetComponent<TransformComponent>()->GetWorldPosition());
-			PhysicsComponent* pc = this->parent->GetComponent<PhysicsComponent>();
+			RigidBodyComponent* pc = this->parent->GetComponent<RigidBodyComponent>();
 			if (pc) {
 				pc->CalculateInertia();
 			}

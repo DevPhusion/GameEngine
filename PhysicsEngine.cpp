@@ -18,8 +18,8 @@ void PhysicsEngine::ProcessPhysics(float delta) {
 
 	for (int i = 0; i < allObjects->size(); i++)
 	{
-		if ((*allObjects)[i]->HasComponent<PhysicsComponent>()) {
-			(*allObjects)[i]->GetComponent<PhysicsComponent>()->IntegrateVelocities(delta);
+		if ((*allObjects)[i]->HasComponent<RigidBodyComponent>()) {
+			(*allObjects)[i]->GetComponent<RigidBodyComponent>()->IntegrateVelocities(delta);
 		}
 		if ((*allObjects)[i]->HasComponent<CollisionComponent>()) {
 			(*allObjects)[i]->GetComponent<RenderComponent>()->color = glm::vec4(1);
@@ -38,8 +38,8 @@ void PhysicsEngine::ProcessPhysics(float delta) {
 
 	for (int i = 0; i < allObjects->size(); i++)
 	{
-		if ((*allObjects)[i]->HasComponent<PhysicsComponent>()) {
-			(*allObjects)[i]->GetComponent<PhysicsComponent>()->IntegratePositions(delta);
+		if ((*allObjects)[i]->HasComponent<RigidBodyComponent>()) {
+			(*allObjects)[i]->GetComponent<RigidBodyComponent>()->IntegratePositions(delta);
 		}
 	}
 }
@@ -49,7 +49,7 @@ void PhysicsEngine::RegisterForce(Object* object, ForceGenerator* fg) {
 	std::function<void(int)> Wrapper = [fg](int index) {fg->processDisplay(index);};
 	std::shared_ptr<std::function<void(int)>> sharedFunc = std::make_shared<std::function<void(int)>>(Wrapper);
 	fg->setDisplayFunc(sharedFunc);
-	object->GetComponent<PhysicsComponent>()->AddDisplayFunc(sharedFunc);
+	object->GetComponent<RigidBodyComponent>()->AddDisplayFunc(sharedFunc);
 }
 
 void PhysicsEngine::UnRegisterForce(Object* object, ForceGenerator* fg) {
@@ -57,7 +57,7 @@ void PhysicsEngine::UnRegisterForce(Object* object, ForceGenerator* fg) {
 	{
 		if (ForceRegistrations[i].fg == fg && ForceRegistrations[i].object == object) {
 			ForceRegistrations.erase(ForceRegistrations.begin() + i);
-			object->GetComponent<PhysicsComponent>()->RemoveDisplayFunc(fg->displayFunc);
+			object->GetComponent<RigidBodyComponent>()->RemoveDisplayFunc(fg->displayFunc);
 			fg->displayFunc = nullptr;
 		}
 	}
@@ -69,7 +69,7 @@ void PhysicsEngine::UnRegisterAllForce(Object* object) {
 		if (it->object == object) {
 			std::cout << "Remove" << std::endl;
 
-			object->GetComponent<PhysicsComponent>()->RemoveDisplayFunc(it->fg->displayFunc);
+			object->GetComponent<RigidBodyComponent>()->RemoveDisplayFunc(it->fg->displayFunc);
 			it->fg->displayFunc = nullptr;
 			it = ForceRegistrations.erase(it);
 		}
@@ -95,7 +95,7 @@ void PhysicsEngine::ResolveContacts(PotentialContact* contacts, unsigned numCont
 
 		if (objA == nullptr || objB == nullptr) continue;
 
-		if (!objA->HasComponent<PhysicsComponent>() || (objB->HasComponent<PhysicsComponent>() && objA > objB)) {
+		if (!objA->HasComponent<RigidBodyComponent>() || (objB->HasComponent<RigidBodyComponent>() && objA > objB)) {
 			std::swap(objA, objB);
 		}
 
@@ -671,8 +671,8 @@ void PhysicsEngine::ResolveConstraints(float delta) {
 	for (int idx : sortedIndices) {
 		auto& row = solverRows[idx];
 		if (!row.warmStart || row.lambda == 0.0f) continue;
-		PhysicsComponent* pcA = row.objectA->GetComponent<PhysicsComponent>();
-		PhysicsComponent* pcB = row.objectB->GetComponent<PhysicsComponent>();
+		RigidBodyComponent* pcA = row.objectA->GetComponent<RigidBodyComponent>();
+		RigidBodyComponent* pcB = row.objectB->GetComponent<RigidBodyComponent>();
 		if (pcA) {
 			pcA->velocity += pcA->inverseMass * row.jacobian.linearA * row.lambda;
 			pcA->angularVelocity += pcA->inverseInertia * row.jacobian.angularA * row.lambda;
@@ -687,8 +687,8 @@ void PhysicsEngine::ResolveConstraints(float delta) {
 	for (int i = 0; i < velocityIterations; i++) {
 		for (int idx : sortedIndices) {
 			auto& row = solverRows[idx];
-			PhysicsComponent* pcA = row.objectA->GetComponent<PhysicsComponent>();
-			PhysicsComponent* pcB = row.objectB->GetComponent<PhysicsComponent>();
+			RigidBodyComponent* pcA = row.objectA->GetComponent<RigidBodyComponent>();
+			RigidBodyComponent* pcB = row.objectB->GetComponent<RigidBodyComponent>();
 
 			float relVel = 0.0f;
 			if (pcA) relVel += glm::dot(row.jacobian.linearA, pcA->velocity)

@@ -4,11 +4,11 @@
 #include "Object.h"
 #include <glm/glm.hpp>
 
-class PhysicsComponent : public Component
+class RigidBodyComponent : public Component
 {
 public:
-	PhysicsComponent(Object* parent);
-	PhysicsComponent() = default;
+	RigidBodyComponent(Object* parent);
+	RigidBodyComponent() = default;
 
 	//For UI display
 	glm::vec2 netForceDisplay = glm::vec3(0);

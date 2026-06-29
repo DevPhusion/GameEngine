@@ -3,7 +3,7 @@
 #include "Object.h"
 #include "RenderComponent.h"
 #include "TransformComponent.h"
-#include "PhysicsComponent.h"
+#include "RigidBodyComponent.h"
 #include "MouseInteractComponent.h"
 #include "CollisionComponent.h"
 #include "ConstraintComponent.h"

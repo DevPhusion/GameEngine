@@ -7,7 +7,7 @@ MouseDrag::MouseDrag(float k, float c) {
 
 void MouseDrag::updateForce(Object* object, float delta) {
 	TransformComponent* trans = object->GetComponent<TransformComponent>();
-	PhysicsComponent* phys = object->GetComponent<PhysicsComponent>();
+	RigidBodyComponent* phys = object->GetComponent<RigidBodyComponent>();
 	
 	float scaledK = k * (1 / phys->inverseMass);
 	float scaledC = c * (1 / phys->inverseMass);

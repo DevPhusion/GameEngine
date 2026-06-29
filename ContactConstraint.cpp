@@ -20,8 +20,8 @@ ContactConstraint::ContactConstraint(Object* objectA, Object* objectB, glm::vec3
 void ContactConstraint::Prepare(std::vector<SolverRow>& rows, float delta) {
     TransformComponent* tcA = objectA->GetComponent<TransformComponent>();
     TransformComponent* tcB = objectB->GetComponent<TransformComponent>();
-    PhysicsComponent* pcA = objectA->GetComponent<PhysicsComponent>();
-    PhysicsComponent* pcB = objectB->GetComponent<PhysicsComponent>();
+    RigidBodyComponent* pcA = objectA->GetComponent<RigidBodyComponent>();
+    RigidBodyComponent* pcB = objectB->GetComponent<RigidBodyComponent>();
 
     glm::vec3 rA = attachPointA - tcA->GetWorldPosition();
     glm::vec3 rB = attachPointB - tcB->GetWorldPosition();

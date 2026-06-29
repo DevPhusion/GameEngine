@@ -5,7 +5,7 @@
 #include "RenderComponent.h"
 #include "TransformComponent.h"
 #include "VertexComponent.h"
-#include "PhysicsComponent.h"
+#include "RigidBodyComponent.h"
 #include "MouseInteractComponent.h"
 #include "CollisionComponent.h"
 #include "ConstraintComponent.h"

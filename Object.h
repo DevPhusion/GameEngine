@@ -42,6 +42,11 @@ public:
 		return false;
 	}
 
+	void RemoveComponent(int index) {
+		components[index]->OnDelete();
+		components.erase(components.begin() + index);
+	}
+
 	template <AllowedTypes T>
 	void RemoveComponent() {
 		for (int i = 0; i < components.size(); i++)

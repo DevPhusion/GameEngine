@@ -111,7 +111,7 @@
     <ClCompile Include="VertexComponent.cpp">
       <Filter>Source Files\Components</Filter>
     </ClCompile>
-    <ClCompile Include="PhysicsComponent.cpp">
+    <ClCompile Include="RigidBodyComponent.cpp">
       <Filter>Source Files\Components</Filter>
     </ClCompile>
     <ClCompile Include="InputManager.cpp">
@@ -231,6 +231,15 @@
     <ClCompile Include="Circle.cpp">
       <Filter>Source Files\Objects</Filter>
     </ClCompile>
+    <ClCompile Include="PrismaticConstraint.cpp">
+      <Filter>Source Files\Core\Physics\Constraint</Filter>
+    </ClCompile>
+    <ClCompile Include="SoftBodyComponent.cpp">
+      <Filter>Source Files\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="PointMass.cpp">
+      <Filter>Source Files\Objects</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stb_image.h">
@@ -260,7 +269,7 @@
     <ClInclude Include="InputManager.h">
       <Filter>Header Files\Core</Filter>
     </ClInclude>
-    <ClInclude Include="PhysicsComponent.h">
+    <ClInclude Include="RigidBodyComponent.h">
       <Filter>Header Files\Components</Filter>
     </ClInclude>
     <ClInclude Include="Camera.h">
@@ -396,6 +405,15 @@
       <Filter>Header Files\Objects</Filter>
     </ClInclude>
     <ClInclude Include="Circle.h">
+      <Filter>Header Files\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="SoftBodyComponent.h">
+      <Filter>Header Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="PrismaticConstraint.h">
+      <Filter>Header Files\Core\Physics\Constraint</Filter>
+    </ClInclude>
+    <ClInclude Include="PointMass.h">
       <Filter>Header Files\Objects</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,6 +1,6 @@
 #pragma once
 #include "Object.h"
-#include "PhysicsComponent.h"
+#include "RigidBodyComponent.h"
 #include "CollisionComponent.h"
 #include "ForceGenerator.h"
 #include "BAHNode.h"

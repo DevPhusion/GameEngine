@@ -4,7 +4,7 @@
 CollisionComponent::CollisionComponent(Object* parent) : Component(parent) {
 	Name = "Collision Component";
 	calculateBoundingCircle();
-	parent->GetComponent<TransformComponent>()->AddTransformCallback([this]() {this->calculateBoundingCircle();});
+	onTransformCallbackID = parent->GetComponent<TransformComponent>()->AddTransformCallback([this]() {this->calculateBoundingCircle();});
 	BAHnode = PhysicsEngine::getInstance().RegisterBoundingAreaNode(parent, boundingCircle);
 }
 
@@ -99,6 +99,8 @@ void CollisionComponent::SetEnabled(bool enabled) {
 }
 
 void CollisionComponent::OnDelete() {
+    TransformComponent* tc = parent->GetComponent<TransformComponent>();
+    if (tc) tc->RemoveTransformCallback(onTransformCallbackID);
 	PhysicsEngine::getInstance().UnRegisterBoundingAreaNode(parent);
 }
 

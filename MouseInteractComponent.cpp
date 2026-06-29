@@ -27,7 +27,7 @@ void MouseInteractComponent::ProcessInspectorUI() {
 		SetEnabled(false);
 	}
 
-	if (parent->HasComponent<PhysicsComponent>()) {
+	if (parent->HasComponent<RigidBodyComponent>()) {
 		ImGui::Text("Physics Interact ");
 		ImGui::SameLine();
 		ImGui::Checkbox("## Physics Interact", &physicsInteract);
