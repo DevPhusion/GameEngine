@@ -1,14 +1,16 @@
 #include "TransformComponent.h"
 #include "RigidBodyComponent.h"
 
-TransformComponent::TransformComponent(Object* parent, Shader shader, glm::vec3 rotation_center) : Component(parent) {
+TransformComponent::TransformComponent(Object* parent, Shader shader, glm::vec3 rotation_center) : ComponentBase<TransformComponent>(parent) {
 	Name = "Transform Component";
 
 	this->shader = shader;
 	this->rotation_center = rotation_center;
 	CanRemove = false;
 	CanDisable = false;
+	
 	SetOriginTransform(Camera::getInstance().viewMatrixInverse);
+	UpdateWorldPosition(GetWorldPosition());
 }
 
 void TransformComponent::CopyTo(Object* other) {
@@ -22,6 +24,7 @@ void TransformComponent::CopyTo(Object* other) {
 	target->size = this->size;
 	target->SetRotationCenter(rotation_center);
 	target->SetOriginTransform(this->OriginTransform);
+	target->UpdateWorldPosition(target->GetWorldPosition());
 
 	Shape shapeCopy = parent->GetComponent<RenderComponent>()->currentShape;
 
@@ -39,7 +42,7 @@ void TransformComponent::CopyTo(Object* other) {
 void TransformComponent::ProcessInspectorUI() {
 	ImGui::Text("Position ");
 	ImGui::SameLine();
-	float position[] = { GetWorldPosition().x, GetWorldPosition().y };
+	float position[] = { worldPosition.x, worldPosition.y };
 	if (ImGui::InputFloat2("## Position", position)) {
 		UpdateWorldPosition(glm::vec3(position[0], position[1], 0));
 	}
@@ -103,6 +106,7 @@ void TransformComponent::UpdateWorldPosition(glm::vec3 targetWorldPos) {
 	glm::mat4 newOriginTransform = glm::translate(glm::mat4(1.0f), delta) * OriginTransform;
 	
 	SetOriginTransform(newOriginTransform);
+	worldPosition = GetWorldPosition();
 }
 
 glm::vec3 TransformComponent::GetTransformedPoint(glm::vec3 point, bool inverseTransform) {
@@ -191,4 +195,8 @@ void TransformComponent::ProcessTransform() {
 	this->shader.setMat4D("projection", projection);
 	this->shader.setMat4D("transform", this->transform);
 	this->shader.setMat4D("view", Camera::getInstance().viewMatrix);
+
+	if (worldPosition != GetWorldPosition()) {
+		UpdateWorldPosition(worldPosition);
+	}
 }

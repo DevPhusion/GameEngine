@@ -145,6 +145,7 @@
     <ClCompile Include="Circle.cpp" />
     <ClCompile Include="CollisionComponent.cpp" />
     <ClCompile Include="Component.cpp" />
+    <ClCompile Include="ComponentTypeID.cpp" />
     <ClCompile Include="Constraint.cpp" />
     <ClCompile Include="ConstraintComponent.cpp" />
     <ClCompile Include="DebugCircle.cpp" />
@@ -184,6 +185,7 @@
     <ClCompile Include="RevoluteConstraint.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="SoftBodyComponent.cpp" />
+    <ClCompile Include="SoftBodySpringConstraint.cpp" />
     <ClCompile Include="SpringConstraint.cpp" />
     <ClCompile Include="stb_image.cpp" />
     <ClCompile Include="TransformComponent.cpp" />
@@ -201,6 +203,7 @@
     <ClInclude Include="CollisionComponent.h" />
     <ClInclude Include="CollisionLayerMask.h" />
     <ClInclude Include="Component.h" />
+    <ClInclude Include="ComponentTypeID.h" />
     <ClInclude Include="Constraint.h" />
     <ClInclude Include="ConstraintComponent.h" />
     <ClInclude Include="ContactID.h" />
@@ -244,6 +247,7 @@
     <ClInclude Include="RevoluteConstraint.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="SoftBodyComponent.h" />
+    <ClInclude Include="SoftBodySpringConstraint.h" />
     <ClInclude Include="SpringConstraint.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="TransformComponent.h" />

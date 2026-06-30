@@ -3,7 +3,7 @@
 
 bool VertexComponent::vertexSelected = false;
 
-VertexComponent::VertexComponent(Object* parent) : Component(parent) {
+VertexComponent::VertexComponent(Object* parent) : ComponentBase<VertexComponent>(parent) {
 	Name = "Vertex Component";
 	Hidden = true;
 }
@@ -144,5 +144,6 @@ void VertexComponent::UpdateTransform() {
 		vertexTransform->Translate(parentTransform->position);
 		vertexTransform->Rotate(parentTransform->rotation);
 		vertexTransform->Scale(parentTransform->size);
+		vertexTransform->UpdateWorldPosition(vertexTransform->GetWorldPosition());
 	}
 }

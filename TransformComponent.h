@@ -5,7 +5,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <functional>
-class TransformComponent : public Component
+class TransformComponent : public ComponentBase<TransformComponent>
 {
 public:
 	TransformComponent(Object* parent, Shader shader, glm::vec3 rotation_center);
@@ -17,6 +17,7 @@ public:
 	glm::mat4 WorldMatrix = glm::mat4(1.0f);
 	bool worldMatrixDirty = true;
 
+	glm::vec3 worldPosition = glm::vec3(0);
 	glm::vec3 rotation_center = glm::vec3(0);
 	glm::vec3 position = glm::vec3(0);
 	glm::vec3 size = glm::vec3(1);

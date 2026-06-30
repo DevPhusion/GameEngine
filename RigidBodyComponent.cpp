@@ -2,7 +2,7 @@
 #include "PhysicsEngine.h"
 #include "MouseInteractComponent.h"
 
-RigidBodyComponent::RigidBodyComponent(Object* parent) : Component(parent) {
+RigidBodyComponent::RigidBodyComponent(Object* parent) : ComponentBase<RigidBodyComponent>(parent) {
 	Name = "Rigid Body Component";
 	this->inverseMass = 1;
 	this->acceleration = glm::vec3(0.0f, -9.8f, 0.0f);

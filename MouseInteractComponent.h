@@ -9,7 +9,7 @@
 #include "MouseDrag.h"
 #include "PhysicsEngine.h"
 
-class MouseInteractComponent : public Component
+class MouseInteractComponent : public ComponentBase<MouseInteractComponent>
 {
 public:
 	MouseInteractComponent(Object* parent, bool physicsInteract);

@@ -3,7 +3,7 @@
 class PrismaticConstraint : public Constraint
 {
 public:
-	PrismaticConstraint(Object* objectA, Object* objectB, glm::vec3 attachPointA, glm::vec3 attachPointB, glm::vec3 dir);
+	PrismaticConstraint(PhysicsBody objectA, PhysicsBody objectB, glm::vec3 attachPointA, glm::vec3 attachPointB, glm::vec3 dir);
 	PrismaticConstraint() = default;
 
 	glm::vec3 dir;
@@ -12,8 +12,8 @@ public:
 	int linearRowOffset = 0;
 	int thetaRowOffset = 0;
 
-	virtual void SetObjectA(Object* obj);
-	virtual void SetObjectB(Object* obj);
+	virtual void SetObjectA(PhysicsBody obj);
+	virtual void SetObjectB(PhysicsBody obj);
 
 	virtual void Prepare(std::vector<SolverRow>& rows, float delta);
 	virtual void PostSolve(std::vector<SolverRow>& allRows);

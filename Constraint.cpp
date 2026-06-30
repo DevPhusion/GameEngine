@@ -6,7 +6,7 @@
 #include "ConstraintComponent.h"
 #include "EditorManager.h"
 
-Constraint::Constraint(Object* objectA, Object* objectB, glm::vec3 attachPointA, glm::vec3 attachPointB)
+Constraint::Constraint(PhysicsBody objectA, PhysicsBody objectB, glm::vec3 attachPointA, glm::vec3 attachPointB)
 {
     SetObjectA(objectA);
     SetObjectB(objectB);
@@ -89,8 +89,8 @@ Object* Constraint::CreateConstraintDisplay()
 
 void Constraint::EnsureDisplayA()
 {
-    if (attachDisplayA != nullptr || objectA == nullptr) return;
-    attachDisplayA = CreateAttachPointDisplay(Name, "A", objectA,
+    if (attachDisplayA != nullptr || objectA.obj == nullptr) return;
+    attachDisplayA = CreateAttachPointDisplay(Name, "A", objectA.obj,
         ObjectManager::getInstance());
     attachDisplayA->GetComponent<TransformComponent>()->AddTransformCallback(
         [this]() { OnDisplayAMoved(); });
@@ -99,8 +99,8 @@ void Constraint::EnsureDisplayA()
 
 void Constraint::EnsureDisplayB()
 {
-    if (attachDisplayB != nullptr || objectB == nullptr) return;
-    attachDisplayB = CreateAttachPointDisplay(Name, "B", objectB,
+    if (attachDisplayB != nullptr || objectB.obj == nullptr) return;
+    attachDisplayB = CreateAttachPointDisplay(Name, "B", objectB.obj,
         ObjectManager::getInstance());
     attachDisplayB->GetComponent<TransformComponent>()->AddTransformCallback(
         [this]() { OnDisplayBMoved(); });
@@ -127,34 +127,34 @@ void Constraint::DestroyDisplayB()
 
 void Constraint::OnObjectATransformChanged()
 {
-    if (objectA == nullptr || attachDisplayA == nullptr) return;
-    glm::vec3 world = objectA->GetComponent<TransformComponent>()->ProjectToWorld(attachPointA);
+    if (objectA.obj == nullptr || attachDisplayA == nullptr) return;
+    glm::vec3 world = objectA.obj->GetComponent<TransformComponent>()->ProjectToWorld(attachPointA);
     attachDisplayA->GetComponent<TransformComponent>()->UpdateWorldPosition(world);
     ProcessConstraintDisplay();
 }
 
 void Constraint::OnObjectBTransformChanged()
 {
-    if (objectB == nullptr || attachDisplayB == nullptr) return;
-    glm::vec3 world = objectB->GetComponent<TransformComponent>()->ProjectToWorld(attachPointB);
+    if (objectB.obj == nullptr || attachDisplayB == nullptr) return;
+    glm::vec3 world = objectB.obj->GetComponent<TransformComponent>()->ProjectToWorld(attachPointB);
     attachDisplayB->GetComponent<TransformComponent>()->UpdateWorldPosition(world);
     ProcessConstraintDisplay();
 }
 
 void Constraint::OnDisplayAMoved()
 {
-    if (objectA == nullptr || attachDisplayA == nullptr) return;
+    if (objectA.obj == nullptr || attachDisplayA == nullptr) return;
     glm::vec3 world = attachDisplayA->GetComponent<TransformComponent>()->GetWorldPosition();
-    attachPointA = objectA->GetComponent<TransformComponent>()->ProjectToWorld(world, true);
+    attachPointA = objectA.obj->GetComponent<TransformComponent>()->ProjectToWorld(world, true);
 
     ProcessConstraintDisplay();
 }
 
 void Constraint::OnDisplayBMoved()
 {
-    if (objectB == nullptr || attachDisplayB == nullptr) return;
+    if (objectB.obj == nullptr || attachDisplayB == nullptr) return;
     glm::vec3 world = attachDisplayB->GetComponent<TransformComponent>()->GetWorldPosition();
-    attachPointB = objectB->GetComponent<TransformComponent>()->ProjectToWorld(world, true);
+    attachPointB = objectB.obj->GetComponent<TransformComponent>()->ProjectToWorld(world, true);
 
     ProcessConstraintDisplay();
 }
@@ -172,20 +172,20 @@ void Constraint::OnPhysicsModeChanged() {
 
 void Constraint::RemoveMirrorFromObjectB()
 {
-    if (objectB == nullptr) return;
-    ConstraintComponent* cc = objectB->GetComponent<ConstraintComponent>();
+    if (objectB.obj == nullptr) return;
+    ConstraintComponent* cc = objectB.obj->GetComponent<ConstraintComponent>();
     if (cc == nullptr) return;
 
     auto& mv = cc->mirroredConstraints;
     mv.erase(std::remove(mv.begin(), mv.end(), this), mv.end());
 }
 
-void Constraint::SetObjectA(Object* obj)
+void Constraint::SetObjectA(PhysicsBody obj)
 {
-    if (objectA != nullptr)
+    if (objectA.obj != nullptr)
     {
-        objectA->RemoveOnDeleteCallback(onDeleteCallbackIdA);
-        objectA->GetComponent<TransformComponent>()->RemoveTransformCallback(onTransformCallbackIdA);
+        objectA.obj->RemoveOnDeleteCallback(onDeleteCallbackIdA);
+        objectA.obj->GetComponent<TransformComponent>()->RemoveTransformCallback(onTransformCallbackIdA);
         if (attachDisplayA) {
             attachDisplayA->GetComponent<RenderComponent>()->Enabled = false;
             attachDisplayA->GetComponent<MouseInteractComponent>()->Enabled = false;
@@ -193,25 +193,26 @@ void Constraint::SetObjectA(Object* obj)
     }
 
     objectA = obj;
-    if (obj == nullptr) return;
+    if (obj.obj == nullptr) return;
 
-    onDeleteCallbackIdA = obj->AddOnDeleteCallback([this]() { SetObjectA(nullptr); });
-    onTransformCallbackIdA = obj->GetComponent<TransformComponent>()->AddTransformCallback(
+
+    onDeleteCallbackIdA = obj.obj->AddOnDeleteCallback([this]() { SetObjectA(PhysicsBody()); });
+    onTransformCallbackIdA = obj.obj->GetComponent<TransformComponent>()->AddTransformCallback(
         [this]() { OnObjectATransformChanged(); });
 
-    attachPointA = obj->GetComponent<RenderComponent>()->GetCenter();
+    attachPointA = obj.obj->GetComponent<RenderComponent>()->GetCenter();
     EnsureDisplayA();
     posSetA = false;
 }
 
-void Constraint::SetObjectB(Object* obj)
+void Constraint::SetObjectB(PhysicsBody obj)
 {
-    if (objectB != nullptr)
+    if (objectB.obj != nullptr)
     {
         RemoveMirrorFromObjectB();
 
-        objectB->RemoveOnDeleteCallback(onDeleteCallbackIdB);
-        objectB->GetComponent<TransformComponent>()->RemoveTransformCallback(onTransformCallbackIdB);
+        objectB.obj->RemoveOnDeleteCallback(onDeleteCallbackIdB);
+        objectB.obj->GetComponent<TransformComponent>()->RemoveTransformCallback(onTransformCallbackIdB);
         if (attachDisplayB) {
             attachDisplayB->GetComponent<RenderComponent>()->Enabled = false;
             attachDisplayB->GetComponent<MouseInteractComponent>()->Enabled = false;
@@ -219,23 +220,23 @@ void Constraint::SetObjectB(Object* obj)
     }
 
     objectB = obj;
-    if (obj == nullptr) return;
+    if (obj.obj == nullptr) return;
 
-    ConstraintComponent* cc = obj->GetComponent<ConstraintComponent>();
+    ConstraintComponent* cc = obj.obj->GetComponent<ConstraintComponent>();
     if (cc == nullptr) {
-        auto newCC = std::make_unique<ConstraintComponent>(obj);
+        auto newCC = std::make_unique<ConstraintComponent>(obj.obj);
         newCC->mirroredConstraints.push_back(this);
-        obj->AddComponent(std::move(newCC));
+        obj.obj->AddComponent(std::move(newCC));
     }
     else {
         cc->mirroredConstraints.push_back(this);
     }
 
-    onDeleteCallbackIdB = obj->AddOnDeleteCallback([this]() { SetObjectB(nullptr); });
-    onTransformCallbackIdB = obj->GetComponent<TransformComponent>()->AddTransformCallback(
+    onDeleteCallbackIdB = obj.obj->AddOnDeleteCallback([this]() { SetObjectB(PhysicsBody()); });
+    onTransformCallbackIdB = obj.obj->GetComponent<TransformComponent>()->AddTransformCallback(
         [this]() { OnObjectBTransformChanged(); });
 
-    attachPointB = obj->GetComponent<RenderComponent>()->GetCenter();
+    attachPointB = obj.obj->GetComponent<RenderComponent>()->GetCenter();
     EnsureDisplayB();
     posSetB = false;
 
@@ -248,8 +249,8 @@ void Constraint::Unregister()
 
     DestroyDisplayA();
     DestroyDisplayB();
-    SetObjectA(nullptr);
-    SetObjectB(nullptr);
+    SetObjectA(PhysicsBody());
+    SetObjectB(PhysicsBody());
 
     ObjectManager::getInstance().RemoveObject(constraintDisplay);
     EngineManager::getInstance().RemovePhysicsModeChangedEvent(onPhysicsModeChangedCallbackID);
@@ -264,17 +265,34 @@ void Constraint::ProcessConstraintDisplay() {
 
 void Constraint::ProcessMirroredUI()
 {
-    ImGui::Text("Linked to %s", objectA ? objectA->name.c_str() : "(none)");
-    if (objectA && ImGui::Button("Go to owner"))
-        EditorManager::getInstance().SetSelectedObject(objectA);
+    ImGui::Text("Linked to %s", objectA.obj ? objectA.obj->name.c_str() : "(none)");
+    if (objectA.obj && ImGui::Button("Go to owner"))
+        EditorManager::getInstance().SetSelectedObject(objectA.obj);
 }
 
 void Constraint::ProcessInspectorUI(Object* parent)
 {
     auto& om = ObjectManager::getInstance();
 
-    if (objectA == nullptr && parent != nullptr)
-        SetObjectA(parent);
+    if (objectA.obj == nullptr && parent != nullptr) {
+        PhysicsBody body = PhysicsBody();
+        TransformComponent* tc = parent->GetComponent<TransformComponent>();
+        RigidBodyComponent* pc = parent->GetComponent<RigidBodyComponent>();
+        body.obj = parent;
+
+        if (tc) {
+            body.position = &tc->worldPosition;
+            body.transformMatrix = &tc->WorldMatrix;
+            body.rotation = &tc->rotation;
+        }
+        if (pc) {
+            body.velocity = &pc->velocity;
+            body.angularVelocity = &pc->angularVelocity;
+            body.invInertia = &pc->inverseInertia;
+            body.invMass = &pc->inverseMass;
+        }
+        SetObjectA(body);
+    }
 
     EnsureDisplayA();
     EnsureDisplayB();
@@ -331,31 +349,31 @@ void Constraint::ProcessInspectorUI(Object* parent)
     ImGui::Text("Object A (Owner)");
     {
         char nameBuf[128] = "None";
-        if (objectA)
+        if (objectA.obj)
         {
 #if defined(_MSC_VER)
-            strcpy_s(nameBuf, objectA->name.c_str());
+            strcpy_s(nameBuf, objectA.obj->name.c_str());
 #else
-            strncpy(nameBuf, objectA->name.c_str(), sizeof(nameBuf) - 1);
+            strncpy(nameBuf, objectA.obj->name.c_str(), sizeof(nameBuf) - 1);
 #endif
         }
         ImGui::BeginDisabled();
         ImGui::InputText("##objA_locked", nameBuf, IM_ARRAYSIZE(nameBuf), ImGuiInputTextFlags_ReadOnly);
         ImGui::EndDisabled();
     }
-    AttachPointWidget("A", objectA, useCenterA, attachDisplayA, posSetA);
+    AttachPointWidget("A", objectA.obj, useCenterA, attachDisplayA, posSetA);
 
     ImGui::Spacing();
 
     ImGui::Text("Object B");
     {
         char nameBuf[128] = "None (Click to choose...)";
-        if (objectB)
+        if (objectB.obj)
         {
 #if defined(_MSC_VER)
-            strcpy_s(nameBuf, objectB->name.c_str());
+            strcpy_s(nameBuf, objectB.obj->name.c_str());
 #else
-            strncpy(nameBuf, objectB->name.c_str(), sizeof(nameBuf) - 1);
+            strncpy(nameBuf, objectB.obj->name.c_str(), sizeof(nameBuf) - 1);
 #endif
         }
 
@@ -375,7 +393,7 @@ void Constraint::ProcessInspectorUI(Object* parent)
             for (auto& objPtr : om.allObjects)
             {
                 Object* candidate = objPtr.get();
-                if (candidate->hidden || candidate == objectA) continue;
+                if (candidate->hidden || candidate == objectA.obj) continue;
 
                 if (ImGui::Selectable(candidate->name.c_str()))
                 {
@@ -386,11 +404,28 @@ void Constraint::ProcessInspectorUI(Object* parent)
 
             ImGui::EndPopup();
 
-            if (pendingSelection != nullptr)
-                SetObjectB(pendingSelection);
+            if (pendingSelection != nullptr) {
+                PhysicsBody body = PhysicsBody();
+                TransformComponent* tc = pendingSelection->GetComponent<TransformComponent>();
+                RigidBodyComponent* pc = pendingSelection->GetComponent<RigidBodyComponent>();
+                body.obj = pendingSelection;
+
+                if (tc) {
+                    body.position = &tc->worldPosition;
+                    body.transformMatrix = &tc->WorldMatrix;
+                    body.rotation = &tc->rotation;
+                }
+                if (pc) {
+                    body.velocity = &pc->velocity;
+                    body.angularVelocity = &pc->angularVelocity;
+                    body.invInertia = &pc->inverseInertia;
+                    body.invMass = &pc->inverseMass;
+                }
+                SetObjectB(body);
+            }
         }
     }
-    AttachPointWidget("B", objectB, useCenterB, attachDisplayB, posSetB);
+    AttachPointWidget("B", objectB.obj, useCenterB, attachDisplayB, posSetB);
 
     ImGui::Spacing();
 

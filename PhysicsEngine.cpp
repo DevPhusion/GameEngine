@@ -1,4 +1,5 @@
 #include "PhysicsEngine.h"
+#include "SoftBodyComponent.h"
 
 void PhysicsEngine::Setup(std::vector<std::unique_ptr<Object>>* objects) {
 	this->allObjects = objects;
@@ -20,6 +21,9 @@ void PhysicsEngine::ProcessPhysics(float delta) {
 	{
 		if ((*allObjects)[i]->HasComponent<RigidBodyComponent>()) {
 			(*allObjects)[i]->GetComponent<RigidBodyComponent>()->IntegrateVelocities(delta);
+		}
+		if ((*allObjects)[i]->HasComponent<SoftBodyComponent>()) {
+			(*allObjects)[i]->GetComponent<SoftBodyComponent>()->ProcessSoftBody(delta);
 		}
 		if ((*allObjects)[i]->HasComponent<CollisionComponent>()) {
 			(*allObjects)[i]->GetComponent<RenderComponent>()->color = glm::vec4(1);
@@ -121,6 +125,39 @@ void PhysicsEngine::ResolveContacts(PotentialContact* contacts, unsigned numCont
 			}
 		}, rcB->currentShape);
 
+		PhysicsBody bodyA = PhysicsBody();
+		RigidBodyComponent* pcA = objA->GetComponent<RigidBodyComponent>();
+		bodyA.obj = objA;
+
+		if (tcA) {
+			bodyA.position = &tcA->worldPosition;
+			bodyA.transformMatrix = &tcA->WorldMatrix;
+			bodyA.rotation = &tcA->rotation;
+		}
+		if (pcA) {
+			bodyA.velocity = &pcA->velocity;
+			bodyA.angularVelocity = &pcA->angularVelocity;
+			bodyA.invInertia = &pcA->inverseInertia;
+			bodyA.invMass = &pcA->inverseMass;
+		}
+
+		PhysicsBody bodyB = PhysicsBody();
+		RigidBodyComponent* pcB = objB->GetComponent<RigidBodyComponent>();
+		bodyB.obj = objB;
+
+		if (tcB) {
+			bodyB.position = &tcB->worldPosition;
+			bodyB.transformMatrix = &tcB->WorldMatrix;
+			bodyB.rotation = &tcB->rotation;
+		}
+		if (pcB) {
+			bodyB.velocity = &pcB->velocity;
+			bodyB.angularVelocity = &pcB->angularVelocity;
+			bodyB.invInertia = &pcB->inverseInertia;
+			bodyB.invMass = &pcB->inverseMass;
+		}
+
+
 		if (rA > 0.0f && rB > 0.0f && tcA->size.x == tcA->size.y && tcB->size.x == tcB->size.y) {
 			glm::vec3 d = tcA->GetWorldPosition() - tcB->GetWorldPosition();
 			float dist = glm::length(d);
@@ -141,9 +178,9 @@ void PhysicsEngine::ResolveContacts(PotentialContact* contacts, unsigned numCont
 				cp.penetration = penetration;
 				cp.id = ContactID();
 				allContactPoints.push_back(cp);
-
+				
 				ContactConstraint* constraint = new ContactConstraint(
-					objA, objB, cPoint, cPoint, ContactID(), normal, penetration, 0.2f, 0.4f, 0.6f);
+					bodyA, bodyB, cPoint, cPoint, ContactID(), normal, penetration, 0.2f, 0.4f, 0.6f);
 				RegisterConstraint(constraint);
 			}
 		}
@@ -244,8 +281,8 @@ void PhysicsEngine::ResolveContacts(PotentialContact* contacts, unsigned numCont
 				}
 
 				ContactConstraint* constraint = new ContactConstraint(
-					objA, objB,
-					contactPoint, contactPoint,   // same point, stable like polygon-polygon
+					bodyA, bodyB,
+					contactPoint, contactPoint,   
 					ContactID(), contactNormal, penetration,
 					0.2f, 0.4f, 0.6f);
 				constraint->SetInitialImpulse(cachedLambda);
@@ -285,7 +322,7 @@ void PhysicsEngine::ResolveContacts(PotentialContact* contacts, unsigned numCont
 						}
 					}
 
-					ContactConstraint* constraint = new ContactConstraint(objA, objB, points[j].point, points[j].point, points[j].id, points[j].normal, points[j].penetration, 0.2f, 0.4f, 0.6f);
+					ContactConstraint* constraint = new ContactConstraint(bodyA, bodyB, points[j].point, points[j].point, points[j].id, points[j].normal, points[j].penetration, 0.2f, 0.4f, 0.6f);
 					constraint->SetInitialImpulse(cachedLambda);
 					RegisterConstraint(constraint);
 				}
@@ -620,8 +657,8 @@ void PhysicsEngine::UpdateContactCache() {
 			auto* contact = static_cast<ContactConstraint*>(constraint);
 
 			ContactCache entry;
-			entry.objectA = contact->objectA; 
-			entry.objectB = contact->objectB;
+			entry.objectA = contact->objectA.obj; 
+			entry.objectB = contact->objectB.obj;
 			entry.id = contact->contactId;
 			entry.lambda = contact->cacheLambda;
 
@@ -657,9 +694,7 @@ void PhysicsEngine::ResolveConstraints(float delta) {
 	solverRows.reserve(registeredConstraints.size() * 3);
 
 	for (auto* constraint : registeredConstraints) {
-		if (constraint->objectA != nullptr || constraint->objectB != nullptr) {
-			constraint->Prepare(solverRows, delta);
-		}
+		constraint->Prepare(solverRows, delta);
 	}
 
 	std::vector<int> sortedIndices(solverRows.size());
@@ -671,15 +706,13 @@ void PhysicsEngine::ResolveConstraints(float delta) {
 	for (int idx : sortedIndices) {
 		auto& row = solverRows[idx];
 		if (!row.warmStart || row.lambda == 0.0f) continue;
-		RigidBodyComponent* pcA = row.objectA->GetComponent<RigidBodyComponent>();
-		RigidBodyComponent* pcB = row.objectB->GetComponent<RigidBodyComponent>();
-		if (pcA) {
-			pcA->velocity += pcA->inverseMass * row.jacobian.linearA * row.lambda;
-			pcA->angularVelocity += pcA->inverseInertia * row.jacobian.angularA * row.lambda;
+		if (row.objectA.velocity != nullptr && row.objectA.angularVelocity != nullptr) {
+			*row.objectA.velocity += *row.objectA.invMass * row.jacobian.linearA * row.lambda;
+			*row.objectA.angularVelocity += *row.objectA.invInertia * row.jacobian.angularA * row.lambda;
 		}
-		if (pcB) {
-			pcB->velocity += pcB->inverseMass * row.jacobian.linearB * row.lambda;
-			pcB->angularVelocity += pcB->inverseInertia * row.jacobian.angularB * row.lambda;
+		if (row.objectB.velocity != nullptr && row.objectB.angularVelocity != nullptr) {
+			*row.objectB.velocity += *row.objectB.invMass * row.jacobian.linearB * row.lambda;
+			*row.objectB.angularVelocity += *row.objectB.invInertia * row.jacobian.angularB * row.lambda;
 		}
 	}
 
@@ -687,14 +720,12 @@ void PhysicsEngine::ResolveConstraints(float delta) {
 	for (int i = 0; i < velocityIterations; i++) {
 		for (int idx : sortedIndices) {
 			auto& row = solverRows[idx];
-			RigidBodyComponent* pcA = row.objectA->GetComponent<RigidBodyComponent>();
-			RigidBodyComponent* pcB = row.objectB->GetComponent<RigidBodyComponent>();
 
 			float relVel = 0.0f;
-			if (pcA) relVel += glm::dot(row.jacobian.linearA, pcA->velocity)
-				+ row.jacobian.angularA * pcA->angularVelocity;
-			if (pcB) relVel += glm::dot(row.jacobian.linearB, pcB->velocity)
-				+ row.jacobian.angularB * pcB->angularVelocity;
+			if (row.objectA.velocity != nullptr && row.objectA.angularVelocity != nullptr) relVel += glm::dot(row.jacobian.linearA, *row.objectA.velocity)
+				+ row.jacobian.angularA * *row.objectA.angularVelocity;
+			if (row.objectB.velocity != nullptr && row.objectB.angularVelocity != nullptr) relVel += glm::dot(row.jacobian.linearB, *row.objectB.velocity)
+				+ row.jacobian.angularB * *row.objectB.angularVelocity;
 
 			float lambdaRaw = row.effectiveMass * (row.bias - relVel - row.softnessCFM * row.lambda);
 			float lambdaOld = row.lambda;
@@ -705,20 +736,18 @@ void PhysicsEngine::ResolveConstraints(float delta) {
 			}
 
 			float deltaLambda = row.lambda - lambdaOld;
-			if (pcA) {
-				pcA->velocity += pcA->inverseMass * row.jacobian.linearA * deltaLambda;
-				pcA->angularVelocity += pcA->inverseInertia * row.jacobian.angularA * deltaLambda;
+			if (row.objectA.velocity != nullptr && row.objectA.angularVelocity != nullptr) {
+				*row.objectA.velocity += *row.objectA.invMass * row.jacobian.linearA * deltaLambda;
+				*row.objectA.angularVelocity += *row.objectA.invInertia * row.jacobian.angularA * deltaLambda;
 			}
-			if (pcB) {
-				pcB->velocity += pcB->inverseMass * row.jacobian.linearB * deltaLambda;
-				pcB->angularVelocity += pcB->inverseInertia * row.jacobian.angularB * deltaLambda;
+			if (row.objectB.velocity != nullptr && row.objectB.angularVelocity != nullptr) {
+				*row.objectB.velocity += *row.objectB.invMass * row.jacobian.linearB * deltaLambda;
+				*row.objectB.angularVelocity += *row.objectB.invInertia * row.jacobian.angularB * deltaLambda;
 			}
 		}
 	}
 
 	for (auto* constraint : registeredConstraints) {
-		if (constraint->objectA != nullptr || constraint->objectB != nullptr) {
-			constraint->PostSolve(solverRows);
-		}
+		constraint->PostSolve(solverRows);
 	}
 }

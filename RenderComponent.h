@@ -35,7 +35,7 @@ struct CircleShape {
 
 using Shape = std::variant<PolygonShape, RectangleShape, CircleShape>;
 
-class RenderComponent:public Component
+class RenderComponent: public ComponentBase<RenderComponent>
 {
 public:
 	RenderComponent(Object* parent, std::vector<float> vertices, Shader shader, std::string texture_path);

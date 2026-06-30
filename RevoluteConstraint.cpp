@@ -1,25 +1,20 @@
 #include "RevoluteConstraint.h"
 
-RevoluteConstraint::RevoluteConstraint(Object* objectA, Object* objectB, glm::vec3 attachPointA, glm::vec3 attachPointB) :
+RevoluteConstraint::RevoluteConstraint(PhysicsBody objectA, PhysicsBody objectB, glm::vec3 attachPointA, glm::vec3 attachPointB) :
 	Constraint(objectA, objectB, attachPointA, attachPointB) {
 	this->Name = "Revolute Constraint";
 }
 
 void RevoluteConstraint::Prepare(std::vector<SolverRow>& rows, float delta) {
-	if (objectA == nullptr || objectB == nullptr) {
+	if (objectA.obj == nullptr || objectB.obj == nullptr) {
 		return;
 	}
 
-	TransformComponent* tcA = objectA->GetComponent<TransformComponent>();
-	TransformComponent* tcB = objectB->GetComponent<TransformComponent>();
-	RigidBodyComponent* pcA = objectA->GetComponent<RigidBodyComponent>();
-	RigidBodyComponent* pcB = objectB->GetComponent<RigidBodyComponent>();
+	glm::vec3 globalPointA = *objectA.transformMatrix * glm::vec4(attachPointA, 1);
+	glm::vec3 globalPointB = *objectB.transformMatrix * glm::vec4(attachPointB, 1);
 
-	glm::vec3 globalPointA = tcA->ProjectToWorld(attachPointA);
-	glm::vec3 globalPointB = tcB->ProjectToWorld(attachPointB);
-
-	glm::vec3 rA = globalPointA - tcA->GetWorldPosition();
-	glm::vec3 rB = globalPointB - tcB->GetWorldPosition();
+	glm::vec3 rA = globalPointA - *objectA.position;
+	glm::vec3 rB = globalPointB - *objectB.position;
 
 	JacobianRow jacobianX = JacobianRow();
 	SolverRow rowX = SolverRow();
@@ -37,10 +32,10 @@ void RevoluteConstraint::Prepare(std::vector<SolverRow>& rows, float delta) {
 	jacobianY.angularB = -rB.x;
 	rowY.jacobian = jacobianY; 
 
-	float invMassA = (pcA != nullptr) ? pcA->inverseMass : 0.0f;
-	float invInertiaA = (pcA != nullptr) ? pcA->inverseInertia : 0.0f;
-	float invMassB = (pcB != nullptr) ? pcB->inverseMass : 0.0f;
-	float invInertiaB = (pcB != nullptr) ? pcB->inverseInertia : 0.0f;
+	float invMassA = objectA.invMass ? *objectA.invMass : 0.0f;
+	float invMassB = objectB.invMass ? *objectB.invMass : 0.0f;
+	float invInertiaA = objectA.invInertia ? *objectA.invInertia : 0.0f;
+	float invInertiaB = objectB.invInertia ? *objectB.invInertia : 0.0f;
 
 	float kX = invMassA + invInertiaA * jacobianX.angularA * jacobianX.angularA +
 		invMassB + invInertiaB * jacobianX.angularB * jacobianX.angularB;

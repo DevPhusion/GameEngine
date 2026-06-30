@@ -1,26 +1,21 @@
 #include "PrismaticConstraint.h"
 
-PrismaticConstraint::PrismaticConstraint(Object* objectA, Object* objectB, glm::vec3 attachPointA, glm::vec3 attachPointB, glm::vec3 dir) :
+PrismaticConstraint::PrismaticConstraint(PhysicsBody objectA, PhysicsBody objectB, glm::vec3 attachPointA, glm::vec3 attachPointB, glm::vec3 dir) :
     Constraint(objectA, objectB, attachPointA, attachPointB) {
     this->dir = dir;
-    this->Name = "Weld Constraint";
+    this->Name = "Prismatic Constraint";
 }
 
 void PrismaticConstraint::Prepare(std::vector<SolverRow>& rows, float delta) {
-    if (objectA == nullptr || objectB == nullptr) {
+    if (objectA.obj == nullptr || objectB.obj == nullptr) {
         return;
     }
 
-    TransformComponent* tcA = objectA->GetComponent<TransformComponent>();
-    TransformComponent* tcB = objectB->GetComponent<TransformComponent>();
-    RigidBodyComponent* pcA = objectA->GetComponent<RigidBodyComponent>();
-    RigidBodyComponent* pcB = objectB->GetComponent<RigidBodyComponent>();
+    glm::vec3 globalPointA = *objectA.transformMatrix * glm::vec4(attachPointA, 1);
+    glm::vec3 globalPointB = *objectB.transformMatrix * glm::vec4(attachPointB, 1);
 
-    glm::vec3 globalPointA = tcA->ProjectToWorld(attachPointA);
-    glm::vec3 globalPointB = tcB->ProjectToWorld(attachPointB);
-
-    glm::vec3 rA = globalPointA - tcA->GetWorldPosition();
-    glm::vec3 rB = globalPointB - tcB->GetWorldPosition();
+    glm::vec3 rA = globalPointA - *objectA.position;
+    glm::vec3 rB = globalPointB - *objectB.position;
 
     JacobianRow jacobianLinear, jacobianTheta;
     SolverRow rowLinear, rowTheta;
@@ -39,17 +34,17 @@ void PrismaticConstraint::Prepare(std::vector<SolverRow>& rows, float delta) {
 
     float klinear = 0.0f;
     float ktheta = 0.0f;
-    if (pcA) {
-        klinear += pcA->inverseMass + glm::length2(jacobianLinear.linearA) * pcA->inverseInertia;
-        ktheta += pcA->inverseInertia;
+    if (objectA.invMass != nullptr && objectA.invInertia != nullptr) {
+        klinear += *objectA.invMass + glm::length2(jacobianLinear.linearA) * *objectA.invInertia;
+        ktheta += *objectA.invInertia;
     }
-    if (pcB) {
-        klinear += pcB->inverseMass + glm::length2(jacobianLinear.linearB) * pcB->inverseInertia;
-        ktheta += pcB->inverseInertia;
+    if (objectB.invMass != nullptr && objectB.invInertia != nullptr) {
+        klinear += *objectB.invMass + glm::length2(jacobianLinear.linearB) * *objectB.invInertia;
+        ktheta += *objectB.invInertia;
     }
 
     float biasLinear = (beta * glm::dot(dir, t)) / delta;
-    float biasTheta = tcB->rotation - tcA->rotation;
+    float biasTheta = *objectB.rotation - *objectA.rotation;
 
     rowLinear.jacobian = jacobianLinear;
     rowLinear.effectiveMass = (klinear > 0.0f) ? 1.0f / klinear : 0.0f;
@@ -84,22 +79,22 @@ void PrismaticConstraint::PostSolve(std::vector<SolverRow>& allRows) {
     cacheLambda[1] = allRows[thetaRowOffset].lambda;
 }
 
-void PrismaticConstraint::SetObjectA(Object* obj) {
+void PrismaticConstraint::SetObjectA(PhysicsBody obj) {
     Constraint::SetObjectA(obj);
 
-    if (objectA != nullptr && objectB != nullptr) {
-        glm::vec3 pA = objectA->GetComponent<TransformComponent>()->GetWorldPosition();
-        glm::vec3 pB = objectB->GetComponent<TransformComponent>()->GetWorldPosition();
+    if (objectA.obj != nullptr && objectB.obj != nullptr) {
+        glm::vec3 pA = objectA.obj->GetComponent<TransformComponent>()->GetWorldPosition();
+        glm::vec3 pB = objectB.obj->GetComponent<TransformComponent>()->GetWorldPosition();
         this->dir = pB - pA;
     }
 }
 
-void PrismaticConstraint::SetObjectB(Object* obj) {
+void PrismaticConstraint::SetObjectB(PhysicsBody obj) {
     Constraint::SetObjectB(obj);
 
-    if (objectA != nullptr && objectB != nullptr) {
-        glm::vec3 pA = objectA->GetComponent<TransformComponent>()->GetWorldPosition();
-        glm::vec3 pB = objectB->GetComponent<TransformComponent>()->GetWorldPosition();
+    if (objectA.obj != nullptr && objectB.obj != nullptr) {
+        glm::vec3 pA = objectA.obj->GetComponent<TransformComponent>()->GetWorldPosition();
+        glm::vec3 pB = objectB.obj->GetComponent<TransformComponent>()->GetWorldPosition();
         this->dir = pB - pA;
     }
 }
@@ -108,15 +103,15 @@ void PrismaticConstraint::SetObjectB(Object* obj) {
 void PrismaticConstraint::ProcessInspectorUI(Object* parent) {
     Constraint::ProcessInspectorUI(parent);
 
-    if (objectA && objectB) {
+    if (objectA.obj && objectB.obj) {
         ImGui::Text("Locked direction ");
         ImGui::BeginDisabled();
         float d[2] = { dir.x, dir.y };
         ImGui::InputFloat2("##Locked direction", d);
         ImGui::EndDisabled();
         if (ImGui::Button("Re-lock direction")) {
-            glm::vec3 pA = objectA->GetComponent<TransformComponent>()->GetWorldPosition();
-            glm::vec3 pB = objectB->GetComponent<TransformComponent>()->GetWorldPosition();
+            glm::vec3 pA = objectA.obj->GetComponent<TransformComponent>()->GetWorldPosition();
+            glm::vec3 pB = objectB.obj->GetComponent<TransformComponent>()->GetWorldPosition();
             this->dir = pB - pA;
         }
     }
@@ -126,13 +121,13 @@ void PrismaticConstraint::ProcessConstraintDisplay() {
     RenderComponent* rc = constraintDisplay->GetComponent<RenderComponent>();
     TransformComponent* tc = constraintDisplay->GetComponent<TransformComponent>();
 
-    if (objectA == nullptr || objectB == nullptr || !canDrawConstraint) {
+    if (objectA.obj == nullptr || objectB.obj == nullptr || !canDrawConstraint) {
         rc->SetEnabled(false);
         return;
     }
 
-    glm::vec3 top = objectA->GetComponent<TransformComponent>()->GetTransformedPoint(attachPointA);
-    glm::vec3 bot = objectB->GetComponent<TransformComponent>()->GetTransformedPoint(attachPointB);
+    glm::vec3 top = objectA.obj->GetComponent<TransformComponent>()->GetTransformedPoint(attachPointA);
+    glm::vec3 bot = objectB.obj->GetComponent<TransformComponent>()->GetTransformedPoint(attachPointB);
 
     glm::vec2 topVert = tc->GetTransformedPoint(top, true);
     glm::vec2 botVert = tc->GetTransformedPoint(bot, true);

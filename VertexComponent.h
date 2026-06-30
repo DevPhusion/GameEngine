@@ -8,7 +8,7 @@
 #include "EngineManager.h"
 #include <memory>
 
-class VertexComponent : public Component
+class VertexComponent : public ComponentBase<VertexComponent>
 {
 public:
 	VertexComponent(Object* parent);

@@ -1,7 +1,7 @@
 #include "CollisionComponent.h"
 #include "PhysicsEngine.h"
 
-CollisionComponent::CollisionComponent(Object* parent) : Component(parent) {
+CollisionComponent::CollisionComponent(Object* parent) : ComponentBase<CollisionComponent>(parent) {
 	Name = "Collision Component";
 	calculateBoundingCircle();
 	onTransformCallbackID = parent->GetComponent<TransformComponent>()->AddTransformCallback([this]() {this->calculateBoundingCircle();});

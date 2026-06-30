@@ -5,7 +5,7 @@
 class ContactConstraint : public Constraint
 {
 public:
-	ContactConstraint(Object* objectA, Object* objectB, glm::vec3 attachPointA, glm::vec3 attachPointB, ContactID id,
+	ContactConstraint(PhysicsBody objectA, PhysicsBody objectB, glm::vec3 attachPointA, glm::vec3 attachPointB, ContactID id,
 		glm::vec3 normal, float penetration, float restitution, float staticFriction, float dynamicFriction);
 	ContactConstraint() = default;
 

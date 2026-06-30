@@ -8,7 +8,7 @@
 #include "PrismaticConstraint.h"
 
 ConstraintComponent::ConstraintComponent(Object* parent)
-    : Component(parent)
+    : ComponentBase<ConstraintComponent>(parent)
 {
     Name = "Constraint Component";
 }
@@ -71,32 +71,49 @@ void ConstraintComponent::ProcessInspectorUI()
     {
         ImGui::SeparatorText("Constraint Type");
 
+        PhysicsBody body = PhysicsBody();
+        TransformComponent* tc = parent->GetComponent<TransformComponent>();
+        RigidBodyComponent* pc = parent->GetComponent<RigidBodyComponent>();
+        body.obj = parent;
+
+        if (tc) {
+            body.position = &tc->worldPosition;
+            body.transformMatrix = &tc->WorldMatrix;
+            body.rotation = &tc->rotation;
+        }
+        if (pc) {
+            body.velocity = &pc->velocity;
+            body.angularVelocity = &pc->angularVelocity;
+            body.invInertia = &pc->inverseInertia;
+            body.invMass = &pc->inverseMass;
+        }
+
         if (ImGui::MenuItem("Distance Constraint"))
         {
-            AddConstraint(std::make_shared<DistanceConstraint>(parent, nullptr,
+            AddConstraint(std::make_shared<DistanceConstraint>(body, PhysicsBody(),
                 parent->GetComponent<RenderComponent>()->GetCenter(), glm::vec3(0.0f), 5.0f));
             ImGui::CloseCurrentPopup();
         }
         if (ImGui::MenuItem("Spring Constraint"))
         {
-            AddConstraint(std::make_shared<SpringConstraint>(parent, nullptr,
+            AddConstraint(std::make_shared<SpringConstraint>(body, PhysicsBody(),
                 parent->GetComponent<RenderComponent>()->GetCenter(), glm::vec3(0.0f), 5.0f, 15.0f, 7.0f));
             ImGui::CloseCurrentPopup();
         }
         if (ImGui::MenuItem("Revolute Constraint"))
         {
-            AddConstraint(std::make_shared<RevoluteConstraint>(parent, nullptr,
+            AddConstraint(std::make_shared<RevoluteConstraint>(body, PhysicsBody(),
                 parent->GetComponent<RenderComponent>()->GetCenter(), glm::vec3(0.0f)));
             ImGui::CloseCurrentPopup();
         }
         if (ImGui::MenuItem("Weld Constraint"))
         {
-            AddConstraint(std::make_shared<WeldConstraint>(parent, nullptr,
+            AddConstraint(std::make_shared<WeldConstraint>(body, PhysicsBody(),
                 parent->GetComponent<RenderComponent>()->GetCenter(), glm::vec3(0.0f), 0.0f));
             ImGui::CloseCurrentPopup();
         }
         if (ImGui::MenuItem("Prismatic Constraint")) {
-            AddConstraint(std::make_shared<PrismaticConstraint>(parent, nullptr,
+            AddConstraint(std::make_shared<PrismaticConstraint>(body, PhysicsBody(),
                 parent->GetComponent<RenderComponent>()->GetCenter(), glm::vec3(0.0f), glm::vec3(0.0f)));
             ImGui::CloseCurrentPopup();
         }

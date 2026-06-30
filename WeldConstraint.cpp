@@ -1,26 +1,21 @@
 #include "WeldConstraint.h"
 
-WeldConstraint::WeldConstraint(Object* objectA, Object* objectB, glm::vec3 attachPointA, glm::vec3 attachPointB, float angularOffset) :
+WeldConstraint::WeldConstraint(PhysicsBody objectA, PhysicsBody objectB, glm::vec3 attachPointA, glm::vec3 attachPointB, float angularOffset) :
 	Constraint(objectA, objectB, attachPointA, attachPointB) {
 	this->angularOffset = angularOffset;
 	this->Name = "Weld Constraint";
 }
 
 void WeldConstraint::Prepare(std::vector<SolverRow>& rows, float delta) {
-    if (objectA == nullptr || objectB == nullptr) {
+    if (objectA.obj == nullptr || objectB.obj == nullptr) {
         return;
     }
 
-    TransformComponent* tcA = objectA->GetComponent<TransformComponent>();
-    TransformComponent* tcB = objectB->GetComponent<TransformComponent>();
-    RigidBodyComponent* pcA = objectA->GetComponent<RigidBodyComponent>();
-    RigidBodyComponent* pcB = objectB->GetComponent<RigidBodyComponent>();
+    glm::vec3 globalPointA = *objectA.transformMatrix * glm::vec4(attachPointA, 1);
+    glm::vec3 globalPointB = *objectB.transformMatrix * glm::vec4(attachPointB, 1);
 
-    glm::vec3 globalPointA = tcA->ProjectToWorld(attachPointA);
-    glm::vec3 globalPointB = tcB->ProjectToWorld(attachPointB);
-
-    glm::vec3 rA = globalPointA - tcA->GetWorldPosition();
-    glm::vec3 rB = globalPointB - tcB->GetWorldPosition();
+    glm::vec3 rA = globalPointA - *objectA.position;
+    glm::vec3 rB = globalPointB - *objectB.position;
 
     JacobianRow jacobianX, jacobianY, jacobianTheta;
     SolverRow rowX, rowY, rowTheta;
@@ -40,12 +35,12 @@ void WeldConstraint::Prepare(std::vector<SolverRow>& rows, float delta) {
     jacobianTheta.angularA = 1;
     jacobianTheta.angularB = -1;
 
-    float invMassA = (pcA != nullptr) ? pcA->inverseMass : 0.0f;
-    float invInertiaA = (pcA != nullptr) ? pcA->inverseInertia : 0.0f;
-    float invMassB = (pcB != nullptr) ? pcB->inverseMass : 0.0f;
-    float invInertiaB = (pcB != nullptr) ? pcB->inverseInertia : 0.0f;
-    float thetaA = tcA->rotation;
-    float thetaB = tcB->rotation;
+    float invMassA = objectA.invMass ? *objectA.invMass : 0.0f;
+    float invMassB = objectB.invMass ? *objectB.invMass : 0.0f;
+    float invInertiaA = objectA.invInertia ? *objectA.invInertia : 0.0f;
+    float invInertiaB = objectB.invInertia ? *objectB.invInertia : 0.0f;
+    float thetaA = *objectA.rotation;
+    float thetaB = *objectB.rotation;
 
     float kX = invMassA + invInertiaA * jacobianX.angularA * jacobianX.angularA +
         invMassB + invInertiaB * jacobianX.angularB * jacobianX.angularB;
@@ -113,21 +108,21 @@ void WeldConstraint::PostSolve(std::vector<SolverRow>& allRows) {
 	cacheLambda[2] = allRows[thetaRowOffset].lambda;
 }
 
-void WeldConstraint::SetObjectA(Object* obj) {
+void WeldConstraint::SetObjectA(PhysicsBody obj) {
 	Constraint::SetObjectA(obj);
 
-	if (objectA != nullptr && objectB != nullptr) {
-		float thetaA = objectA->GetComponent<TransformComponent>()->rotation;
-		float thetaB = objectB->GetComponent<TransformComponent>()->rotation;
+	if (objectA.obj != nullptr && objectB.obj != nullptr) {
+		float thetaA = objectA.obj->GetComponent<TransformComponent>()->rotation;
+		float thetaB = objectB.obj->GetComponent<TransformComponent>()->rotation;
 		this->angularOffset = thetaB - thetaA;
 	}
 }
-void WeldConstraint::SetObjectB(Object* obj) {
+void WeldConstraint::SetObjectB(PhysicsBody obj) {
 	Constraint::SetObjectB(obj);
 
-	if (objectA != nullptr && objectB != nullptr) {
-		float thetaA = objectA->GetComponent<TransformComponent>()->rotation;
-		float thetaB = objectB->GetComponent<TransformComponent>()->rotation;
+	if (objectA.obj != nullptr && objectB.obj != nullptr) {
+		float thetaA = objectA.obj->GetComponent<TransformComponent>()->rotation;
+		float thetaB = objectB.obj->GetComponent<TransformComponent>()->rotation;
 		this->angularOffset = thetaB - thetaA;
 	}
 }
@@ -135,14 +130,14 @@ void WeldConstraint::SetObjectB(Object* obj) {
 void WeldConstraint::ProcessInspectorUI(Object* parent) {
 	Constraint::ProcessInspectorUI(parent);
 
-	if (objectA && objectB) {
+	if (objectA.obj && objectB.obj) {
 	    ImGui::Text("Locked angle ");
 	    ImGui::BeginDisabled();
 	    ImGui::SliderAngle("##Locked angle", &angularOffset);
 	    ImGui::EndDisabled();
         if (ImGui::Button("Re-lock angle")) {
-		    float thetaA = objectA->GetComponent<TransformComponent>()->rotation;
-		    float thetaB = objectB->GetComponent<TransformComponent>()->rotation;
+		    float thetaA = objectA.obj->GetComponent<TransformComponent>()->rotation;
+		    float thetaB = objectB.obj->GetComponent<TransformComponent>()->rotation;
             angularOffset = thetaB - thetaA;
         }
 	}

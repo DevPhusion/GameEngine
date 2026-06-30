@@ -2,7 +2,7 @@
 
 bool MouseInteractComponent::ObjectSelected = false;
 
-MouseInteractComponent::MouseInteractComponent(Object* parent, bool physicsInteract) : Component(parent) {
+MouseInteractComponent::MouseInteractComponent(Object* parent, bool physicsInteract) : ComponentBase<MouseInteractComponent>(parent) {
 	Name = "Mouse Interact Component";
 	this->physicsInteract = physicsInteract;
 	int priority = parent->GetComponent<RenderComponent>()->z_index;

@@ -5,6 +5,18 @@
 #include <string>
 #include <vector>
 
+struct PhysicsBody {
+    Object* obj = nullptr;
+    glm::mat4* transformMatrix;
+
+    glm::vec3* position = nullptr;
+    float* rotation = nullptr;
+    float* invMass = nullptr;
+    float* invInertia = nullptr;
+    glm::vec3* velocity = nullptr;
+    float* angularVelocity = nullptr;
+};
+
 struct JacobianRow {
     glm::vec3 linearA;
     float     angularA;
@@ -23,8 +35,8 @@ struct SolverRow {
     float minLambda = -INFINITY;
     float maxLambda = INFINITY;
 
-    Object* objectA = nullptr;
-    Object* objectB = nullptr;
+    PhysicsBody objectA;
+    PhysicsBody objectB;
 
     bool warmStart = true;
     class Constraint* parentConstraint = nullptr;
@@ -33,12 +45,12 @@ struct SolverRow {
 class Constraint
 {
 public:
-    Constraint(Object* objectA, Object* objectB,
+    Constraint(PhysicsBody objectA, PhysicsBody objectB,
         glm::vec3 attachPointA, glm::vec3 attachPointB);
     Constraint() = default;
 
-    Object* objectA = nullptr;
-    Object* objectB = nullptr;
+    PhysicsBody objectA;
+    PhysicsBody objectB;
     glm::vec3 attachPointA = glm::vec3(0.0f);
     glm::vec3 attachPointB = glm::vec3(0.0f);
 
@@ -64,8 +76,8 @@ public:
             allRows[myRowIndex].maxLambda);
     }
 
-    virtual void SetObjectA(Object* obj);
-    virtual void SetObjectB(Object* obj);
+    virtual void SetObjectA(PhysicsBody obj);
+    virtual void SetObjectB(PhysicsBody obj);
 
     virtual void PostSolve(std::vector<SolverRow>& allRows) {}
     virtual void ProcessConstraintDisplay();

@@ -3,7 +3,7 @@
 #include "Constraint.h"
 #include "PhysicsEngine.h"
 
-class ConstraintComponent : public Component {
+class ConstraintComponent : public ComponentBase<ConstraintComponent> {
 public:
 	ConstraintComponent(Object* parent);
 	ConstraintComponent() = default;

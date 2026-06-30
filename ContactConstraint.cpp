@@ -1,7 +1,7 @@
 #include "ContactConstraint.h"
 #include "PhysicsEngine.h"
 
-ContactConstraint::ContactConstraint(Object* objectA, Object* objectB, glm::vec3 attachPointA, glm::vec3 attachPointB, ContactID id,
+ContactConstraint::ContactConstraint(PhysicsBody objectA, PhysicsBody objectB, glm::vec3 attachPointA, glm::vec3 attachPointB, ContactID id,
     glm::vec3 normal, float penetration, float restitution, float staticFriction, float dynamicFriction)
  {
     this->objectA = objectA;
@@ -18,13 +18,8 @@ ContactConstraint::ContactConstraint(Object* objectA, Object* objectB, glm::vec3
 }
 
 void ContactConstraint::Prepare(std::vector<SolverRow>& rows, float delta) {
-    TransformComponent* tcA = objectA->GetComponent<TransformComponent>();
-    TransformComponent* tcB = objectB->GetComponent<TransformComponent>();
-    RigidBodyComponent* pcA = objectA->GetComponent<RigidBodyComponent>();
-    RigidBodyComponent* pcB = objectB->GetComponent<RigidBodyComponent>();
-
-    glm::vec3 rA = attachPointA - tcA->GetWorldPosition();
-    glm::vec3 rB = attachPointB - tcB->GetWorldPosition();
+    glm::vec3 rA = attachPointA - *objectA.position;
+    glm::vec3 rB = attachPointB - *objectB.position;
 
     this->normalRowOffsetIndex = static_cast<int>(rows.size());
 
@@ -34,18 +29,18 @@ void ContactConstraint::Prepare(std::vector<SolverRow>& rows, float delta) {
     nJac.angularA = (rA.x * normal.y - rA.y * normal.x);
     nJac.angularB = -(rB.x * normal.y - rB.y * normal.x);
 
-    float invMassA = pcA ? pcA->inverseMass : 0.0f;
-    float invMassB = pcB ? pcB->inverseMass : 0.0f;
-    float invInertiaA = pcA ? pcA->inverseInertia : 0.0f;
-    float invInertiaB = pcB ? pcB->inverseInertia : 0.0f;
+    float invMassA = objectA.invMass ? *objectA.invMass : 0.0f;
+    float invMassB = objectB.invMass ? *objectB.invMass : 0.0f;
+    float invInertiaA = objectA.invInertia ? *objectA.invInertia : 0.0f;
+    float invInertiaB = objectB.invInertia ? *objectB.invInertia : 0.0f;
 
     float kN = invMassA * glm::length2(nJac.linearA) + invInertiaA * (nJac.angularA * nJac.angularA)
         + invMassB * glm::length2(nJac.linearB) + invInertiaB * (nJac.angularB * nJac.angularB);
     float effectiveMassNormal = (kN > 0.0f) ? 1.0f / kN : 0.0f;
 
     float relVel = 0.0f;
-    if (pcA) relVel += glm::dot(nJac.linearA, pcA->velocity) + nJac.angularA * pcA->angularVelocity;
-    if (pcB) relVel += glm::dot(nJac.linearB, pcB->velocity) + nJac.angularB * pcB->angularVelocity;
+    if (objectA.velocity && objectA.angularVelocity) relVel += glm::dot(nJac.linearA, *objectA.velocity) + nJac.angularA * *objectA.angularVelocity;
+    if (objectB.velocity && objectB.angularVelocity) relVel += glm::dot(nJac.linearB, *objectB.velocity) + nJac.angularB * *objectB.angularVelocity;
 
     const float beta = 0.2f;  
     const float slop = 0.005f; 

@@ -240,6 +240,12 @@
     <ClCompile Include="PointMass.cpp">
       <Filter>Source Files\Objects</Filter>
     </ClCompile>
+    <ClCompile Include="SoftBodySpringConstraint.cpp">
+      <Filter>Source Files\Core\Physics\Constraint</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentTypeID.cpp">
+      <Filter>Source Files\Components</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stb_image.h">
@@ -415,6 +421,12 @@
     </ClInclude>
     <ClInclude Include="PointMass.h">
       <Filter>Header Files\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="SoftBodySpringConstraint.h">
+      <Filter>Header Files\Core\Physics\Constraint</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentTypeID.h">
+      <Filter>Header Files\Components</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

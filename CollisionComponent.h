@@ -6,7 +6,7 @@
 #include "CollisionLayerMask.h"
 #include "BAHNode.h"
 
-class CollisionComponent : public Component
+class CollisionComponent : public ComponentBase<CollisionComponent>
 {
 public:
 	CollisionComponent(Object* parent);

@@ -2,7 +2,7 @@
 #include "VertexComponent.h"
 #include "ObjectManager.h"
 
-RenderComponent::RenderComponent(Object* parent, std::vector<float> vertices, Shader shader, std::string texture_path) : Component(parent) {
+RenderComponent::RenderComponent(Object* parent, std::vector<float> vertices, Shader shader, std::string texture_path) : ComponentBase<RenderComponent>(parent) {
 	Name = "Render Component";
 
 	CanRemove = false;

@@ -4,7 +4,7 @@
 #include "Object.h"
 #include <glm/glm.hpp>
 
-class RigidBodyComponent : public Component
+class RigidBodyComponent : public ComponentBase<RigidBodyComponent>
 {
 public:
 	RigidBodyComponent(Object* parent);

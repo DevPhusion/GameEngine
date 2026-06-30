@@ -1,6 +1,6 @@
 #include "SpringConstraint.h"
 
-SpringConstraint::SpringConstraint(Object* objectA, Object* objectB, glm::vec3 attachPointA, glm::vec3 attachPointB,
+SpringConstraint::SpringConstraint(PhysicsBody objectA, PhysicsBody objectB, glm::vec3 attachPointA, glm::vec3 attachPointB,
 	float length, float stiffness, float damping) :
 	Constraint(objectA, objectB, attachPointA, attachPointB) {
 	this->length = length;
@@ -10,26 +10,21 @@ SpringConstraint::SpringConstraint(Object* objectA, Object* objectB, glm::vec3 a
 }
 
 void SpringConstraint::Prepare(std::vector<SolverRow>& rows, float delta) {
-	if (objectA == nullptr || objectB == nullptr) {
+	if (objectA.obj == nullptr || objectB.obj == nullptr) {
 		return;
 	}
 
 	JacobianRow jacobian = JacobianRow();
 	SolverRow row = SolverRow();
 
-	TransformComponent* tcA = objectA->GetComponent<TransformComponent>();
-	TransformComponent* tcB = objectB->GetComponent<TransformComponent>();
-	RigidBodyComponent* pcA = objectA->GetComponent<RigidBodyComponent>();
-	RigidBodyComponent* pcB = objectB->GetComponent<RigidBodyComponent>();
-
-	glm::vec3 globalPointA = tcA->ProjectToWorld(attachPointA);
-	glm::vec3 globalPointB = tcB->ProjectToWorld(attachPointB);
+	glm::vec3 globalPointA = *objectA.transformMatrix * glm::vec4(attachPointA, 1);
+	glm::vec3 globalPointB = *objectB.transformMatrix * glm::vec4(attachPointB, 1);
 
 	glm::vec3 d = globalPointB - globalPointA;
 	float currentDistance = glm::length(d);
 	glm::vec3 d_hat = (currentDistance > 0.00001f) ? d / currentDistance : glm::vec3(0.0f);
-	glm::vec3 rA = globalPointA - tcA->GetWorldPosition();
-	glm::vec3 rB = globalPointB - tcB->GetWorldPosition();
+	glm::vec3 rA = globalPointA - *objectA.position;
+	glm::vec3 rB = globalPointB - *objectB.position;
 
 	jacobian.linearA = glm::vec3(d_hat.x, d_hat.y, 0.0f);
 	jacobian.linearB = glm::vec3(-d_hat.x, -d_hat.y, 0.0f);
@@ -40,11 +35,11 @@ void SpringConstraint::Prepare(std::vector<SolverRow>& rows, float delta) {
 
 	float k = 0.0f;
 
-	if (pcA != nullptr) {
-		k += pcA->inverseMass * glm::length2(jacobian.linearA) + pcA->inverseInertia * (jacobian.angularA * jacobian.angularA);
+	if (objectA.invMass != nullptr && objectA.invInertia != nullptr) {
+		k += *objectA.invMass * glm::length2(jacobian.linearA) + *objectA.invInertia * (jacobian.angularA * jacobian.angularA);
 	}
-	if (pcB != nullptr) {
-		k += pcB->inverseMass * glm::length2(jacobian.linearB) + pcB->inverseInertia * (jacobian.angularB * jacobian.angularB);
+	if (objectB.invMass != nullptr && objectB.invInertia != nullptr) {
+		k += *objectB.invMass * glm::length2(jacobian.linearB) + *objectB.invInertia * (jacobian.angularB * jacobian.angularB);
 	}
 
 	float softnessCFM = 0.0f;
@@ -132,8 +127,8 @@ void GenerateSegment(glm::vec2 start, glm::vec2 end, float thickness,
 }
 
 void SpringConstraint::ProcessConstraintDisplay() {
-	Object* topObject = objectA;
-	Object* bottomObject = objectB;
+	Object* topObject = objectA.obj;
+	Object* bottomObject = objectB.obj;
 
 	RenderComponent* rc = constraintDisplay->GetComponent<RenderComponent>();
 	TransformComponent* tc = constraintDisplay->GetComponent<TransformComponent>();
@@ -147,10 +142,10 @@ void SpringConstraint::ProcessConstraintDisplay() {
 	glm::vec2 botVert = glm::vec2(0);
 
 	// Project world -> screen
-	glm::vec3 top = objectA->GetComponent<TransformComponent>()->GetTransformedPoint(attachPointA);
+	glm::vec3 top = objectA.obj->GetComponent<TransformComponent>()->GetTransformedPoint(attachPointA);
 	topVert = tc->GetTransformedPoint(top, true);
 	//Project world -> screen
-	glm::vec3 bot = objectB->GetComponent<TransformComponent>()->GetTransformedPoint(attachPointB);
+	glm::vec3 bot = objectB.obj->GetComponent<TransformComponent>()->GetTransformedPoint(attachPointB);
 	botVert = tc->GetTransformedPoint(bot, true);
 	std::vector<float> vertices = {};
 
@@ -193,7 +188,7 @@ void SpringConstraint::ProcessConstraintDisplay() {
 
 	rc->UpdateShape(vertices, indices);
 
-	if (objectA != nullptr && objectB != nullptr) {
+	if (objectA.obj != nullptr && objectB.obj != nullptr) {
 		rc->SetEnabled(true);
 	}
 	else {
