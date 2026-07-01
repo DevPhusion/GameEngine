@@ -6,13 +6,61 @@ SoftBodyComponent::SoftBodyComponent(Object* parent) : ComponentBase<SoftBodyCom
 	BuildMassAggregate();
 
 	transformCallbackID = parent->GetComponent<TransformComponent>()->AddTransformCallback([this] {UpdateMassAggregate();});
+
+	if (parent->HasComponent<MouseInteractComponent>()) {
+		parent->GetComponent<MouseInteractComponent>()->physicsInteract = true;
+	}
 }
 
 void SoftBodyComponent::ProcessSoftBody(float delta) {
 	SyncMeshFromMassAggregate();
 }
 
+void SoftBodyComponent::IntegrateVelocities(float delta) {
+	for (int i = 0; i < MassAggregate.size(); i++)
+	{
+		MassAggregate[i]->IntegrateVelocities(delta);
+	}
+}
+
+void SoftBodyComponent::IntegratePositions(float delta) {
+	for (int i = 0; i < MassAggregate.size(); i++)
+	{
+		MassAggregate[i]->IntegratePositions(delta);
+	}
+}
+
 void SoftBodyComponent::ProcessInspectorUI() {
+	ImGui::Text("Mass ");
+	ImGui::SameLine();
+	float mass = 1.0f / inverseMass;
+	if (ImGui::InputFloat("##Mass", &mass, 0.0f, 0.0f, "%.3f kg")) {
+		if (mass <= 0.0f) mass = 1 / inverseMass;
+		else {
+			inverseMass = 1.0f / mass;
+			float unitInvMass = MassAggregate.size() / mass;
+
+			for (int i = 0; i < MassAggregate.size(); i++)
+			{
+				MassAggregate[i]->inverseMass = unitInvMass;
+			}
+		}
+	}
+
+	ImGui::Text("Velocity ");
+	ImGui::SameLine();
+	float vel[2] = { CenterPM->velocity.x, CenterPM->velocity.y };
+	if (ImGui::InputFloat2("##Velocity", vel, "%.3f m/s")) {
+		CenterPM->velocity.x = vel[0];
+		CenterPM->velocity.y = vel[1];
+	}
+
+	ImGui::Text("Acceleration ");
+	ImGui::SameLine();
+	glm::vec3 finalAccel = CenterPM->baseAcceleration + CenterPM->accleration;
+	float accel[2] = { finalAccel.x, finalAccel.y };
+	ImGui::InputFloat2("##Acceleration", accel, "%.3f m/s", ImGuiInputTextFlags_ReadOnly);
+
 	ImGui::Text("Stiffness ");
 	ImGui::SameLine();
 	if (ImGui::InputFloat("##Stiffness ", &stiffness, 0.0f, 0.0f, "%.3f N/m")) {
@@ -29,6 +77,11 @@ void SoftBodyComponent::ProcessInspectorUI() {
 		{
 			springs[i]->damping = damping;
 		}
+	}
+
+	if (ImGui::Button("Reset shape")) {
+		parent->GetComponent<RenderComponent>()->SetShape(parent->GetComponent<RenderComponent>()->currentShape);
+		parent->GetComponent<TransformComponent>()->SetRotationCenter(parent->GetComponent<RenderComponent>()->GetCenter());
 	}
 }
 
@@ -61,10 +114,10 @@ void SoftBodyComponent::UpdateMassAggregate() {
 	for (int i = 0; i < rc->points.size(); i++)
 	{
 		glm::vec3 p = glm::vec3(rc->points[i][0], rc->points[i][1], 0.0f);
-		MassAggregate[i]->worldPos = tc->ProjectToWorld(p);
+		MassAggregate[i]->UpdateWorldPosition(tc->ProjectToWorld(p));
 	}
 
-	MassAggregate[MassAggregate.size() - 1]->worldPos = tc->GetWorldPosition();
+	MassAggregate[MassAggregate.size() - 1]->UpdateWorldPosition(tc->GetWorldPosition());
 	updatingFromParent = false;
 }
 
@@ -76,7 +129,7 @@ void SoftBodyComponent::SyncMeshFromMassAggregate() {
 	RenderComponent* rc = parent->GetComponent<RenderComponent>();
 	TransformComponent* tc = parent->GetComponent<TransformComponent>();
 
-	PointMass* centerPM = MassAggregate.back();
+	PointMass* centerPM = MassAggregate.back().get();
 	int edgeCount = (int)MassAggregate.size() - 1;
 
 	glm::vec3 newOrigin = centerPM->worldPos;
@@ -116,42 +169,44 @@ void SoftBodyComponent::BuildMassAggregate() {
 	{
 		glm::vec3 p = glm::vec3(rc->points[i][0], rc->points[i][1], 0.0f);
 		std::unique_ptr<PointMass> pm = std::make_unique<PointMass>(Shader("vertex.txt", "fragment.txt"), this, tc->ProjectToWorld(p), i, false);
-		MassAggregate.push_back(pm.get());
+		MassAggregate.push_back(std::move(pm));
+	}
+	
+	std::unique_ptr<PointMass> pm = std::make_unique<PointMass>(Shader("vertex.txt", "fragment.txt"), this, tc->GetWorldPosition(), MassAggregate.size(), true);
+	MassAggregate.push_back(std::move(pm));
+
+	for (int i = 0; i < MassAggregate.size(); i++)
+	{
+		MassAggregate[i]->inverseMass = inverseMass / MassAggregate.size();
 	}
 
-	std::unique_ptr<PointMass> pm = std::make_unique<PointMass>(Shader("vertex.txt", "fragment.txt"), this, tc->GetWorldPosition(), MassAggregate.size(), true);
-	PointMass* centerPM = pm.get();
-	MassAggregate.push_back(centerPM);
+	int edgeCount = MassAggregate.size() - 1;
+	CenterPM = MassAggregate.back().get();
 
-	std::cout << ObjectManager::getInstance().allObjects.size() << std::endl;
-	
-	int edgeCount = MassAggregate.size() - 1; // excludes center
-
-	// Edge springs (perimeter)
 	for (int i = 0; i < edgeCount; i++)
 	{
-		PointMass* pmA = MassAggregate[i];
-		PointMass* pmB = MassAggregate[(i + 1) % edgeCount];
+		PointMass* pmA = MassAggregate[i].get();
+		PointMass* pmB = MassAggregate[(i + 1) % edgeCount].get();
 
 		glm::vec3 posA = pmA->worldPos;
 		glm::vec3 posB = pmB->worldPos;
 		float restLength = glm::length(posB - posA);
 
-		SoftBodySpringConstraint* spring = new SoftBodySpringConstraint(PhysicsBody(), PhysicsBody(), glm::vec3(0), glm::vec3(0), restLength, stiffness, damping);
+		SoftBodySpringConstraint* spring = new SoftBodySpringConstraint(pmA->body, pmB->body, glm::vec3(0), glm::vec3(0), restLength, stiffness, damping);
 		PhysicsEngine::getInstance().RegisterConstraint(spring);
 		springs.push_back(spring);
 	}
-	
+
 	// Spoke springs (center to each vertex)
 	for (int i = 0; i < edgeCount; i++)
 	{
-		PointMass* pmV = MassAggregate[i];
+		PointMass* pmV = MassAggregate[i].get();
 
 		glm::vec3 posV = pmV->worldPos;
-		glm::vec3 posC = centerPM->worldPos;
+		glm::vec3 posC = CenterPM->worldPos;
 		float restLength = glm::length(posV - posC);
 
-		SoftBodySpringConstraint* spring = new SoftBodySpringConstraint(PhysicsBody(), PhysicsBody(), glm::vec3(0), glm::vec3(0), restLength, stiffness, damping);
+		SoftBodySpringConstraint* spring = new SoftBodySpringConstraint(CenterPM->body, pmV->body, glm::vec3(0), glm::vec3(0), restLength, stiffness, damping);
 		PhysicsEngine::getInstance().RegisterConstraint(spring);
 		springs.push_back(spring);
 	}
@@ -161,18 +216,16 @@ void SoftBodyComponent::BuildMassAggregate() {
 	if (edgeCount >= 4) {
 		for (int i = 0; i < edgeCount; i++)
 		{
-			PointMass* pmA = MassAggregate[i];
-			PointMass* pmB = MassAggregate[(i + 2) % edgeCount];
+			PointMass* pmA = MassAggregate[i].get();
+			PointMass* pmB = MassAggregate[(i + 2) % edgeCount].get();
 
 			glm::vec3 posA = pmA->worldPos;
 			glm::vec3 posB = pmB->worldPos;
 			float restLength = glm::length(posB - posA);
 
-
-			SoftBodySpringConstraint* spring = new SoftBodySpringConstraint(PhysicsBody(), PhysicsBody(), glm::vec3(0), glm::vec3(0), restLength, stiffness, damping);
+			SoftBodySpringConstraint* spring = new SoftBodySpringConstraint(pmA->body, pmB->body, glm::vec3(0), glm::vec3(0), restLength, stiffness, damping);
 			PhysicsEngine::getInstance().RegisterConstraint(spring);
 			springs.push_back(spring);
 		}
 	}
-
 }

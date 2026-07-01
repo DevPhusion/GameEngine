@@ -23,15 +23,7 @@ void MouseInteractComponent::CopyTo(Object* other) {
 }
 
 void MouseInteractComponent::ProcessInspectorUI() {
-	if (!this->parent->GetComponent<TransformComponent>()->Enabled) {
-		SetEnabled(false);
-	}
-
-	if (parent->HasComponent<RigidBodyComponent>()) {
-		ImGui::Text("Physics Interact ");
-		ImGui::SameLine();
-		ImGui::Checkbox("## Physics Interact", &physicsInteract);
-	}
+	return;
 }
 
 void MouseInteractComponent::OnDelete() {
@@ -92,13 +84,21 @@ void MouseInteractComponent::FindSelectedPolygon(int button, int action, int mod
 			ObjectSelected = true;
 			
 			if (physicsInteract && EngineManager::getInstance().EnginePhysicsMode == EngineManager::PhysicsMode::Simulate) {
-				if (mouseDragForce != nullptr) {
-					PhysicsEngine::getInstance().UnRegisterForce(parent, mouseDragForce);
+				if (parent->HasComponent<RigidBodyComponent>()) {
+					if (mouseDragForce != nullptr) {
+						PhysicsEngine::getInstance().UnRegisterForce(parent, mouseDragForce);
+					}
+
+					mouseDragForce = new MouseDrag(150.0f, 24.5f);
+					PhysicsEngine::getInstance().RegisterForce(parent, mouseDragForce);
 				}
 
-				mouseDragForce = new MouseDrag(150.0f, 24.5f);
-				PhysicsEngine::getInstance().RegisterForce(parent, mouseDragForce);
+				if (parent->HasComponent<SoftBodyComponent>()) {
+					SoftBodyComponent* sb = parent->GetComponent<SoftBodyComponent>();
+					sb->isDragging = true;
+				}
 			}
+
 			SetSelectedPolygon(parent, true);
 		}
 		else {
@@ -109,12 +109,19 @@ void MouseInteractComponent::FindSelectedPolygon(int button, int action, int mod
 
 	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
 		if (!Selected && physicsInteract && EngineManager::getInstance().EnginePhysicsMode == EngineManager::PhysicsMode::Simulate) {
-			if (mouseDragForce != nullptr) {
-				PhysicsEngine::getInstance().UnRegisterForce(parent, mouseDragForce);
+			if (parent->HasComponent<RigidBodyComponent>()) {
+				if (mouseDragForce != nullptr) {
+					PhysicsEngine::getInstance().UnRegisterForce(parent, mouseDragForce);
+				}
+
+				mouseDragForce = new MouseDrag(150.0f, 24.5f);
+				PhysicsEngine::getInstance().RegisterForce(parent, mouseDragForce);
 			}
 
-			mouseDragForce = new MouseDrag(150.0f, 24.5f);
-			PhysicsEngine::getInstance().RegisterForce(parent, mouseDragForce);
+			if (parent->HasComponent<SoftBodyComponent>()) {
+				SoftBodyComponent* sb = parent->GetComponent<SoftBodyComponent>();
+				sb->isDragging = true;
+			}
 		}
 		Selected = true;
 	}
@@ -148,6 +155,11 @@ void MouseInteractComponent::DragPolygon(double xpos, double ypos) {
 		if (mouseDragForce != nullptr && physicsInteract) {
 			PhysicsEngine::getInstance().UnRegisterForce(parent, mouseDragForce);
 			mouseDragForce = nullptr;
+		}
+		
+		if (parent->HasComponent<SoftBodyComponent>()) {
+			SoftBodyComponent* sb = parent->GetComponent<SoftBodyComponent>();
+			sb->isDragging = false;
 		}
 	}
 }

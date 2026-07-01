@@ -38,6 +38,13 @@ void Renderer::Draw() {
         if (obj->HasComponent<TransformComponent>()) {
            obj->GetComponent<TransformComponent>()->ProcessTransform();
         }
+        SoftBodyComponent* sb = obj->GetComponent<SoftBodyComponent>();
+        if (sb) {
+            for (int i = 0; i < sb->MassAggregate.size(); i++)
+            {
+                sb->MassAggregate[i]->ProcessTransform();
+            }
+        }
     }
 
     if (EngineManager::getInstance().debugMode) {
@@ -50,6 +57,17 @@ void Renderer::Draw() {
         {
             DebugPoint point = DebugPoint();
             point.DrawPoint(PhysicsEngine::getInstance().allContactPoints[i].point, 15, Shader("vertex.txt", "fragment.txt"));
+        }
+
+        for (int i = 0; i < (*allObjects).size(); i++)
+        {
+            SoftBodyComponent* sb = (*allObjects)[i]->GetComponent<SoftBodyComponent>();
+			if (sb) {
+				for (int j = 0; j < sb->MassAggregate.size(); j++)
+				{
+					sb->MassAggregate[j]->DrawDebug();
+				}
+			}
         }
 
         glLineWidth(1.0f);

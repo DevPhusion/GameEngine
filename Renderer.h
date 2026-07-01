@@ -3,6 +3,7 @@
 #include "Object.h"
 #include "RenderComponent.h"
 #include "TransformComponent.h"
+#include "SoftBodyComponent.h"
 #include "PhysicsEngine.h"
 #include "InfiniteGrid.h"
 #include<glad/glad.h>

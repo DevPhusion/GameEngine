@@ -2,6 +2,7 @@
 #include "Component.h"
 #include "InputManager.h"
 #include "Object.h"
+#include "SoftBodyComponent.h"
 #include "TransformComponent.h"
 #include "RenderComponent.h"
 #include "EngineManager.h"

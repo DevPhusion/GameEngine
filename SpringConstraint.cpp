@@ -10,9 +10,7 @@ SpringConstraint::SpringConstraint(PhysicsBody objectA, PhysicsBody objectB, glm
 }
 
 void SpringConstraint::Prepare(std::vector<SolverRow>& rows, float delta) {
-	if (objectA.obj == nullptr || objectB.obj == nullptr) {
-		return;
-	}
+	if (objectA.position == nullptr || objectB.position == nullptr) return;
 
 	JacobianRow jacobian = JacobianRow();
 	SolverRow row = SolverRow();
@@ -23,6 +21,7 @@ void SpringConstraint::Prepare(std::vector<SolverRow>& rows, float delta) {
 	glm::vec3 d = globalPointB - globalPointA;
 	float currentDistance = glm::length(d);
 	glm::vec3 d_hat = (currentDistance > 0.00001f) ? d / currentDistance : glm::vec3(0.0f);
+
 	glm::vec3 rA = globalPointA - *objectA.position;
 	glm::vec3 rB = globalPointB - *objectB.position;
 

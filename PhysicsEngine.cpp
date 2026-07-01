@@ -24,6 +24,7 @@ void PhysicsEngine::ProcessPhysics(float delta) {
 		}
 		if ((*allObjects)[i]->HasComponent<SoftBodyComponent>()) {
 			(*allObjects)[i]->GetComponent<SoftBodyComponent>()->ProcessSoftBody(delta);
+			(*allObjects)[i]->GetComponent<SoftBodyComponent>()->IntegrateVelocities(delta);
 		}
 		if ((*allObjects)[i]->HasComponent<CollisionComponent>()) {
 			(*allObjects)[i]->GetComponent<RenderComponent>()->color = glm::vec4(1);
@@ -44,6 +45,9 @@ void PhysicsEngine::ProcessPhysics(float delta) {
 	{
 		if ((*allObjects)[i]->HasComponent<RigidBodyComponent>()) {
 			(*allObjects)[i]->GetComponent<RigidBodyComponent>()->IntegratePositions(delta);
+		}
+		if ((*allObjects)[i]->HasComponent<SoftBodyComponent>()) {
+			(*allObjects)[i]->GetComponent<SoftBodyComponent>()->IntegratePositions(delta);
 		}
 	}
 }

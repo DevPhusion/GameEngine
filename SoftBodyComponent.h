@@ -9,16 +9,21 @@ public:
 	SoftBodyComponent(Object* parent);
 	SoftBodyComponent() = default;
 
-	std::vector<PointMass*> MassAggregate = {};
+	std::vector<std::unique_ptr<PointMass>> MassAggregate = {};
 	std::vector<SoftBodySpringConstraint*> springs = {};
 
-	float mass;
-	float acceleration;
+	PointMass* CenterPM = nullptr;
 
-	float stiffness = 50.0f;
-	float damping = 10.0f;
+	bool isDragging;
+
+	float inverseMass = 1.0f;
+
+	float stiffness = 0.5f;
+	float damping = 0.001f;
 
 	void ProcessSoftBody(float delta);
+	void IntegrateVelocities(float delta);
+	void IntegratePositions(float delta);
 	void BuildMassAggregate();
 	void UpdateMassAggregate();
 	void SyncMeshFromMassAggregate();
