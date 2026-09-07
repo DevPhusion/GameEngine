@@ -131,3 +131,8 @@ Fusion Engine is under active development. These are some upcoming features plan
 | Sound / Audio support | In Development | ░░░░░░░░░░ 0% |
 | Smoke simulation | In Development | ░░░░░░░░░░ 0% |
 | Editor UI update and themes | In Development | ░░░░░░░░░░ 0% |
+
+## Contact
+
+- **Email:** devphusion@gmail.com
+- **Discord:** devphusion
